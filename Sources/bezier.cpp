@@ -4,6 +4,11 @@
 #include <iostream>
 #include <vector>
 
+// Testing
+#include <random>
+
+
+
 template <typename Scalar, unsigned int max_degree>
 class BinomialCoefficientLookupTableCreator {
  public:
@@ -32,7 +37,18 @@ template <unsigned int space_dim, typename BaseType = double>
 class Point : public std::array<BaseType, space_dim> {
  public:
   constexpr Point(const Point&) = default;
+
   constexpr Point() = default;
+
+  template <typename... scalar>
+  explicit constexpr Point(const scalar&... coords)
+      : std::array<BaseType, space_dim>{coords...} {
+    static_assert(sizeof...(coords) == space_dim,
+                  "Base Logical Error: You are "
+                  "instantiating a Point object with "
+                  "more or less than "
+                  "space_dim components.");
+  }
 
   constexpr Point operator+(const Point& rhs) const {
     Point<space_dim, BaseType> sum{(*this)};
@@ -51,21 +67,22 @@ class Point : public std::array<BaseType, space_dim> {
     for (unsigned int i = 0; i < space_dim; ++i) (*this)[i] *= scale;
   }
 
-  template <typename... scalar>
-  explicit constexpr Point(const scalar&... coords)
-      : std::array<BaseType, space_dim>{coords...} {
-    static_assert(sizeof...(coords) == space_dim,
-                  "Base Logical Error: You are "
-                  "instantiating a Point object with "
-                  "more or less than "
-                  "space_dim components.");
-  }
-
   Point operator*(const double& scale) const {
     Point<space_dim, BaseType> product;
     for (unsigned int i = 0; i < space_dim; ++i)
       product.at(i) = (*this)[i] * scale;
     return product;
+  }
+
+  template<typename Scalar>
+  decltype(Scalar{} * BaseType{}) 
+  operator*(const Point<space_dim,Scalar>& point) const {
+    using ScalarReturn = decltype(Scalar{} * BaseType{});
+    ScalarReturn result{};
+    for (unsigned int i{}; i < space_dim; i++){
+      result += (*this)[i] * point[i];
+    }
+    return result;
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Point& p) {
@@ -101,13 +118,14 @@ class FastBinomialCoefficient {
   }
 };
 
-template <std::size_t parametric_dimension, std::size_t physical_dimension,
-          typename Scalar>
+template< std::size_t parametric_dimension, 
+          typename PhysicalPointType,
+          typename ScalarType = typename PhysicalPointType::Scalar>
 class BezierSpline {
  private:
   using IndexingType = std::size_t;
-  using PointTypePhysical = Point<physical_dimension, Scalar>;
-  using PointTypeParametric = Point<parametric_dimension, Scalar>;
+  using PointTypePhysical_ = PhysicalPointType;
+  using PointTypeParametric_ = Point<parametric_dimension, ScalarType>;
 
   constexpr void update_index_offsets() {
     index_offsets[0] = 1;
@@ -115,79 +133,113 @@ class BezierSpline {
       index_offsets[i] = index_offsets[i - 1] * (degrees[i - 1] + 1);
   }
 
-  constexpr std::array<IndexingType, parametric_dimension>
-  local_to_global_index(const IndexingType& local_index) {
-    std::array<IndexingType, parametric_dimension> indexList{};
-    for (unsigned int i{0}; i < parametric_dimension; i++) {
-      indexList[i] = (local_index / index_offsets[i]) % (degrees[i] + 1);
-    }
-    return indexList;
+ public:
+   using ScalarType_ = ScalarType;
+
+   /// Polynomial degrees
+   std::array<IndexingType, parametric_dimension> degrees;
+   /// Offsets in Row based control point storage
+   std::array<IndexingType, parametric_dimension> index_offsets;
+   /// Number of control points
+   IndexingType NumberOfControlPoints{};
+   /// List of all control points in "Row-based" order
+   std::vector<PointTypePhysical_> control_points{};
+
+   /*
+    * Retrieve individual indices
+    *
+    * @param local_indices single value index as control point index
+    */
+   constexpr std::array<IndexingType, parametric_dimension>
+   local_to_global_index(const IndexingType &local_index)
+   {
+     std::array<IndexingType, parametric_dimension> indexList{};
+     for (unsigned int i{0}; i < parametric_dimension; i++)
+     {
+       indexList[i] = (local_index / index_offsets[i]) % (degrees[i] + 1);
+     }
+     return indexList;
   }
 
   /*
-   * Using the notation in Gershons diss (eq. 2.13)
+   * Calculate the new control point that result from the multiplication
+   * between two bezier splines
+   * Note : Using the notation in Gershons diss (eq. 2.13)
    */
-  template <typename ScalarLHS, typename ScalarRHS, typename... T>
+  template <typename PhysicalPointLHS, typename ScalarLHS,
+            typename PhysicalPointRHS, typename ScalarRHS, typename... T>
   constexpr void product_combine_control_points(
-      const BezierSpline<parametric_dimension, physical_dimension, ScalarLHS>&
-          lhs,
-      const BezierSpline<parametric_dimension, physical_dimension, ScalarLHS>&
-          rhs,
+      const BezierSpline<parametric_dimension, PhysicalPointLHS, ScalarLHS>&
+          P_spline,
+      const BezierSpline<parametric_dimension, PhysicalPointRHS, ScalarRHS>&
+          Q_spline,
       const std::array<IndexingType, parametric_dimension>& ctpsIndex,
-      const Scalar factor,
-      const T&... indices) {
-    const IndexingType depth = sizeof...(indices);
-    const auto k = ctpsIndex[depth];
-    const auto m = lhs.degrees[depth];
-    const auto n = rhs.degrees[depth];
-    for (IndexingType i{std::max(0, k - n)}; i < std::max(k, m); i++){
+      const ScalarType factor, const T&... indices) {
+    // Some constant indices and degrees
+    const int depth = sizeof...(indices);
+    const int k = ctpsIndex[depth];
+    const int m = P_spline.degrees[depth];
+    const int n = Q_spline.degrees[depth];
+
+    // Loop over current parametric domain
+    for (int i{std::max(0, k - n)};
+         i <= std::min(k, m); i++) {
       // Calculate Factor
-      const Scalar lFactor =
-          static_cast<Scalar>(FastBinomialCoefficient::choose(m, i) *
-                              FastBinomialCoefficient::choose(n, k - i)) /
-          static_cast<Scalar>(FastBinomialCoefficient::choose(m + n, k));
-      
+      const ScalarType lFactor =
+          static_cast<ScalarType>(FastBinomialCoefficient::choose(m, i) *
+                                  FastBinomialCoefficient::choose(n, k - i)) /
+          static_cast<ScalarType>(FastBinomialCoefficient::choose(m + n, k));
+
       // Now decide if continue recursion
-      if constexpr (depth == parametric_dimension){
-        (*this).control_point(ctpsIndex) = lhs.control_point(indices...) * rhs.control_points(indices...) * factor * lFactor;
+      if constexpr ((depth + 1) == parametric_dimension){
+          const std::array<IndexingType, parametric_dimension> ind_lhs{static_cast<IndexingType>(indices)..., static_cast<IndexingType>(i)};
+          std::array<IndexingType,
+                     parametric_dimension> ind_rhs{};
+          for (unsigned int j{}; j < parametric_dimension; j++) {
+            ind_rhs[j] = ctpsIndex[j] - ind_lhs[j];
+          }
+          (*this).control_point(ctpsIndex) += P_spline.control_point(ind_lhs) *
+                                          Q_spline.control_point(ind_rhs) *
+                                          factor * lFactor;
       } else {
-        product_combine_control_points(lhs, rhs, ctpsIndex, factor * lFactor, indices..., i);
+        product_combine_control_points(P_spline, Q_spline, ctpsIndex, factor * lFactor, indices..., i);
       }
     }
   }
 
- public:
-  std::array<IndexingType, parametric_dimension> degrees;
-  std::array<IndexingType, parametric_dimension> index_offsets;
-  IndexingType n_ctps{};
-  std::vector<PointTypePhysical> control_points{};
-
+  /// Copy constructor
   constexpr BezierSpline(const BezierSpline& bezier_spline) = default;
 
+  /// Empty constructor
+  constexpr BezierSpline() = default;
+
+  /// Empty constructor
   constexpr BezierSpline(
       const std::array<std::size_t, parametric_dimension> deg)
       : degrees{deg} {
-    n_ctps = 1u;
+    NumberOfControlPoints = 1u;
     for (unsigned int i{}; i < parametric_dimension; i++)
-      n_ctps *= degrees[i] + 1;
-    control_points.resize(n_ctps);
+      NumberOfControlPoints *= degrees[i] + 1;
+    control_points.resize(NumberOfControlPoints);
     update_index_offsets();
   };
 
+  /// Constructor with control point list
   constexpr BezierSpline(
       const std::array<std::size_t, parametric_dimension> deg,
-      const std::vector<PointTypePhysical> points)
+      const std::vector<PointTypePhysical_> points)
       : degrees{deg}, control_points{points} {
-    n_ctps = 1u;
+    NumberOfControlPoints = 1u;
     for (unsigned int i{}; i < parametric_dimension; i++)
-      n_ctps *= degrees[i] + 1;
+      NumberOfControlPoints *= degrees[i] + 1;
 
     update_index_offsets();
-    assert(n_ctps == points.size());
+    assert(NumberOfControlPoints == points.size());
   };
 
+  /// Retrieve single control point from local indices
   template <typename... T>
-  constexpr PointTypePhysical& control_point(const T... index) {
+  constexpr const PointTypePhysical_& control_point(const T... index) const {
     static_assert(sizeof...(T) == parametric_dimension,
                   "Unspecified number of indices.");
     unsigned int c_i{0}, i{};
@@ -195,7 +247,28 @@ class BezierSpline {
     return control_points[c_i];
   }
 
-  constexpr PointTypePhysical& control_point(
+  /// Retrieve single control point from local indices
+  template <typename... T>
+  constexpr PointTypePhysical_& control_point(const T... index) {
+    static_assert(sizeof...(T) == parametric_dimension,
+                  "Unspecified number of indices.");
+    unsigned int c_i{0}, i{};
+    ((c_i += index_offsets[i++] * index), ...);
+    return control_points[c_i];
+  }
+
+  /// Retrieve single control point from local indices (as array)
+  constexpr const PointTypePhysical_& control_point(
+      const std::array<IndexingType, parametric_dimension>& index) const {
+    unsigned int c_i{0}, i{};
+    for (unsigned int i{}; i < parametric_dimension; i++) {
+      c_i += index_offsets[i] * index[i];
+    }
+    return control_points[c_i];
+  }
+
+  /// Retrieve single control point from local indices (as array)
+  constexpr PointTypePhysical_& control_point(
       const std::array<IndexingType, parametric_dimension>& index) {
     unsigned int c_i{0}, i{};
     for (unsigned int i{}; i < parametric_dimension; i++) {
@@ -204,26 +277,28 @@ class BezierSpline {
     return control_points[c_i];
   }
 
+  /// Order elevation along a specific parametric dimension
   constexpr BezierSpline& order_elevate_along_parametric_dimension(
       const IndexingType par_dim) {
     // Calculate index Offsets to facilitate working on 1D array
-    const unsigned int n_starting_points = (n_ctps / (degrees[par_dim] + 1));
+    const unsigned int n_starting_points = (NumberOfControlPoints / (degrees[par_dim] + 1));
     const unsigned int starting_point_offset =
         index_offsets[par_dim] * (degrees[par_dim] + 1);
     const int starting_points_per_group = index_offsets[par_dim];
     const int n_groups = n_starting_points / starting_points_per_group;
 
     // Resize the CTPS vector accordingly
-    n_ctps = n_ctps / (degrees[par_dim] + 1) * (degrees[par_dim] + 2);
-    control_points.resize(n_ctps);
+    NumberOfControlPoints = NumberOfControlPoints / (degrees[par_dim] + 1) * (degrees[par_dim] + 2);
+    control_points.resize(NumberOfControlPoints);
     degrees[par_dim]++;
 
     // Local Counter
-    unsigned int global_index = n_ctps - 1;
+    unsigned int global_index = NumberOfControlPoints - 1;
 
     // Precalculations
-    const Scalar inverse_factor =
-        static_cast<Scalar>(1) / static_cast<Scalar>(degrees[par_dim]);
+    const ScalarType_ inverse_factor =
+        static_cast<ScalarType_>(1) /
+        static_cast<ScalarType_>(degrees[par_dim]);
     const IndexingType variable_offset_factor =
         index_offsets[par_dim] * (degrees[par_dim] - 1);
 
@@ -251,7 +326,8 @@ class BezierSpline {
       for (IndexingType i{degrees[par_dim] - 1}; i > 0; i -= 1) {
         for (int index_in_group{starting_points_per_group - 1};
              index_in_group >= 0; index_in_group--) {
-          const Scalar factor = static_cast<Scalar>(i) * inverse_factor;
+          const ScalarType_ factor =
+              static_cast<ScalarType_>(i) * inverse_factor;
 
           control_points[global_index] =
               control_points[first_index_in_group + index_in_group +
@@ -277,15 +353,16 @@ class BezierSpline {
     return (*this);
   }
 
-  constexpr PointTypePhysical evaluate(
-      const PointTypeParametric& par_coords) const {
+  /// Evaluate the spline via the deCasteljau algorithm
+  constexpr PointTypePhysical_ evaluate(
+      const PointTypeParametric_& par_coords) const {
     // Work on copy of control_point
-    std::vector<PointTypePhysical> ctps_copy{control_points};
-    IndexingType ctps_to_consider = n_ctps;
+    std::vector<PointTypePhysical_> ctps_copy{control_points};
+    IndexingType ctps_to_consider = NumberOfControlPoints;
 
     for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-      Scalar factor = par_coords[par_dim];
-      Scalar inv_factor = 1. - par_coords[par_dim];
+      ScalarType_ factor = par_coords[par_dim];
+      ScalarType_ inv_factor = 1. - par_coords[par_dim];
 
       ctps_to_consider /= degrees[par_dim] + 1;
 
@@ -306,24 +383,30 @@ class BezierSpline {
     return ctps_copy[0];
   }
 
-  template <typename ScalarRHS>
-  constexpr BezierSpline<parametric_dimension, physical_dimension,
-                         decltype(Scalar{} * ScalarRHS{})>
-  operator+(const BezierSpline<parametric_dimension, physical_dimension,
-                               ScalarRHS>& rhs) {
+  template <typename PointTypeRHS, typename ScalarRHS>
+  constexpr BezierSpline<parametric_dimension,
+                         decltype(PhysicalPointType{} + PointTypeRHS{}),
+                         decltype(ScalarType_{} + ScalarRHS{})>
+  operator+(
+      const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs) {
     // Initialize return value
-    using ScalarReturnT = decltype(Scalar{} * ScalarRHS{});
-    BezierSpline<parametric_dimension, physical_dimension, ScalarReturnT>
+    using PointTypeReturnT = decltype(PhysicalPointType{} + PointTypeRHS{});
+    using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
+
+    BezierSpline<parametric_dimension, PointTypeReturnT, ScalarReturnT>
         return_spline(degrees, control_points);
 
+    // Check if the right hand side requires a copy as it should not be
+    // altered for this purpose
     bool rhs_needs_copy = false;
     for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
       rhs_needs_copy =
           rhs_needs_copy || (degrees[par_dim] > rhs.degrees[par_dim]);
     }
+
+    // If the RHS needs a copy call function recursively
     if (rhs_needs_copy) {
-      BezierSpline<parametric_dimension, physical_dimension, ScalarRHS>
-          rhs_copy{rhs};
+      BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS> rhs_copy{rhs};
       for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
         while (degrees[par_dim] > rhs_copy.degrees[par_dim]) {
           rhs_copy.order_elevate_along_parametric_dimension(par_dim);
@@ -336,39 +419,46 @@ class BezierSpline {
           return_spline.order_elevate_along_parametric_dimension(par_dim);
         }
       }
-      for (IndexingType i_ctps{}; i_ctps < return_spline.n_ctps; i_ctps++) {
+      for (IndexingType i_ctps{}; i_ctps < return_spline.NumberOfControlPoints; i_ctps++) {
         return_spline.control_points[i_ctps] += rhs.control_points[i_ctps];
       }
       return return_spline;
     }
   }
 
-  template <typename ScalarRHS>
-  constexpr BezierSpline<parametric_dimension, physical_dimension,
-                         decltype(Scalar{} * ScalarRHS{})>
-  operator*(const BezierSpline<parametric_dimension, physical_dimension,
-                               ScalarRHS>& rhs) {
+  template <typename PointTypeRHS, typename ScalarRHS>
+  constexpr BezierSpline<parametric_dimension,
+                         decltype(PhysicalPointType{} * PointTypeRHS{}),
+                         decltype(ScalarType_{} * ScalarRHS{})>
+  operator*(
+      const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs) {
     // This multiplication operator is based on the algorithm
     // presented in the thesis from G. Elber (1992)
 
     // Initialize return value
-    using ScalarReturnT = decltype(Scalar{} * ScalarRHS{});
+    using PointTypeReturnT = decltype(PhysicalPointType{} * PointTypeRHS{});
+    using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
+
+    // Determine the degrees of the resulting spline
     std::array<IndexingType, parametric_dimension> product_degrees;
     for (IndexingType param_dim{}; param_dim < parametric_dimension;
          param_dim++) {
       product_degrees[param_dim] = degrees[param_dim] + rhs.degrees[param_dim];
     }
-    BezierSpline<parametric_dimension, physical_dimension, ScalarReturnT>
+
+    // Initialize the return type
+    BezierSpline<parametric_dimension, PointTypeReturnT, ScalarReturnT>
         return_spline(product_degrees);
 
     // Start calculating the new control points
-    for (IndexingType i{}; i < return_spline.n_ctps; i++){
+    for (IndexingType i{}; i < return_spline.NumberOfControlPoints; i++){
       return_spline.product_combine_control_points(
         (*this), 
         rhs, 
         return_spline.local_to_global_index(i), 
         static_cast<ScalarReturnT>(1.));
     }
+    return return_spline;
   }
 };
 
@@ -377,7 +467,7 @@ int main() {
   const unsigned int n_x{1}, n_y{1}, n_z{1};
 
   auto spline_test =
-      BezierSpline<3, 3, double>(std::array<std::size_t, 3>{n_x, n_y, n_z});
+      BezierSpline<3u, Point<3,double>, double>(std::array<std::size_t, 3>{n_x, n_y, n_z});
 
   for (unsigned int i{0}; i <= n_x; i++) {
     for (unsigned int j{0}; j <= n_y; j++) {
@@ -388,22 +478,59 @@ int main() {
     }
   }
 
-  BezierSpline<3, 3, double> spline_test_copy{spline_test};
+  BezierSpline<3u, Point<3, double>, double> spline_test_copy{spline_test};
 
-  spline_test.order_elevate_along_parametric_dimension(1);
+  const auto sum_spline = spline_test * spline_test_copy;
 
-  const auto sum_spline = spline_test + spline_test_copy;
-
-  for (unsigned int i{0}; i < sum_spline.n_ctps; i++) {
-    std::cout << "[";
-    for (unsigned int dim{0}; dim < 3; dim++) {
-      std::cout << " " << sum_spline.control_points[i][dim];
-    }
-    std::cout << " ] " << i << std::endl;
+  for (unsigned int i{0}; i < sum_spline.NumberOfControlPoints; i++) {
+      std::cout << sum_spline.control_points[i];
+    std::cout << " : " << i << std::endl;
   }
 
-  const auto eval_point = sum_spline.evaluate(Point<3, double>{0.2, .7, .5});
-  for (unsigned int i{0}; i < 3; i++) std::cout << eval_point[i] << std::endl;
+  for (int i{}; i < 10; i++){
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)},
+        y{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)},
+        z{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    const auto eval_point = sum_spline.evaluate(Point<3, double>{x,y,z});
+    const auto eval_point1 = spline_test.evaluate(Point<3, double>{x, y, z});
+    const auto eval_point2 =
+        spline_test_copy.evaluate(Point<3, double>{x, y, z});
+
+    std::cout << std::setw(5) << std::setprecision(3) 
+              << "Result :\t"
+              << eval_point << "\tVec1 :\t" << eval_point1 << "\tVec2 :\t"
+              << eval_point2 << "\tExpected Result :\t"
+              << eval_point1 * eval_point2 << std::endl;
+  }
+
+  // // Second Test
+  // BezierSpline<1u, Point<3, double>, double> line0{{1}};
+  // BezierSpline<1u, Point<3, double>, double> line1{{2}};
+
+  // line0.control_point(0) = Point<3u, double>{1, 0, 0};
+  // line0.control_point(1) = Point<3u, double>{1, 1, 0};
+  // line1.control_point(0) = Point<3u, double>{1, 0, 0};
+  // line1.control_point(1) = Point<3u, double>{1, 1, 0};
+  // line1.control_point(2) = Point<3u, double>{1, 2, 0};
+
+  // const auto line_product = line0 * line1;
+
+  // for (unsigned int i{0}; i < line_product.NumberOfControlPoints; i++) {
+  //   std::cout << line_product.control_points[i];
+  //   std::cout << " : " << i << std::endl;
+  // }
+
+  // for (int i{}; i < 10; i++) {
+  //   const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+  //   const auto eval_point = line_product.evaluate(Point<1, double>{x});
+  //   const auto eval_point1 = line0.evaluate(Point<1, double>{x});
+  //   const auto eval_point2 = line1.evaluate(Point<1, double>{x});
+
+  //   std::cout << std::setw(5) << std::setprecision(3) << "Result :\t"
+  //             << eval_point << "\tVec1 :\t" << eval_point1 << "\tVec2 :\t"
+  //             << eval_point2 << "\tExpected Result :\t"
+  //             << eval_point1 * eval_point2 << std::endl;
+  // }
 
   return 0;
 }

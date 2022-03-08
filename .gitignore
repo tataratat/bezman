@@ -33,3 +33,7 @@
 
 # Exclude the VScode folder
 .vscode/
+
+# build and install directories
+**/build/
+**/install/

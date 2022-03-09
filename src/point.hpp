@@ -14,18 +14,23 @@ namespace beziermanipulation {
 template <unsigned int space_dim, typename BaseType = double>
 class Point : public std::array<BaseType, space_dim> {
  public:
-  constexpr Point(const Point&) = default;
+   constexpr static unsigned int kSpatialDimension = space_dim;
 
-  constexpr Point() = default;
 
-  template <typename... scalar>
-  explicit constexpr Point(const scalar&... coords)
-      : std::array<BaseType, space_dim>{coords...} {
-    static_assert(sizeof...(coords) == space_dim,
-                  "Base Logical Error: You are "
-                  "instantiating a Point object with "
-                  "more or less than "
-                  "space_dim components.");
+   
+   constexpr Point(const Point &) = default;
+
+   constexpr Point() = default;
+
+   template <typename... scalar>
+   explicit constexpr Point(const scalar &...coords)
+       : std::array<BaseType, space_dim>{coords...}
+   {
+     static_assert(sizeof...(coords) == space_dim,
+                   "Base Logical Error: You are "
+                   "instantiating a Point object with "
+                   "more or less than "
+                   "space_dim components.");
   }
 
   constexpr Point operator+(const Point& rhs) const {

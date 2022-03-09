@@ -1,6 +1,7 @@
 # Add files
 set(LOCAL_HEADERS 
-      ${CMAKE_CURRENT_SOURCE_DIR}/bezier.hpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/bezier_spline.hpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/bezier_spline.inc
       ${CMAKE_CURRENT_SOURCE_DIR}/point.hpp
     )
 

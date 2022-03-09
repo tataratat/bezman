@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <array>
-#include <random>
 
-#include "bezierManipulation/src/bezier.hpp"
+#include "bezierManipulation/src/bezier_spline.hpp"
 
 using namespace beziermanipulation;
 
@@ -37,6 +36,15 @@ class BezierBasicOperationSuite : public ::testing::Test {
   BezierSpline<1, Point3D, double> line1_copy{line1};
   BezierSpline<1, Point3D, double> line2_copy{line2};
   BezierSpline<1, Point3D, double> line3_copy{line3};
+
+  const auto CreateRandomSpline(unsigned int degree){
+    BezierSpline<1, double, double> randomSpline{std::array<std::size_t, 1>{degree}};
+    for (unsigned int i{}; i < degree; i++){
+      randomSpline.control_point(i) =
+          static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    }
+    return randomSpline;
+  }
 };
 
 // Demonstrate some basic assertions.
@@ -57,6 +65,41 @@ TEST_F(BezierBasicOperationSuite, TestAddition2) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
     EXPECT_EQ(line1.evaluate(x) + line2.evaluate(x),
               (line1 + line2).evaluate(x));
+  }
+}
+
+// Demonstrate some basic assertions.
+TEST_F(BezierBasicOperationSuite, TestAddition3) {
+  // Expect equality.
+  const auto spline1 = CreateRandomSpline(10);
+  const auto spline2 = CreateRandomSpline(15);
+  for (int i{}; i < 10; i++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(spline1.evaluate(x) + spline2.evaluate(x),
+                    (spline1 + spline2).evaluate(x));
+  }
+}
+
+// Demonstrate some basic assertions.
+TEST_F(BezierBasicOperationSuite, MultiplicationTest1) {
+  // Expect equality.
+
+  for (int i{}; i < 10; i++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(line1.evaluate(x) * line2.evaluate(x),
+                    (line1 * line2).evaluate(x));
+  }
+}
+
+// Demonstrate some basic assertions.
+TEST_F(BezierBasicOperationSuite, MultiplicationTest2) {
+  // Expect equality.
+  const auto spline1 = CreateRandomSpline(10);
+  const auto spline2 = CreateRandomSpline(15);
+  for (int i{}; i < 10; i++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(spline1.evaluate(x) * spline2.evaluate(x),
+                    (spline1 * spline2).evaluate(x));
   }
 }
 

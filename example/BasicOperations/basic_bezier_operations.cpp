@@ -1,7 +1,7 @@
 // #include <random>
 
 // Load tensorSuite
-#include "bezierManipulation/src/bezier.hpp"
+#include "bezierManipulation/src/bezier_spline.hpp"
 
 using namespace beziermanipulation;
 

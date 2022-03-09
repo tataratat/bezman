@@ -1,5 +1,5 @@
-#ifndef SRC_BEZIER_HPP
-#define SRC_BEZIER_HPP
+#ifndef SRC_BEZIER_SPLINE_HPP
+#define SRC_BEZIER_SPLINE_HPP
 
 #include <array>
 #include <cassert>
@@ -50,7 +50,7 @@ class BezierSpline {
    * @param local_indices single value index as control point index
    */
   constexpr std::array<IndexingType, parametric_dimension>
-  local_to_global_index(const IndexingType& local_index);
+  local_to_global_index(const IndexingType& local_index) const;
 
   /*
    * Calculate the new control point that result from the multiplication
@@ -219,6 +219,16 @@ class BezierSpline {
     return b * scalar;
   }
 
+  /// Transposition (@TODO properly overload the operators)
+  friend constexpr BezierSpline operator-(const PhysicalPointType& point_shift,
+                                          const BezierSpline& original_spline) {
+    BezierSpline shifted_spline{original_spline.degrees};
+    for (std::size_t i{}; i < shifted_spline.NumberOfControlPoints; i++) {
+      shifted_spline.control_points[i] = point_shift - original_spline.control_points[i];
+    }
+    return shifted_spline;
+  }
+
   /// Compose two splines
   template <std::size_t parametric_dimension_inner_spline,
             typename PointTypeRHS, typename ScalarRHS>
@@ -245,37 +255,84 @@ class BezierSpline {
     static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
                   "Dimension mismatch");
 
-    // Loop over the parametric dimensions of the outer function
+    // Extract splines only once, and store data on heap. The size corresponds
+    // to the parametric dimensions of the outer spline representation
+    std::vector<BezierSpline<parametric_dimension_inner_spline, ScalarReturnT,
+                             ScalarReturnT>>
+        inner_spline_coordinate_seperations{parametric_dimension};
     for (std::size_t i_outer_parametric_dimension{};
          i_outer_parametric_dimension < parametric_dimension;
          i_outer_parametric_dimension++) {
       // Extract the current dimension of the spline
-      const auto inner_spline_xi =
+      inner_spline_coordinate_seperations[i_outer_parametric_dimension] =
           inner_function.ExtractDimension(i_outer_parametric_dimension);
-      const IndexingType n_outer_degree = degrees[i_outer_parametric_dimension];
+    } // Val_Jac
 
-      // First -> Calculate the individual Basis functions, which are now
-      // represented as splines
-      for (std::size_t i_basis_outer_spline{};
-           i_basis_outer_spline <= n_outer_degree; i_basis_outer_spline++) {
-        // Composed Basis function
-        std::vector<ScalarReturnT> scaling_factors{};
-        if ((i_basis_outer_spline == 0) ||
-            (i_basis_outer_spline == n_outer_degree)) {
-          // Boundary cases
-          const auto B_i = inner_spline_xi.power(n_outer_degree);
-          scaling_factors = B_i.control_points;
+    // Loop over control points of the outer spline to start the interpolation
+    for (unsigned int i_control_point_outer_spline{};
+         i_control_point_outer_spline < NumberOfControlPoints;
+         i_control_point_outer_spline++) {
+      // Retrieve indices
+      const auto outer_spline_ctps_indices =
+          local_to_global_index(i_control_point_outer_spline);
+
+      // Create a 2D vector of all control-point factors to be filled later on
+      std::vector<BezierSpline<parametric_dimension_inner_spline, ScalarReturnT,
+                               ScalarReturnT>>
+          factorization_splines{parametric_dimension};
+
+      // Fill the factor list
+      for (std::size_t i_outer_parametric_dimension{};
+           i_outer_parametric_dimension < parametric_dimension;
+           i_outer_parametric_dimension++) {
+        const auto i_basis_function_index =
+            outer_spline_ctps_indices[i_outer_parametric_dimension];
+        const auto n_outer_degree =
+            degrees[i_outer_parametric_dimension];  // Reference for readability
+        const auto& inner_spline_xi =
+            inner_spline_coordinate_seperations[i_outer_parametric_dimension];
+
+        // Boundary cases
+        if (i_basis_function_index == 0) {
+          factorization_splines[i_outer_parametric_dimension] =
+              ((1 - inner_spline_xi).power(n_outer_degree));
+        } else if (i_basis_function_index == n_outer_degree) {
+          factorization_splines[i_outer_parametric_dimension] =
+              (inner_spline_xi.power(n_outer_degree));
         } else {
-          const auto B_i =
-              utils::FastBinomialCoefficient::choose(n_outer_degree,
-                                                     i_basis_outer_spline) *
-              inner_spline_xi.power(i_basis_outer_spline) *
-              inner_spline_xi.power(n_outer_degree - i_basis_outer_spline);
-          scaling_factors = B_i.control_points;
+          factorization_splines[i_outer_parametric_dimension] =
+              (utils::FastBinomialCoefficient::choose(n_outer_degree,
+                                                      i_basis_function_index) *
+               inner_spline_xi.power(i_basis_function_index) *
+               (1 - inner_spline_xi)
+                   .power(n_outer_degree - i_basis_function_index));
         }
-        // for (IndexingType i_par_dim{}; i_par_dim < parametric_dimension) }
+      }
+
+      // Multiply all factor splines with each other
+      BezierSpline<parametric_dimension_inner_spline, ScalarReturnT,
+                   ScalarReturnT>
+          control_point_multiplication_factor{factorization_splines[0]};
+      for (std::size_t i_outer_parametric_dimension{1};
+           i_outer_parametric_dimension < parametric_dimension;
+           i_outer_parametric_dimension++) {
+        control_point_multiplication_factor =
+            control_point_multiplication_factor *
+                factorization_splines[i_outer_parametric_dimension];
+      }
+
+      // Now that all factors have been precomputed we can determine the
+      // control-points of the resulting spline
+      for (IndexingType i_control_point_composition{};
+           i_control_point_composition < composition.NumberOfControlPoints;
+           i_control_point_composition++) {
+        // Start interpolation
+        composition.control_points[i_control_point_composition] +=
+            control_point_multiplication_factor.control_points[i_control_point_composition] *
+            control_points[i_control_point_outer_spline];
       }
     }
+
     return composition;
   }
 };
@@ -284,4 +341,4 @@ class BezierSpline {
 
 }  // namespace beziermanipulation
 
-#endif  // SRC_BEZIER_HPP
+#endif  // SRC_BEZIER_SPLINE_HPP

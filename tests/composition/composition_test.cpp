@@ -48,8 +48,8 @@ TEST_F(BezierBasicOperationSuite, Composition) {
     const auto composed_spline_expectation = surface.evaluate(line.evaluate(x));
     for (unsigned int i_dim{}; i_dim < 3; i_dim++) {
       // Compare the different dimensions element-wise
-      EXPECT_FLOAT_EQ(composed_spline_position[i],
-                      composed_spline_expectation[i]);
+      EXPECT_FLOAT_EQ(composed_spline_position[i_dim],
+                      composed_spline_expectation[i_dim]);
     }
   }
 }

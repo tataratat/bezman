@@ -50,11 +50,16 @@ class Point : public std::array<BaseType, space_dim> {
     for (unsigned int i = 0; i < space_dim; ++i) (*this)[i] *= scale;
   }
 
-  Point operator*(const double& scale) const {
+  constexpr Point operator*(const double& scale) const {
     Point<space_dim, BaseType> product;
     for (unsigned int i = 0; i < space_dim; ++i)
       product.at(i) = (*this)[i] * scale;
     return product;
+  }
+
+  // Friend injection for reversed arguments (facilitates readability)
+  friend constexpr Point operator*(const double& scale, const Point& point){
+    return point * scale;
   }
 
   template <typename Scalar>

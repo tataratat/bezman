@@ -11,7 +11,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::size_t, parametric_dimension> BezierSpline<
     parametric_dimension, PhysicalPointType,
-    ScalarType>::local_to_global_index(const IndexingType& local_index) {
+    ScalarType>::local_to_global_index(const IndexingType& local_index) const {
   std::array<IndexingType, parametric_dimension> indexList{};
   for (unsigned int i{0}; i < parametric_dimension; i++) {
     indexList[i] = (local_index / index_offsets[i]) % (degrees[i] + 1);

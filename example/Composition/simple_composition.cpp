@@ -48,9 +48,10 @@ int main() {
     const auto composed_spline_position = composed_line_spline.evaluate(x);
     const auto composed_spline_expectation = surface.evaluate(line.evaluate(x));
     std::cout << "Composed spline evaluation at : " << x << "\t yields "
-              << composed_spline_position ;
-    std::cout << "\tExpected position is : " << composed_spline_expectation << "\n";
+              << composed_spline_position;
+    std::cout << "\tExpected position is : " << composed_spline_expectation
+              << "\n";
   }
-    composed_line_spline.evaluate(0.5);
-    return 0;
-  }
+
+  return 0;
+}

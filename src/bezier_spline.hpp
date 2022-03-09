@@ -211,6 +211,7 @@ class BezierSpline {
     for (std::size_t i{}; i < NumberOfControlPoints; i++) {
       scaled_spline.control_points[i] *= scalar;
     }
+    return scaled_spline;
   };
 
   /// Frind injection

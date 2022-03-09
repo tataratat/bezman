@@ -2,6 +2,7 @@
 
 #include <array>
 
+#define MAX_BINOMIAL_DEGREE 62u // Required for second test set
 #include "bezierManipulation/src/bezier_spline.hpp"
 
 using namespace beziermanipulation;

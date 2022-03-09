@@ -20,10 +20,8 @@ set(MY_FANCY_TARGET_NAME "${PROJECT_NAME}")
 # Global Options
 ####
 # Testing
-option(GOOGLETEST "Build with GoogleTest" OFF)
+option(GOOGLETEST "Build with GoogleTest" ON)
 
-# Maximum Binomial Coefficient precomputation
-# TBD
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -95,15 +93,12 @@ install(TARGETS ${MY_FANCY_TARGET_NAME} EXPORT ${TARGETS_EXPORT_NAME} INCLUDES D
 install(FILES ${project_config} ${version_config} DESTINATION ${config_destination})
 install(EXPORT ${TARGETS_EXPORT_NAME} NAMESPACE ${namespace} DESTINATION ${config_destination})
 
-
-
 ### User Output
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "Build debug!")
 else()
     message(STATUS "Build release!")
 endif()
-
 
 # Install and provide testing via "make test"
 if(GOOGLETEST)

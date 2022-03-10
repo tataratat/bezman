@@ -21,7 +21,7 @@ class BezierBasicOperationSuite : public ::testing::Test {
   // Provide some data to form splines.
   std::vector<Point3D> surface_ctps{Point3D{0., 0., 0.}, Point3D{2., 1., 0.},
                                     Point3D{0., 2., 0.}, Point3D{2., 3., 0.}};
-  std::vector<Point2D> line_ctps{Point2D{0., 0.}, Point2D{1., 0},
+  std::vector<Point2D> line_ctps{Point2D{0., 0.}, Point2D{1., 0.},
                                  Point2D{1., 1.}};
   std::array<std::size_t, 2> surface_degrees{1, 1};
   std::array<std::size_t, 1> line_degrees{2};

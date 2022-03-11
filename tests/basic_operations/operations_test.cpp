@@ -55,6 +55,7 @@ TEST_F(BezierBasicOperationSuite, TestAddition) {
             line3_copy.order_elevate_along_parametric_dimension(0));
   EXPECT_EQ(line1 + line2_copy.order_elevate_along_parametric_dimension(0),
             line3.order_elevate_along_parametric_dimension(0));
+  EXPECT_EQ(-line1, (-1) * line1);
 }
 
 // Demonstrate some basic assertions.

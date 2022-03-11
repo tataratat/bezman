@@ -11,6 +11,11 @@
 
 namespace beziermanipulation {
 
+// Forward declaration for later use
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType = typename PhysicalPointType::Scalar>
+class BezierSplineGroup;
+
 /*
  * Class describing BezierSplines
  *
@@ -177,16 +182,44 @@ class BezierSpline {
     return original_spline + point_shift;
   }
 
-  /// Inversion
+  /// Substraction
   constexpr BezierSpline operator-(const PhysicalPointType& point_shift) const;
 
   /// Substraction
   constexpr BezierSpline& operator-=(const PhysicalPointType& point_shift);
 
-  /// Substraction
-  constexpr BezierSpline operator-() const {
-    return (*this) * static_cast<ScalarType>(-1.);
-  };
+  /// Inversion
+  constexpr BezierSpline operator-() const;
+
+  /// Get maximum restricting corner of spline
+  constexpr PhysicalPointType maximum() const;
+
+  /// Get minimum restricting corner of spline
+  constexpr PhysicalPointType minimum() const;
+
+  /*
+   * Reposition spline and scale dimensionwise
+   *
+   * Scales a spline along its different dimensions and transposes its position.
+   * This can be used as an internal function when a spline is mapped into the
+   * unit cube, but is also handy when the same operation is performed on a
+   * group of splines where the scaling parameters and transposition vectors
+   * stay constant for the entire group.
+   *
+   * @param transposition PointType describing the first corner of the nd cuboid
+   * @param stretch PointType describing the second corner of the nd cuboid
+   */
+  constexpr BezierSpline& transpose_and_scale(
+      const PhysicalPointType& transposition,
+      const PhysicalPointType& scale_vector);
+
+  /*
+   * Fit into unit cube
+   *
+   * Takes spline and fits it into the unit cuboid (important for spline
+   * composition)
+   */
+  constexpr BezierSpline& fit_to_unit_cube();
 
   /// Friend injection Substraction
   friend constexpr BezierSpline operator-(const PhysicalPointType& point_shift,

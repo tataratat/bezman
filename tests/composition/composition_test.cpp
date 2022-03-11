@@ -34,7 +34,7 @@ class BezierBasicOperationSuite : public ::testing::Test {
 };
 
 /*
- * Demonstrate some basic assertions.
+ * Demonstrate spline composition
  *
  * There is no analytical example implemented, where the spline ctps are
  * explicitly known. Thus, the composed spline is tested at random points within
@@ -56,7 +56,7 @@ TEST_F(BezierBasicOperationSuite, Composition) {
 }
 
 /*
- * Demonstrate some basic assertions on a more expensive example with the same
+ * Demonstrate some basic compositions on a more expensive example with the same
  * geometry
  */
 TEST_F(BezierBasicOperationSuite, CompositionHighOrder) {

@@ -37,3 +37,6 @@
 # build and install directories
 **/build/
 **/install/
+
+# ingore build documentation
+**/doxydocs/

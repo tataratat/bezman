@@ -1,2 +1,4 @@
 add_subdirectory(basic_operations)
 add_subdirectory(composition)
+add_subdirectory(point_test)
+add_subdirectory(mapping_test)

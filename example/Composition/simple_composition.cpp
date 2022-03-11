@@ -53,5 +53,18 @@ int main() {
               << "\n";
   }
 
+  std::vector<Point3D> ascew_surface_ctps{
+      Point3D{-1., 0., 2.5}, Point3D{2., 1., 2.5}, Point3D{-1., 0., 4.0},
+      Point3D{2., 1., 4.0}};
+
+  std::array<std::size_t, 2> ascew_surface_degrees{1, 1};
+
+  // Define Splines
+  BezierSpline<2, Point3D, double> ascew_surface =
+      BezierSpline<2, Point3D, double>(ascew_surface_degrees,
+                                       ascew_surface_ctps);
+
+  ascew_surface.fit_to_unit_cube();
+
   return 0;
 }

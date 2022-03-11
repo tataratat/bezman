@@ -61,7 +61,7 @@ class Point : public std::array<BaseType, spatial_dimension> {
   /// Substraction using RAII
   constexpr Point operator-(const Point& rhs) const {
     Point<spatial_dimension, BaseType> difference{(*this)};
-    difference += rhs;
+    difference -= rhs;
     return difference;
   }
 
@@ -71,6 +71,12 @@ class Point : public std::array<BaseType, spatial_dimension> {
       (*this)[i] = (*this)[i] - rhs[i];
     }
     return (*this);
+  }
+
+  /// Inversion
+  constexpr Point operator-() const{
+    Point inverted_point{(*this)};
+    return inverted_point * static_cast<BaseType>(-1);
   }
 
   /// Multiplication with a scalar

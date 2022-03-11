@@ -1,0 +1,1 @@
+/home/zwar/Git/bezierManipulation/src/bezier_spline.hpp:213: warning: include file bezierManipulation/src/bezier_spline.inc not found, perhaps you forgot to add its directory to INCLUDE_PATH?

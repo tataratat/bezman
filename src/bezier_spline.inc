@@ -297,6 +297,18 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator-(
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator-()
+    const {
+  BezierSpline inverted_spline{(*this)};
+  for (IndexingType i{}; i < NumberOfControlPoints; i++) {
+    inverted_spline.control_points[i] = -control_points[i];
+  }
+  return inverted_spline;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator*(
     const ScalarType& scalar) const {
   BezierSpline scaled_spline{(*this)};
@@ -376,6 +388,70 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::power(
     power_spline = power_spline * (*this);
   }
   return power_spline;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr PhysicalPointType BezierSpline<
+    parametric_dimension, PhysicalPointType, ScalarType>::maximum() const {
+  assert(("Spline seems to be non-defined or has no control-points",
+          NumberOfControlPoints > 0));
+  PhysicalPointType maximum{control_points[0]};
+  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+       i_dim++) {
+    for (IndexingType i{1}; i < NumberOfControlPoints; i++) {
+      maximum[i_dim] = std::max(maximum[i_dim], control_points[i][i_dim]);
+    }
+  }
+  return maximum;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr PhysicalPointType BezierSpline<
+    parametric_dimension, PhysicalPointType, ScalarType>::minimum() const {
+  assert(("Spline seems to be non-defined or has no control-points",
+          NumberOfControlPoints > 0));
+  PhysicalPointType minimum{control_points[0]};
+  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+       i_dim++) {
+    for (IndexingType i{1}; i < NumberOfControlPoints; i++) {
+      minimum[i_dim] = std::min(minimum[i_dim], control_points[i][i_dim]);
+    }
+  }
+  return minimum;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    transpose_and_scale(const PhysicalPointType& transposition,
+                        const PhysicalPointType& scale_vector) {
+  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+       i_dim++) {
+    for (IndexingType i{}; i < NumberOfControlPoints; i++) {
+      control_points[i][i_dim] =
+          (transposition[i_dim] + control_points[i][i_dim]) *
+          scale_vector[i_dim];
+    }
+  }
+  return (*this);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
+BezierSpline<parametric_dimension, PhysicalPointType,
+             ScalarType>::fit_to_unit_cube() {
+  const auto maximum_corner = maximum();
+  const auto minimum_corner = minimum();
+  auto scale_vector = maximum_corner - minimum_corner;
+  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+       i_dim++) {
+    scale_vector[i_dim] = static_cast<ScalarType>(1) / scale_vector[i_dim];
+  }
+  return transpose_and_scale(-minimum_corner, scale_vector);
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,

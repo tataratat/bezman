@@ -9,7 +9,7 @@ using namespace beziermanipulation;
 
 namespace beziermanipulation::tests::composition_test {
 
-class BezierBasicOperationSuite : public ::testing::Test {
+class BezierTestingSuite : public ::testing::Test {
   using Point3D = Point<3, double>;
   using Point2D = Point<2, double>;
 
@@ -40,7 +40,7 @@ class BezierBasicOperationSuite : public ::testing::Test {
  * explicitly known. Thus, the composed spline is tested at random points within
  * the domain
  */
-TEST_F(BezierBasicOperationSuite, Composition) {
+TEST_F(BezierTestingSuite, Composition) {
   // Expect equality.
   const auto composed_spline = surface.compose(line);
   for (int i{}; i < 10; i++) {
@@ -59,7 +59,7 @@ TEST_F(BezierBasicOperationSuite, Composition) {
  * Demonstrate some basic compositions on a more expensive example with the same
  * geometry
  */
-TEST_F(BezierBasicOperationSuite, CompositionHighOrder) {
+TEST_F(BezierTestingSuite, CompositionHighOrder) {
   // Increase the order a few times
   for (int i{}; i < 4; i++) {
     surface.order_elevate_along_parametric_dimension(0)

@@ -2,6 +2,8 @@
 set(LOCAL_HEADERS 
       ${CMAKE_CURRENT_SOURCE_DIR}/bezier_spline.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/bezier_spline.inc
+      ${CMAKE_CURRENT_SOURCE_DIR}/bezier_spline_group.hpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/bezier_spline_group.inc
       ${CMAKE_CURRENT_SOURCE_DIR}/point.hpp
     )
 

@@ -9,7 +9,7 @@ using namespace beziermanipulation;
 
 namespace beziermanipulation::tests::point_test {
 
-class BezierBasicOperationSuite : public ::testing::Test {
+class BezierTestingSuite : public ::testing::Test {
   using Point3D = Point<3, double>;
   using Point2D = Point<2, double>;
 
@@ -29,7 +29,7 @@ class BezierBasicOperationSuite : public ::testing::Test {
 /*
  * Demonstrate some basic vector arithmetic
  */
-TEST_F(BezierBasicOperationSuite, Composition) {
+TEST_F(BezierTestingSuite, Composition) {
   // Expect equality.
   EXPECT_EQ(point1, point2 + point3);
   EXPECT_EQ(point1 - point2, point3);

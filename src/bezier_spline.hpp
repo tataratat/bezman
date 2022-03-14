@@ -13,7 +13,7 @@ namespace beziermanipulation {
 
 // Forward declaration for later use
 template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType = typename PhysicalPointType::Scalar>
+          typename ScalarType>
 class BezierSplineGroup;
 
 /*
@@ -102,6 +102,12 @@ class BezierSpline {
     assert(NumberOfControlPoints == points.size());
   };
 
+  /// Move operator
+  constexpr BezierSpline& operator=(BezierSpline&& rhs) = default;
+
+  /// Move operator
+  constexpr BezierSpline& operator=(const BezierSpline& rhs) = default;
+
   /// Retrieve single control point from local indices
   template <typename... T>
   constexpr const PointTypePhysical_& control_point(const T... index) const;
@@ -169,6 +175,9 @@ class BezierSpline {
                                           const BezierSpline& b) {
     return b * scalar;
   }
+
+  /// Check if can be used for composition
+  constexpr bool fits_unit_cube() const;
 
   /// Addition
   constexpr BezierSpline& operator+=(const PhysicalPointType& point_shift);
@@ -241,6 +250,20 @@ class BezierSpline {
                          decltype(ScalarType_{} * ScalarRHS{})>
   compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                              ScalarRHS>& inner_function) const;
+
+/*
+ * Composition between mutliple splines from a spline group
+ *
+ * Performes a composition between multple splines, which can be used to
+ * construct microstructures. After the return group is instantiated, the
+ * composition is performed elementwise.
+ */
+template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
+          typename ScalarRHS>
+constexpr BezierSplineGroup<parametric_dimension_inner_spline, PhysicalPointType,
+                       decltype(ScalarType_{} * ScalarRHS{})>
+compose(const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
+                           ScalarRHS>& inner_function_group) const;
 };
 
 #include "bezierManipulation/src/bezier_spline.inc"

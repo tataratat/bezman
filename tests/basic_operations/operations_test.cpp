@@ -8,7 +8,7 @@ using namespace beziermanipulation;
 
 namespace beziermanipulation::tests::basic_operations {
 
-class BezierBasicOperationSuite : public ::testing::Test {
+class BezierTestingSuite : public ::testing::Test {
   using Point3D = Point<3, double>;
   using Point2D = Point<2, double>;
 
@@ -48,7 +48,7 @@ class BezierBasicOperationSuite : public ::testing::Test {
 };
 
 // Demonstrate some basic assertions.
-TEST_F(BezierBasicOperationSuite, TestAddition) {
+TEST_F(BezierTestingSuite, TestAddition) {
   // Expect equality.
   EXPECT_EQ(line1 + line2, line3);
   EXPECT_EQ(line1_copy.order_elevate_along_parametric_dimension(0) + line2,
@@ -59,7 +59,7 @@ TEST_F(BezierBasicOperationSuite, TestAddition) {
 }
 
 // Demonstrate some basic assertions.
-TEST_F(BezierBasicOperationSuite, TestAddition2) {
+TEST_F(BezierTestingSuite, TestAddition2) {
   // Expect equality.
 
   for (int i{}; i < 10; i++) {
@@ -70,7 +70,7 @@ TEST_F(BezierBasicOperationSuite, TestAddition2) {
 }
 
 // Demonstrate some basic assertions.
-TEST_F(BezierBasicOperationSuite, TestAddition3) {
+TEST_F(BezierTestingSuite, TestAddition3) {
   // Expect equality.
   const auto spline1 = CreateRandomSpline(10);
   const auto spline2 = CreateRandomSpline(15);
@@ -82,7 +82,7 @@ TEST_F(BezierBasicOperationSuite, TestAddition3) {
 }
 
 // Demonstrate some basic assertions.
-TEST_F(BezierBasicOperationSuite, MultiplicationTest1) {
+TEST_F(BezierTestingSuite, MultiplicationTest1) {
   // Expect equality.
 
   for (int i{}; i < 10; i++) {
@@ -93,7 +93,7 @@ TEST_F(BezierBasicOperationSuite, MultiplicationTest1) {
 }
 
 // Demonstrate some basic assertions.
-TEST_F(BezierBasicOperationSuite, MultiplicationTest2) {
+TEST_F(BezierTestingSuite, MultiplicationTest2) {
   // Expect equality.
   const auto spline1 = CreateRandomSpline(10);
   const auto spline2 = CreateRandomSpline(15);

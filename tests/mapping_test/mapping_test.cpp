@@ -9,7 +9,7 @@ using namespace beziermanipulation;
 
 namespace beziermanipulation::tests::mapping_test {
 
-class BezierBasicOperationSuite : public ::testing::Test {
+class BezierTestingSuite : public ::testing::Test {
   using Point3D = Point<3, double>;
 
  protected:
@@ -38,10 +38,14 @@ class BezierBasicOperationSuite : public ::testing::Test {
  * Check the transposition functions that are all combined in the fit to unit
  * cube option
  */
-TEST_F(BezierBasicOperationSuite, Composition) {
+TEST_F(BezierTestingSuite, MappingToUnitCube) {
   // Expect equality.
+  EXPECT_FALSE(surface.fits_unit_cube());
   surface.fit_to_unit_cube();
-  for (std::size_t i{}; i < surface.NumberOfControlPoints; i++){
+  EXPECT_TRUE(surface.fits_unit_cube());
+  EXPECT_TRUE(reference_surface.fits_unit_cube());
+  for (std::size_t i{}; i < surface.NumberOfControlPoints; i++)
+  {
     for (std::size_t i_dim{}; i_dim < 3; i_dim++){
       EXPECT_FLOAT_EQ(surface.control_points[i][i_dim], ref_surface_ctps[i][i_dim]);
     }

@@ -456,6 +456,22 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr bool BezierSpline<parametric_dimension, PhysicalPointType,
+                            ScalarType>::fits_unit_cube() const {
+  const auto maximum_corner = maximum();
+  const auto minimum_corner = minimum();
+  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+       i_dim++) {
+    if ((maximum_corner[i_dim] > static_cast<ScalarType>(1)) ||
+        (minimum_corner[i_dim] < static_cast<ScalarType>(0))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 template <typename PointTypeRHS, typename ScalarRHS>
 constexpr BezierSpline<parametric_dimension,
                        decltype(PhysicalPointType{} * PointTypeRHS{}),
@@ -496,7 +512,6 @@ template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
           typename ScalarRHS>
 constexpr BezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
                        decltype(ScalarType{} * ScalarRHS{})>
-
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
     const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                        ScalarRHS>& inner_function) const {
@@ -505,6 +520,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
   using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
   const IndexingType sum_of_degrees_outer_spline =
       std::accumulate(degrees.begin(), degrees.end(), 0);
+
+  // Check if the inner function fits into the unit cube
+  assert(("Inner function must fit unit cube to perform composition.",
+          inner_function.fits_unit_cube()));
   // New degrees
   std::array<IndexingType, parametric_dimension_inner_spline> new_degrees{
       inner_function.degrees};
@@ -599,4 +618,35 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
   }
 
   return composition;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
+          typename ScalarRHS>
+constexpr BezierSplineGroup<parametric_dimension_inner_spline, PhysicalPointType,
+                       decltype(ScalarType{} * ScalarRHS{})>
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
+    const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
+                       ScalarRHS>& inner_function_group) const {
+  /// Start the composition with the current spline
+  // Initialize return value
+  using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
+  const IndexingType number_of_splines{inner_function_group.size()};
+  BezierSplineGroup<parametric_dimension_inner_spline, PhysicalPointType,
+                    decltype(ScalarType{} * ScalarRHS{})>
+      composition_group{number_of_splines};
+
+  // Check if the inner function fits into the unit cube
+  assert(("Inner function must fit unit cube to perform composition.",
+          inner_function_group.fits_unit_cube()));
+
+  // Check Dimensions
+  static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
+                "Dimension mismatch");
+
+  for (IndexingType i_spline{}; i_spline < number_of_splines; i_spline++){
+    composition_group[i_spline] = compose(inner_function_group[i_spline]);
+  }
+  return composition_group;
 }

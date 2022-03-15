@@ -28,6 +28,9 @@ class Point : public std::array<BaseType, spatial_dimension> {
   /// Provide data to external users
   constexpr static unsigned int kSpatialDimension = spatial_dimension;
 
+  /// Output precision
+  int output_precision{5};
+
   /// Use default copy constructor
   constexpr Point(const Point&) = default;
 
@@ -74,7 +77,7 @@ class Point : public std::array<BaseType, spatial_dimension> {
   }
 
   /// Inversion
-  constexpr Point operator-() const{
+  constexpr Point operator-() const {
     Point inverted_point{(*this)};
     return inverted_point * static_cast<BaseType>(-1);
   }
@@ -111,11 +114,13 @@ class Point : public std::array<BaseType, spatial_dimension> {
 
   /// Facilitate User Output
   friend std::ostream& operator<<(std::ostream& os, const Point& p) {
-    for (size_t i = 0; i < spatial_dimension; ++i) {
-      os << (i == 0 ? "(" : ", ");
-      os << std::setw(5) << std::setprecision(3) << p[i];
-      os << (i == spatial_dimension - 1 ? ")" : "");
+    os << "[" << std::setw(p.output_precision + 2)
+       << std::setprecision(p.output_precision) << p[0];
+    for (size_t i{1}; i < spatial_dimension; ++i) {
+      os << ", " << std::setw(p.output_precision + 2)
+         << std::setprecision(p.output_precision) << p[i];
     }
+    os << "]";
     return os;
   }
 };  // namespace std::array<BaseType,spatial_dimension>

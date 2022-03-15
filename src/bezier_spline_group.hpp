@@ -40,7 +40,7 @@ class BezierSplineGroup
   using BaseVector = std::vector<
       BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>;
 
-public:
+ public:
   /// Default constructor (to profit from std::vectors implementations)
   constexpr BezierSplineGroup() = default;
 
@@ -48,7 +48,6 @@ public:
   template <typename... Splines>
   constexpr BezierSplineGroup(const Splines &... splines)
       : BaseVector{splines...} {}
-
 
   /// Check if group fits unit cube
   constexpr bool fits_unit_cube() const;
@@ -65,10 +64,21 @@ public:
   /// Compose with single Spline
   constexpr BezierSplineGroup compose(
       const SplineBaseType &inner_function) const;
+
   /// Compose with Splinegroup
   constexpr BezierSplineGroup compose(
       const BezierSplineGroup &inner_function_group) const;
-  // @todo Overload operators if required
+
+  // + Operator for concatenation
+  constexpr BezierSplineGroup operator+(const BezierSplineGroup &rhs) const {
+    BezierSplineGroup combination{(*this)};
+    combination += rhs;
+  }
+
+  // + Operator for concatenation
+  constexpr BezierSplineGroup &operator+=(const BezierSplineGroup &rhs) {
+    (*this).insert(this->begin(), rhs.begin(), rhs.end());
+  }
 };
 
 #include "bezierManipulation/src/bezier_spline_group.inc"

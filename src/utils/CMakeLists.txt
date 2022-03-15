@@ -2,6 +2,8 @@
 set(LOCAL_HEADERS 
   ${CMAKE_CURRENT_SOURCE_DIR}/binomialcoefficientlookuptablecreator.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fastbinomialcoefficient.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/export.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/export.inc
 )
 
 # Add All Subdirectories

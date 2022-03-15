@@ -251,19 +251,22 @@ class BezierSpline {
   compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                              ScalarRHS>& inner_function) const;
 
-/*
- * Composition between mutliple splines from a spline group
- *
- * Performes a composition between multple splines, which can be used to
- * construct microstructures. After the return group is instantiated, the
- * composition is performed elementwise.
- */
-template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
-          typename ScalarRHS>
-constexpr BezierSplineGroup<parametric_dimension_inner_spline, PhysicalPointType,
-                       decltype(ScalarType_{} * ScalarRHS{})>
-compose(const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
-                           ScalarRHS>& inner_function_group) const;
+  /*
+   * Composition between mutliple splines from a spline group
+   *
+   * Performes a composition between multple splines, which can be used to
+   * construct microstructures. After the return group is instantiated, the
+   * composition is performed elementwise.
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr BezierSplineGroup<parametric_dimension_inner_spline,
+                              PhysicalPointType,
+                              decltype(ScalarType_{} * ScalarRHS{})>
+  compose(
+      const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
+                              ScalarRHS>& inner_function_group) const;
+  
 };
 
 #include "bezierManipulation/src/bezier_spline.inc"

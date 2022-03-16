@@ -1,6 +1,4 @@
-// #include <random>
-
-// Load tensorSuite
+// Load Bezier
 #include "bezierManipulation/src/bezier_spline_group.hpp"
 #include "bezierManipulation/src/utils/export.hpp"
 
@@ -16,11 +14,11 @@ int main() {
   std::vector<Point2D> ctps_center{
       Point2D{one_third, one_third}, Point2D{2 * one_third, one_third},
       Point2D{one_third, 2 * one_third}, Point2D{2 * one_third, 2 * one_third}};
-  std::vector<Point2D> ctps_deformation_function{
+  std::vector<Point2D> ctps_deformation_function_slim{
       Point2D{0., 0.},   Point2D{0.5, 0.2}, Point2D{1., 0.},
       Point2D{0.2, 0.5}, Point2D{0.5, 0.5}, Point2D{.8, 0.5},
       Point2D{0., 1.},   Point2D{0.5, 0.8}, Point2D{1., 1.}};
-  std::vector<Point2D> ctps_deformation_function_2{
+  std::vector<Point2D> ctps_deformation_function_bulk{
       Point2D{1., 0.},   Point2D{1.5, -0.2}, Point2D{2., 0.},
       Point2D{0.8, 0.5}, Point2D{1.5, 0.5},  Point2D{2.2, 0.5},
       Point2D{1., 1.},   Point2D{1.5, 1.2},  Point2D{2., 1.}};
@@ -39,12 +37,11 @@ int main() {
   // Create outer Spline
   BezierSplineGroup<2, Point2D, double> deformation_function{
       BezierSpline<2, Point2D, double>(deformation_function_degrees,
-                                       ctps_deformation_function),
+                                       ctps_deformation_function_slim),
       BezierSpline<2, Point2D, double>(deformation_function_degrees,
-                                       ctps_deformation_function_2)};
+                                       ctps_deformation_function_bulk)};
 
   const auto test_composition = deformation_function.compose(microtile_cross);
-  utils::Export::GuessByExtension(test_composition, "first_composition.itd");
-  utils::Export::GuessByExtension(test_composition, "first_composition.xml");
+  utils::Export::GuessByExtension(test_composition, "composed_microstructure.xml");
   return 0;
 }

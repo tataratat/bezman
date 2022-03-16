@@ -128,6 +128,10 @@ class BezierSpline {
   constexpr BezierSpline& order_elevate_along_parametric_dimension(
       const IndexingType par_dim);
 
+  /// Derivative along a specific parametric dimension
+  constexpr BezierSpline derive_along_parametric_dimension(
+      const IndexingType par_dim) const;
+
   template <typename... T>
   constexpr PointTypePhysical_ evaluate(const T&... par_coords) const {
     return (*this).evaluate(PointTypeParametric_{par_coords...});
@@ -266,7 +270,17 @@ class BezierSpline {
   compose(
       const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
                               ScalarRHS>& inner_function_group) const;
-  
+
+  /*
+   * Split the Bezier Spline into several subdivisions
+   *
+   * Splits the Spline along a specific dimension and returns a group
+   * representing the same domain over several splines.
+   */
+  constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                              ScalarType>
+  split(const ScalarType &splitting_plane,
+        const IndexingType splitting_dimension = 0) const;
 };
 
 #include "bezierManipulation/src/bezier_spline.inc"

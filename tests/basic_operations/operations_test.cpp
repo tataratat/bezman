@@ -47,7 +47,7 @@ class BezierTestingSuite : public ::testing::Test {
   }
 };
 
-// Demonstrate some basic assertions.
+// Demonstrate Additions with known results
 TEST_F(BezierTestingSuite, TestAddition) {
   // Expect equality.
   EXPECT_EQ(line1 + line2, line3);
@@ -58,7 +58,7 @@ TEST_F(BezierTestingSuite, TestAddition) {
   EXPECT_EQ(-line1, (-1) * line1);
 }
 
-// Demonstrate some basic assertions.
+// Demonstrate Additions at random points
 TEST_F(BezierTestingSuite, TestAddition2) {
   // Expect equality.
 
@@ -69,7 +69,7 @@ TEST_F(BezierTestingSuite, TestAddition2) {
   }
 }
 
-// Demonstrate some basic assertions.
+// Demonstrate Addition at random Points and random lines
 TEST_F(BezierTestingSuite, TestAddition3) {
   // Expect equality.
   const auto spline1 = CreateRandomSpline(10);
@@ -81,7 +81,7 @@ TEST_F(BezierTestingSuite, TestAddition3) {
   }
 }
 
-// Demonstrate some basic assertions.
+// Multiplications at random points
 TEST_F(BezierTestingSuite, MultiplicationTest1) {
   // Expect equality.
 
@@ -92,7 +92,7 @@ TEST_F(BezierTestingSuite, MultiplicationTest1) {
   }
 }
 
-// Demonstrate some basic assertions.
+// Multiplications at random points and random splines
 TEST_F(BezierTestingSuite, MultiplicationTest2) {
   // Expect equality.
   const auto spline1 = CreateRandomSpline(10);

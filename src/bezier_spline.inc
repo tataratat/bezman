@@ -197,6 +197,30 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    derive_along_parametric_dimension(const IndexingType par_dim) const {
+  // Initialize return value and precompute auxiliary values
+  auto new_degrees = degrees;
+  new_degrees[par_dim]--;
+  BezierSpline derivative{new_degrees};
+  const ScalarType factor = static_cast<ScalarType>(degrees[par_dim]);
+
+  // Start looping over all control points in derivative and determine their new
+  // values
+  for (IndexingType i_point{0}; i_point < derivative.NumberOfControlPoints;
+       i_point++) {
+    const auto index = derivative.local_to_global_index(i_point);
+    auto next_index = index;
+    next_index[par_dim]++;
+    derivative.control_points[i_point] =
+        factor * (control_point(next_index) - control_point(index));
+  }
+  return derivative;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::evaluate(const PointTypeParametric_& par_coords)
@@ -372,6 +396,7 @@ BezierSpline<parametric_dimension, PhysicalPointType,
   }
   return extracted_spline;
 }
+
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
@@ -624,11 +649,12 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
           typename ScalarRHS>
-constexpr BezierSplineGroup<parametric_dimension_inner_spline, PhysicalPointType,
-                       decltype(ScalarType{} * ScalarRHS{})>
+constexpr BezierSplineGroup<parametric_dimension_inner_spline,
+                            PhysicalPointType,
+                            decltype(ScalarType{} * ScalarRHS{})>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
     const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
-                       ScalarRHS>& inner_function_group) const {
+                            ScalarRHS>& inner_function_group) const {
   /// Start the composition with the current spline
   // Initialize return value
   using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
@@ -645,8 +671,87 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
   static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
                 "Dimension mismatch");
 
-  for (IndexingType i_spline{}; i_spline < number_of_splines; i_spline++){
+  for (IndexingType i_spline{}; i_spline < number_of_splines; i_spline++) {
     composition_group[i_spline] = compose(inner_function_group[i_spline]);
   }
   return composition_group;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::split(
+    const ScalarType& splitting_plane,
+    const IndexingType splitting_dimension) const {
+  /*
+   * Notation:
+   * A group the number of all starting points that are subsequent, i.e. the
+   * size of a group is the number of subsequent 0s. E.g. in the example:
+   * Group size of index 0 is 1, group size of index 1 is 3, etc.. Group
+   * offset is thus the distance between two group-starting-points. As before,
+   * the index offset is the offset to the next layer with the same
+   * corresponding local indices in the other parametric dimensions.
+   *
+   *    local indices : global index
+   *    0   0   0 : 0   -   -
+   *    1   0   0 : 1   |   |  group 0 for index 1
+   *    2   0   0 : 2   |   -
+   *    0   1   0 : 3   |
+   *    1   1   0 : 4   | group offset
+   *    2   1   0 : 5   |
+   *    0   0   1 : 6   -   -
+   *    1   0   1 : 7       |  group 1 for index 1
+   *    2   0   1 : 8       -
+   *    0   1   1 : 9
+   *    1   1   1 : 10
+   *    2   1   1 : 11
+   */
+
+  // Initialize return values
+  BezierSpline first_part{(*this)}, second_part{(*this)};
+  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+      spline_group_split{first_part, second_part};
+
+  // Refernces for simplified access
+  auto& ctps_first = spline_group_split[0].control_points;
+  auto& ctps_second = spline_group_split[1].control_points;
+
+  // Control points per layer normal to parametric direction
+  IndexingType ctps_per_layer =
+      NumberOfControlPoints / (degrees[splitting_dimension] + 1);
+
+  // Evaluation factors
+  const ScalarType_ factor = splitting_plane;
+  const ScalarType_ inv_factor = 1. - splitting_plane;
+
+  // Auxiliary index offsets
+  const IndexingType starting_points_per_index_group =
+      index_offsets[splitting_dimension];
+  const IndexingType group_offset = index_offsets[splitting_dimension + 1];
+  const IndexingType index_offset = index_offsets[splitting_dimension];
+
+  // Loop over all starting points
+  for (IndexingType start_point_id{0}; start_point_id < ctps_per_layer;
+       start_point_id++) {
+    // Locate position of starting point
+    const IndexingType group_id =
+        start_point_id / starting_points_per_index_group;
+    const IndexingType id_in_group =
+        start_point_id % starting_points_per_index_group;
+    const IndexingType global_start_id = group_id * group_offset + id_in_group;
+
+    // Going forward on first part and taking last value to second part
+    for (IndexingType i{1}; i <= degrees[splitting_dimension]; i++) {
+      for (IndexingType j{i}; j <= degrees[splitting_dimension]; j++) {
+        ctps_first[global_start_id + j * index_offset] =
+            ctps_first[global_start_id + (j - 1) * index_offset] * inv_factor +
+            ctps_first[global_start_id + j * index_offset] * factor;
+      }
+      ctps_second[global_start_id +
+                  (degrees[splitting_dimension] - i) * index_offset] =
+          ctps_first[global_start_id +
+                     degrees[splitting_dimension] * index_offset];
+    }
+  }
+  return spline_group_split;
 }

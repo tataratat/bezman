@@ -707,6 +707,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::split(
    *    2   1   1 : 11
    */
 
+  assert(("Split Plane out of bounds",
+          ((splitting_plane > 0.) && (splitting_plane < 1.))));
+
   // Initialize return values
   BezierSpline first_part{(*this)}, second_part{(*this)};
   BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>

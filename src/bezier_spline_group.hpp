@@ -69,36 +69,22 @@ class BezierSplineGroup
   constexpr BezierSplineGroup Compose(
       const BezierSplineGroup &inner_function_group) const;
 
-  // + Operator for concatenation
-  constexpr BezierSplineGroup operator+(const BezierSplineGroup &rhs) const {
-    BezierSplineGroup combination{(*this)};
-    combination += rhs;
-    return combination;
-  }
+  // Add two Bezier Spline Groups Component wise to the current Group
+  constexpr BezierSplineGroup &AddComponentwise(const BezierSplineGroup &rhs);
 
   // + Operator for concatenation
-  constexpr BezierSplineGroup &operator+=(const BezierSplineGroup &rhs) {
-    (*this).insert(this->begin(), rhs.begin(), rhs.end());
-    return (*this);
-  }
+  constexpr BezierSplineGroup operator+(const BezierSplineGroup &rhs) const;
+
+  // + Operator for concatenation
+  constexpr BezierSplineGroup &operator+=(const BezierSplineGroup &rhs);
 
   // + Operator for concatenation
   constexpr BezierSplineGroup operator+(
-      const PhysicalPointType &translation) const {
-    BezierSplineGroup combination{(*this)};
-    combination += translation;
-    return combination;
-  }
+      const PhysicalPointType &translation) const;
 
   // + Operator for concatenation
-  constexpr BezierSplineGroup &operator+=(
-      const PhysicalPointType &translation) {
-    for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
-      (*this)[i_spline] += translation;
-    }
-    return (*this);
-  }
-};
+  constexpr BezierSplineGroup &operator+=(const PhysicalPointType &translation);
+};  // namespace beziermanipulation
 
 #include "bezierManipulation/src/bezier_spline_group.inc"
 

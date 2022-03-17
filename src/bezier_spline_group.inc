@@ -49,10 +49,9 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType,
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                            ScalarType>&
-BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                  ScalarType>::FitToUnitCube() {
+constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+    &BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                       ScalarType>::FitToUnitCube() {
   const auto maximum_corner = MaximumCorner();
   const auto minimum_corner = MinimumCorner();
   auto scale_vector = maximum_corner - minimum_corner;
@@ -70,7 +69,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
 BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
-    const SplineBaseType& inner_function) const {
+    const SplineBaseType &inner_function) const {
   // Initiate return value
   const auto number_of_splines_in_group = this->size();
   BezierSplineGroup composed_group{number_of_splines_in_group};
@@ -86,7 +85,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
 BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
-    const BezierSplineGroup& inner_function_group) const {
+    const BezierSplineGroup &inner_function_group) const {
   // Initiate return value
   const auto number_of_splines_in_outer_group = this->size();
   const auto number_of_splines_in_inner_group = inner_function_group.size();
@@ -103,6 +102,59 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     }
   }
   return composed_group;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>&
+BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                  ScalarType>::AddComponentwise(const BezierSplineGroup &rhs) {
+  assert(("Size Mismatch", this->size() == rhs.size()));
+  for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
+    (*this)[i_spline] += rhs[i_spline];
+  }
+  return (*this);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                  ScalarType>::operator+(const BezierSplineGroup &rhs) const {
+  BezierSplineGroup combination{(*this)};
+  combination += rhs;
+  return combination;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+    &BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                       ScalarType>::operator+=(const BezierSplineGroup &rhs) {
+  (*this).insert(this->begin(), rhs.begin(), rhs.end());
+  return (*this);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                  ScalarType>::operator+(const PhysicalPointType &translation)
+    const {
+  BezierSplineGroup combination{(*this)};
+  combination += translation;
+  return combination;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+    &BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::
+    operator+=(const PhysicalPointType &translation) {
+  for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
+    (*this)[i_spline] += translation;
+  }
+  return (*this);
 }
 
 #endif  // SRC_BEZIER_SPLINE_GROUP_INC

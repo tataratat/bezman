@@ -1,11 +1,11 @@
 # bezierManipulation
-Light weight library in C++ to test out various composition methods
+Light weight library in C++ to test out various composition methods for Bézier splines.
 
-This small prototyping library is created to test out algorithms to create and modify small microstructures and analytically derive their control points. The longterm objective is to calculate analytical gradients of microstructures formed through functional composition between two splines
+This small prototyping library is created to test out algorithms to create and modify small microstructures and analytically derive their control points. The objective is the analytical calculation of gradients of microstructures formed through functional composition between splines
 
 
 ## Installation
-The Project uses cmake, to facilitate integration in other projects.
+The Project uses cmake, to facilitate integration in other projects (I recommend cmake version 3.16++). *Project is tested on gcc `10.3.xx` and has also been tested on clang `10.0.xx`.*
 
 Go to your destinated installation directory and create a build and install directory (can also be inside the bezierManipulation folder). Step into the build directory.
 ```
@@ -15,21 +15,19 @@ cd build
 
 Run CMake specifying an installation directory
 ```
-cmake -DCMAKE_INSTALL_PREFIX=../install ..
+cmake -DCMAKE_INSTALL_PREFIX=<link-to-your-install-directory> ..
 ```
-Default build type is debug but if you aim for performace, choose Release instead. GTEST is also activated by default
-(can be turned off using -DGOOGLETEST=OFF).
+Default build type is debug but if you aim for performace, choose Release instead, which sets compiler optimization flags. GTEST is also activated by default, however it is fetched from the internet, no need to have it preinstalled (can be turned off using -DGOOGLETEST=OFF).
 
-Now install the bezierManipulation by running the command
+Now install the library by running the command
 ```
 make install
 ```
 
-That's it. There are no external dependencies, however the `c++17` standard must be supported and new compilers are recommended (I am running gcc 10.3.0)
-To run the unit tests, execute `ctest` (e.g. with the verbose option).
+That's it. There are no external dependencies, however the `c++17` standard must be supported and new compilers are recommended. To run the unit tests, execute `ctest` (e.g. with the verbose option).
 
 ## Building an example
-There is currently two simple examples provided (to be extended). To build it go inside the example directory. It is recommended to not build directly inside the directory itself, but to provide an additional build folder. To do so run:
+There are also some simple examples provided, that show the usage of the library in a bit more detail. To build one of them go inside the example directory. It is recommended to not build directly inside the directory itself, but to provide an additional build folder. To do so run:
 ```
 mkdir build
 cd build
@@ -39,3 +37,4 @@ Run CMake and build the executable
 cmake ..
 make
 ```
+The example files also feature a display script, which is based on the [gustav](https://github.com/j042/gustav-alpha) library.

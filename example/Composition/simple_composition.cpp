@@ -41,7 +41,8 @@ int main() {
       BezierSpline<2, Point2D, double>(deformation_function_degrees,
                                        ctps_deformation_function_bulk)};
 
-  const auto test_composition = deformation_function.compose(microtile_cross);
-  utils::Export::GuessByExtension(test_composition, "composed_microstructure.xml");
+  const auto test_composition = deformation_function.Compose(microtile_cross);
+  utils::Export::GuessByExtension(test_composition,
+                                  "composed_microstructure.xml");
   return 0;
 }

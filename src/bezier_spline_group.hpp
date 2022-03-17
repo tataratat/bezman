@@ -50,23 +50,23 @@ class BezierSplineGroup
       : BaseVector{splines...} {}
 
   /// Check if group fits unit cube
-  constexpr bool fits_unit_cube() const;
+  constexpr bool FitsIntoUnitCube() const;
 
   /// Maximum
-  constexpr PhysicalPointType maximum() const;
+  constexpr PhysicalPointType MaximumCorner() const;
 
   /// Minimum corner
-  constexpr PhysicalPointType minimum() const;
+  constexpr PhysicalPointType MinimumCorner() const;
 
   /// Fit to unit_cube
-  constexpr BezierSplineGroup &fit_to_unit_cube();
+  constexpr BezierSplineGroup &FitToUnitCube();
 
   /// Compose with single Spline
-  constexpr BezierSplineGroup compose(
+  constexpr BezierSplineGroup Compose(
       const SplineBaseType &inner_function) const;
 
   /// Compose with Splinegroup
-  constexpr BezierSplineGroup compose(
+  constexpr BezierSplineGroup Compose(
       const BezierSplineGroup &inner_function_group) const;
 
   // + Operator for concatenation
@@ -91,8 +91,9 @@ class BezierSplineGroup
   }
 
   // + Operator for concatenation
-  constexpr BezierSplineGroup &operator+=(const PhysicalPointType &translation) {
-    for (IndexingType i_spline{}; i_spline < this->size(); i_spline++){
+  constexpr BezierSplineGroup &operator+=(
+      const PhysicalPointType &translation) {
+    for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
       (*this)[i_spline] += translation;
     }
     return (*this);

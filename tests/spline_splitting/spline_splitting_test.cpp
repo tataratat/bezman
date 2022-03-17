@@ -39,8 +39,8 @@ class BezierTestingSuite : public ::testing::Test {
 // Compare two known splines
 TEST_F(BezierTestingSuite, TestSplittingLine) {
   // Expect equality.
-  EXPECT_EQ(line1.split(0.5)[0], line1a);
-  EXPECT_EQ(line1.split(0.5)[1], line1b);
+  EXPECT_EQ(line1.SplitAtPosition(0.5)[0], line1a);
+  EXPECT_EQ(line1.SplitAtPosition(0.5)[1], line1b);
 }
 
 // Compare distinct samples
@@ -48,12 +48,12 @@ TEST_F(BezierTestingSuite, TestSplittingSurface) {
   // Expect equality.
   const double split_plane =
       static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-  const auto surface_split_first_half = surface.split(split_plane, 1)[0];
+  const auto surface_split_first_half = surface.SplitAtPosition(split_plane, 1)[0];
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)},
         y{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    EXPECT_FLOAT_EQ(surface_split_first_half.evaluate(x, y),
-                    surface.evaluate(x, split_plane * y));
+    EXPECT_FLOAT_EQ(surface_split_first_half.Evaluate(x, y),
+                    surface.Evaluate(x, split_plane * y));
   }
 };
 }  // namespace beziermanipulation::tests::spline_operations

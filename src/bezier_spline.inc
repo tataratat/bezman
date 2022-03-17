@@ -1,7 +1,7 @@
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr void BezierSpline<parametric_dimension, PhysicalPointType,
-                            ScalarType>::update_index_offsets() {
+                            ScalarType>::UpdateIndexOffsets_() {
   index_offsets[0] = 1;
   for (unsigned int i{1}; i < parametric_dimension; i++)
     index_offsets[i] = index_offsets[i - 1] * (degrees[i - 1] + 1);
@@ -11,7 +11,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::size_t, parametric_dimension> BezierSpline<
     parametric_dimension, PhysicalPointType,
-    ScalarType>::local_to_global_index(const IndexingType& local_index) const {
+    ScalarType>::LocalToGlobalIndex(const IndexingType& local_index) const {
   std::array<IndexingType, parametric_dimension> indexList{};
   for (unsigned int i{0}; i < parametric_dimension; i++) {
     indexList[i] = (local_index / index_offsets[i]) % (degrees[i] + 1);
@@ -25,7 +25,7 @@ template <typename PhysicalPointLHS, typename ScalarLHS,
           typename PhysicalPointRHS, typename ScalarRHS, typename... T>
 constexpr void
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    product_combine_control_points(
+    CombineControlPointsForProduct_(
         const BezierSpline<parametric_dimension, PhysicalPointLHS, ScalarLHS>&
             P_spline,
         const BezierSpline<parametric_dimension, PhysicalPointRHS, ScalarRHS>&
@@ -56,12 +56,12 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
       for (unsigned int j{}; j < parametric_dimension; j++) {
         ind_rhs[j] = ctpsIndex[j] - ind_lhs[j];
       }
-      (*this).control_point(ctpsIndex) += P_spline.control_point(ind_lhs) *
-                                          Q_spline.control_point(ind_rhs) *
-                                          factor * lFactor;
+      (*this).ControlPoint(ctpsIndex) += P_spline.ControlPoint(ind_lhs) *
+                                         Q_spline.ControlPoint(ind_rhs) *
+                                         factor * lFactor;
     } else {
-      product_combine_control_points(P_spline, Q_spline, ctpsIndex,
-                                     factor * lFactor, indices..., i);
+      CombineControlPointsForProduct_(P_spline, Q_spline, ctpsIndex,
+                                      factor * lFactor, indices..., i);
     }
   }
 }
@@ -70,8 +70,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename... T>
 constexpr const PhysicalPointType&
-BezierSpline<parametric_dimension, PhysicalPointType,
-             ScalarType>::control_point(const T... index) const {
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::ControlPoint(
+    const T... index) const {
   static_assert(sizeof...(T) == parametric_dimension,
                 "Unspecified number of indices.");
   unsigned int c_i{0}, i{};
@@ -83,8 +83,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename... T>
 constexpr PhysicalPointType&
-BezierSpline<parametric_dimension, PhysicalPointType,
-             ScalarType>::control_point(const T... index) {
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::ControlPoint(
+    const T... index) {
   static_assert(sizeof...(T) == parametric_dimension,
                 "Unspecified number of indices.");
   unsigned int c_i{0}, i{};
@@ -95,9 +95,8 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr const PhysicalPointType&
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    control_point(
-        const std::array<IndexingType, parametric_dimension>& index) const {
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::ControlPoint(
+    const std::array<IndexingType, parametric_dimension>& index) const {
   unsigned int c_i{0}, i{};
   for (unsigned int i{}; i < parametric_dimension; i++) {
     c_i += index_offsets[i] * index[i];
@@ -108,8 +107,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr PhysicalPointType&
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    control_point(const std::array<IndexingType, parametric_dimension>& index) {
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::ControlPoint(
+    const std::array<IndexingType, parametric_dimension>& index) {
   unsigned int c_i{0}, i{};
   for (unsigned int i{}; i < parametric_dimension; i++) {
     c_i += index_offsets[i] * index[i];
@@ -121,7 +120,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    order_elevate_along_parametric_dimension(const IndexingType par_dim) {
+    OrderElevateAlongParametricDimension(const IndexingType par_dim) {
   // Calculate index Offsets to facilitate working on 1D array
   const unsigned int n_starting_points =
       (NumberOfControlPoints / (degrees[par_dim] + 1));
@@ -191,7 +190,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
       global_index--;
     }
   }
-  update_index_offsets();
+  UpdateIndexOffsets_();
   return (*this);
 }
 
@@ -199,7 +198,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    derive_along_parametric_dimension(const IndexingType par_dim) const {
+    DerivativeWRTParametricDimension(const IndexingType par_dim) const {
   // Initialize return value and precompute auxiliary values
   auto new_degrees = degrees;
   new_degrees[par_dim]--;
@@ -210,11 +209,11 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   // values
   for (IndexingType i_point{0}; i_point < derivative.NumberOfControlPoints;
        i_point++) {
-    const auto index = derivative.local_to_global_index(i_point);
+    const auto index = derivative.LocalToGlobalIndex(i_point);
     auto next_index = index;
     next_index[par_dim]++;
     derivative.control_points[i_point] =
-        factor * (control_point(next_index) - control_point(index));
+        factor * (ControlPoint(next_index) - ControlPoint(index));
   }
   return derivative;
 }
@@ -223,8 +222,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType,
-             ScalarType>::evaluate(const PointTypeParametric_& par_coords)
-    const {  // Work on copy of control_point
+             ScalarType>::Evaluate(const PointTypeParametric_& par_coords)
+    const {  // Work on copy of ControlPoint
   std::vector<PointTypePhysical_> ctps_copy{control_points};
   IndexingType ctps_to_consider = NumberOfControlPoints;
 
@@ -368,7 +367,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
   // RHSs order
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
     while (rhs.degrees[par_dim] > return_spline.degrees[par_dim]) {
-      return_spline.order_elevate_along_parametric_dimension(par_dim);
+      return_spline.OrderElevateAlongParametricDimension(par_dim);
     }
   }
   if (rhs_needs_copy) {
@@ -392,13 +391,13 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+=(
   // RHSs order
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
     while (rhs.degrees[par_dim] > degrees[par_dim]) {
-      order_elevate_along_parametric_dimension(par_dim);
+      OrderElevateAlongParametricDimension(par_dim);
     }
   }
   // Do the same thing to the rhs
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
     while (rhs.degrees[par_dim] < degrees[par_dim]) {
-      rhs.order_elevate_along_parametric_dimension(par_dim);
+      rhs.OrderElevateAlongParametricDimension(par_dim);
     }
   }
   // Add control points
@@ -425,7 +424,7 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::power(
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::RaisePower(
     const unsigned int power) const {
   // @TODO use log2(power) algorithm that squares the result to minimize
   // multiplications
@@ -442,8 +441,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::power(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr PhysicalPointType BezierSpline<
-    parametric_dimension, PhysicalPointType, ScalarType>::maximum() const {
+constexpr PhysicalPointType
+BezierSpline<parametric_dimension, PhysicalPointType,
+             ScalarType>::MaximumCorner() const {
   assert(("Spline seems to be non-defined or has no control-points",
           NumberOfControlPoints > 0));
   PhysicalPointType maximum{control_points[0]};
@@ -458,8 +458,9 @@ constexpr PhysicalPointType BezierSpline<
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr PhysicalPointType BezierSpline<
-    parametric_dimension, PhysicalPointType, ScalarType>::minimum() const {
+constexpr PhysicalPointType
+BezierSpline<parametric_dimension, PhysicalPointType,
+             ScalarType>::MinimumCorner() const {
   assert(("Spline seems to be non-defined or has no control-points",
           NumberOfControlPoints > 0));
   PhysicalPointType minimum{control_points[0]};
@@ -476,8 +477,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    transpose_and_scale(const PhysicalPointType& transposition,
-                        const PhysicalPointType& scale_vector) {
+    TransposeAndScale(const PhysicalPointType& transposition,
+                      const PhysicalPointType& scale_vector) {
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
     for (IndexingType i{}; i < NumberOfControlPoints; i++) {
@@ -493,23 +494,23 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
 BezierSpline<parametric_dimension, PhysicalPointType,
-             ScalarType>::fit_to_unit_cube() {
-  const auto maximum_corner = maximum();
-  const auto minimum_corner = minimum();
+             ScalarType>::FitToUnitCube() {
+  const auto maximum_corner = MaximumCorner();
+  const auto minimum_corner = MinimumCorner();
   auto scale_vector = maximum_corner - minimum_corner;
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
     scale_vector[i_dim] = static_cast<ScalarType>(1) / scale_vector[i_dim];
   }
-  return transpose_and_scale(-minimum_corner, scale_vector);
+  return TransposeAndScale(-minimum_corner, scale_vector);
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr bool BezierSpline<parametric_dimension, PhysicalPointType,
-                            ScalarType>::fits_unit_cube() const {
-  const auto maximum_corner = maximum();
-  const auto minimum_corner = minimum();
+                            ScalarType>::FitsIntoUnitCube() const {
+  const auto maximum_corner = MaximumCorner();
+  const auto minimum_corner = MinimumCorner();
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
     if ((maximum_corner[i_dim] > static_cast<ScalarType>(1)) ||
@@ -549,8 +550,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator*(
 
   // Start calculating the new control points
   for (IndexingType i{}; i < return_spline.NumberOfControlPoints; i++) {
-    return_spline.product_combine_control_points(
-        (*this), rhs, return_spline.local_to_global_index(i),
+    return_spline.CombineControlPointsForProduct_(
+        (*this), rhs, return_spline.LocalToGlobalIndex(i),
         static_cast<ScalarReturnT>(1.));
   }
   return return_spline;
@@ -562,7 +563,7 @@ template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
           typename ScalarRHS>
 constexpr BezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
                        decltype(ScalarType{} * ScalarRHS{})>
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                        ScalarRHS>& inner_function) const {
   /// Start the composition with the current spline
@@ -573,7 +574,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
 
   // Check if the inner function fits into the unit cube
   assert(("Inner function must fit unit cube to perform composition.",
-          inner_function.fits_unit_cube()));
+          inner_function.FitsIntoUnitCube()));
   // New degrees
   std::array<IndexingType, parametric_dimension_inner_spline> new_degrees{
       inner_function.degrees};
@@ -599,7 +600,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
     // Extract the current dimension of the spline
     inner_spline_coordinate_seperations[i_outer_parametric_dimension] =
         inner_function.ExtractDimension(i_outer_parametric_dimension);
-  }  // Val_Jac
+  }
 
   // Loop over control points of the outer spline to start the interpolation
   for (unsigned int i_control_point_outer_spline{};
@@ -607,7 +608,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
        i_control_point_outer_spline++) {
     // Retrieve indices
     const auto outer_spline_ctps_indices =
-        local_to_global_index(i_control_point_outer_spline);
+        LocalToGlobalIndex(i_control_point_outer_spline);
 
     // Create a 2D vector of all control-point factors to be filled later on
     std::vector<BezierSpline<parametric_dimension_inner_spline, ScalarReturnT,
@@ -629,17 +630,17 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
       // @todo (avoid costly power operation and save intermediate states)
       if (i_basis_function_index == 0) {
         factorization_splines[i_outer_parametric_dimension] =
-            ((1 - inner_spline_xi).power(n_outer_degree));
+            ((1 - inner_spline_xi).RaisePower(n_outer_degree));
       } else if (i_basis_function_index == n_outer_degree) {
         factorization_splines[i_outer_parametric_dimension] =
-            (inner_spline_xi.power(n_outer_degree));
+            (inner_spline_xi.RaisePower(n_outer_degree));
       } else {
         factorization_splines[i_outer_parametric_dimension] =
             (utils::FastBinomialCoefficient::choose(n_outer_degree,
                                                     i_basis_function_index) *
-             inner_spline_xi.power(i_basis_function_index) *
+             inner_spline_xi.RaisePower(i_basis_function_index) *
              (1 - inner_spline_xi)
-                 .power(n_outer_degree - i_basis_function_index));
+                 .RaisePower(n_outer_degree - i_basis_function_index));
       }
     }
 
@@ -678,7 +679,7 @@ template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
 constexpr BezierSplineGroup<parametric_dimension_inner_spline,
                             PhysicalPointType,
                             decltype(ScalarType{} * ScalarRHS{})>
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
                             ScalarRHS>& inner_function_group) const {
   /// Start the composition with the current spline
@@ -691,14 +692,14 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
 
   // Check if the inner function fits into the unit cube
   assert(("Inner function must fit unit cube to perform composition.",
-          inner_function_group.fits_unit_cube()));
+          inner_function_group.FitsIntoUnitCube()));
 
   // Check Dimensions
   static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
                 "Dimension mismatch");
 
   for (IndexingType i_spline{}; i_spline < number_of_splines; i_spline++) {
-    composition_group[i_spline] = compose(inner_function_group[i_spline]);
+    composition_group[i_spline] = Compose(inner_function_group[i_spline]);
   }
   return composition_group;
 }
@@ -706,9 +707,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::split(
-    const ScalarType& splitting_plane,
-    const IndexingType splitting_dimension) const {
+BezierSpline<parametric_dimension, PhysicalPointType,
+             ScalarType>::SplitAtPosition(const ScalarType& splitting_plane,
+                                          const IndexingType
+                                              splitting_dimension) const {
   /*
    * Notation:
    * A group the number of all starting points that are subsequent, i.e. the

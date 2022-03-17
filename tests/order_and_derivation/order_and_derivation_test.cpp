@@ -37,7 +37,7 @@ class BezierTestingSuite : public ::testing::Test {
   auto CreateRandomSpline(unsigned int degree){
     BezierSpline<1, double, double> randomSpline{std::array<std::size_t, 1>{degree}};
     for (unsigned int i{}; i < degree; i++){
-      randomSpline.control_point(i) =
+      randomSpline.ControlPoint(i) =
           static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
     }
     return randomSpline;
@@ -47,7 +47,7 @@ class BezierTestingSuite : public ::testing::Test {
 // Order Elevation Test
 TEST_F(BezierTestingSuite, OrderElevation) {
   // Expect equality.
-  EXPECT_EQ(line1.order_elevate_along_parametric_dimension(0), line1_order_eliv);
+  EXPECT_EQ(line1.OrderElevateAlongParametricDimension(0), line1_order_eliv);
 }
 
 // Demonstrate Elevation at random Points and random lines
@@ -56,21 +56,21 @@ TEST_F(BezierTestingSuite, OrderElevation2) {
   auto spline1 = CreateRandomSpline(10);
   const auto spline1_original = spline1;
   // Elevate the order a couple of times
-  spline1.order_elevate_along_parametric_dimension(0)
-      .order_elevate_along_parametric_dimension(0)
-      .order_elevate_along_parametric_dimension(0)
-      .order_elevate_along_parametric_dimension(0)
-      .order_elevate_along_parametric_dimension(0);
+  spline1.OrderElevateAlongParametricDimension(0)
+      .OrderElevateAlongParametricDimension(0)
+      .OrderElevateAlongParametricDimension(0)
+      .OrderElevateAlongParametricDimension(0)
+      .OrderElevateAlongParametricDimension(0);
 
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    EXPECT_FLOAT_EQ(spline1.evaluate(x), spline1_original.evaluate(x));
+    EXPECT_FLOAT_EQ(spline1.Evaluate(x), spline1_original.Evaluate(x));
   }
 }
 
 // Derivation Of line with known results
 TEST_F(BezierTestingSuite, Derivation) {
   // Expect equality.
-  EXPECT_EQ(line1.derive_along_parametric_dimension(0), line1_deriv);
+  EXPECT_EQ(line1.DerivativeWRTParametricDimension(0), line1_deriv);
 }
 }  // namespace beziermanipulation::tests::basic_operations

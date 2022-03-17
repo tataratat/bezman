@@ -35,7 +35,7 @@ class BezierSpline {
   using PointTypePhysical_ = PhysicalPointType;
   using PointTypeParametric_ = Point<parametric_dimension, ScalarType>;
 
-  constexpr void update_index_offsets();
+  constexpr void UpdateIndexOffsets_();
 
  public:
   using ScalarType_ = ScalarType;
@@ -54,8 +54,8 @@ class BezierSpline {
    *
    * @param local_indices single value index as control point index
    */
-  constexpr std::array<IndexingType, parametric_dimension>
-  local_to_global_index(const IndexingType& local_index) const;
+  constexpr std::array<IndexingType, parametric_dimension> LocalToGlobalIndex(
+      const IndexingType& local_index) const;
 
   /*
    * Calculate the new control point that result from the multiplication
@@ -64,7 +64,7 @@ class BezierSpline {
    */
   template <typename PhysicalPointLHS, typename ScalarLHS,
             typename PhysicalPointRHS, typename ScalarRHS, typename... T>
-  constexpr void product_combine_control_points(
+  constexpr void CombineControlPointsForProduct_(
       const BezierSpline<parametric_dimension, PhysicalPointLHS, ScalarLHS>&
           P_spline,
       const BezierSpline<parametric_dimension, PhysicalPointRHS, ScalarRHS>&
@@ -86,7 +86,7 @@ class BezierSpline {
     for (unsigned int i{}; i < parametric_dimension; i++)
       NumberOfControlPoints *= degrees[i] + 1;
     control_points.resize(NumberOfControlPoints);
-    update_index_offsets();
+    UpdateIndexOffsets_();
   };
 
   /// Constructor with control point list
@@ -98,7 +98,7 @@ class BezierSpline {
     for (unsigned int i{}; i < parametric_dimension; i++)
       NumberOfControlPoints *= degrees[i] + 1;
 
-    update_index_offsets();
+    UpdateIndexOffsets_();
     assert(NumberOfControlPoints == points.size());
   };
 
@@ -110,35 +110,35 @@ class BezierSpline {
 
   /// Retrieve single control point from local indices
   template <typename... T>
-  constexpr const PointTypePhysical_& control_point(const T... index) const;
+  constexpr const PointTypePhysical_& ControlPoint(const T... index) const;
 
   /// Retrieve single control point from local indices
   template <typename... T>
-  constexpr PointTypePhysical_& control_point(const T... index);
+  constexpr PointTypePhysical_& ControlPoint(const T... index);
 
   /// Retrieve single control point from local indices (as array)
-  constexpr const PointTypePhysical_& control_point(
+  constexpr const PointTypePhysical_& ControlPoint(
       const std::array<IndexingType, parametric_dimension>& index) const;
 
   /// Retrieve single control point from local indices (as array)
-  constexpr PointTypePhysical_& control_point(
+  constexpr PointTypePhysical_& ControlPoint(
       const std::array<IndexingType, parametric_dimension>& index);
 
   /// Order elevation along a specific parametric dimension
-  constexpr BezierSpline& order_elevate_along_parametric_dimension(
+  constexpr BezierSpline& OrderElevateAlongParametricDimension(
       const IndexingType par_dim);
 
   /// Derivative along a specific parametric dimension
-  constexpr BezierSpline derive_along_parametric_dimension(
+  constexpr BezierSpline DerivativeWRTParametricDimension(
       const IndexingType par_dim) const;
 
   template <typename... T>
-  constexpr PointTypePhysical_ evaluate(const T&... par_coords) const {
-    return (*this).evaluate(PointTypeParametric_{par_coords...});
+  constexpr PointTypePhysical_ Evaluate(const T&... par_coords) const {
+    return (*this).Evaluate(PointTypeParametric_{par_coords...});
   }
 
   /// Evaluate the spline via the deCasteljau algorithm
-  constexpr PointTypePhysical_ evaluate(
+  constexpr PointTypePhysical_ Evaluate(
       const PointTypeParametric_& par_coords) const;
 
   /// Addition of Two Splines resulting in a new spline that describes the
@@ -151,7 +151,7 @@ class BezierSpline {
                 rhs) const;
 
   /// Add two splines of same type
-  constexpr BezierSpline &operator+=(BezierSpline rhs);
+  constexpr BezierSpline& operator+=(BezierSpline rhs);
 
   /// Check if two splines are equivalent
   constexpr bool operator==(const BezierSpline& rhs) const;
@@ -169,7 +169,7 @@ class BezierSpline {
   ExtractDimension(unsigned int dimension) const;
 
   constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
-  power(const unsigned int power) const;
+  RaisePower(const unsigned int power) const;
 
   /// Multiplication with scalar
   constexpr BezierSpline& operator*=(const ScalarType& scalar);
@@ -184,7 +184,7 @@ class BezierSpline {
   }
 
   /// Check if can be used for composition
-  constexpr bool fits_unit_cube() const;
+  constexpr bool FitsIntoUnitCube() const;
 
   /// Addition
   constexpr BezierSpline& operator+=(const PhysicalPointType& point_shift);
@@ -208,10 +208,10 @@ class BezierSpline {
   constexpr BezierSpline operator-() const;
 
   /// Get maximum restricting corner of spline
-  constexpr PhysicalPointType maximum() const;
+  constexpr PhysicalPointType MaximumCorner() const;
 
   /// Get minimum restricting corner of spline
-  constexpr PhysicalPointType minimum() const;
+  constexpr PhysicalPointType MinimumCorner() const;
 
   /*
    * Reposition spline and scale dimensionwise
@@ -225,7 +225,7 @@ class BezierSpline {
    * @param transposition PointType describing the first corner of the nd cuboid
    * @param stretch PointType describing the second corner of the nd cuboid
    */
-  constexpr BezierSpline& transpose_and_scale(
+  constexpr BezierSpline& TransposeAndScale(
       const PhysicalPointType& transposition,
       const PhysicalPointType& scale_vector);
 
@@ -235,7 +235,7 @@ class BezierSpline {
    * Takes spline and fits it into the unit cuboid (important for spline
    * composition)
    */
-  constexpr BezierSpline& fit_to_unit_cube();
+  constexpr BezierSpline& FitToUnitCube();
 
   /// Friend injection Substraction
   friend constexpr BezierSpline operator-(const PhysicalPointType& point_shift,
@@ -255,7 +255,7 @@ class BezierSpline {
             typename PointTypeRHS, typename ScalarRHS>
   constexpr BezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
                          decltype(ScalarType_{} * ScalarRHS{})>
-  compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
+  Compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                              ScalarRHS>& inner_function) const;
 
   /*
@@ -270,7 +270,7 @@ class BezierSpline {
   constexpr BezierSplineGroup<parametric_dimension_inner_spline,
                               PhysicalPointType,
                               decltype(ScalarType_{} * ScalarRHS{})>
-  compose(
+  Compose(
       const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
                               ScalarRHS>& inner_function_group) const;
 
@@ -282,8 +282,8 @@ class BezierSpline {
    */
   constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType,
                               ScalarType>
-  split(const ScalarType &splitting_plane,
-        const IndexingType splitting_dimension = 0) const;
+  SplitAtPosition(const ScalarType& splitting_plane,
+                  const IndexingType splitting_dimension = 0) const;
 };
 
 #include "bezierManipulation/src/bezier_spline.inc"

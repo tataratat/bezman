@@ -40,7 +40,7 @@ class BezierTestingSuite : public ::testing::Test {
   const auto CreateRandomSpline(unsigned int degree){
     BezierSpline<1, double, double> randomSpline{std::array<std::size_t, 1>{degree}};
     for (unsigned int i{}; i < degree; i++){
-      randomSpline.control_point(i) =
+      randomSpline.ControlPoint(i) =
           static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
     }
     return randomSpline;
@@ -51,10 +51,10 @@ class BezierTestingSuite : public ::testing::Test {
 TEST_F(BezierTestingSuite, TestAddition) {
   // Expect equality.
   EXPECT_EQ(line1 + line2, line3);
-  EXPECT_EQ(line1_copy.order_elevate_along_parametric_dimension(0) + line2,
-            line3_copy.order_elevate_along_parametric_dimension(0));
-  EXPECT_EQ(line1 + line2_copy.order_elevate_along_parametric_dimension(0),
-            line3.order_elevate_along_parametric_dimension(0));
+  EXPECT_EQ(line1_copy.OrderElevateAlongParametricDimension(0) + line2,
+            line3_copy.OrderElevateAlongParametricDimension(0));
+  EXPECT_EQ(line1 + line2_copy.OrderElevateAlongParametricDimension(0),
+            line3.OrderElevateAlongParametricDimension(0));
   EXPECT_EQ(-line1, (-1) * line1);
 }
 
@@ -64,8 +64,8 @@ TEST_F(BezierTestingSuite, TestAddition2) {
 
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    EXPECT_EQ(line1.evaluate(x) + line2.evaluate(x),
-              (line1 + line2).evaluate(x));
+    EXPECT_EQ(line1.Evaluate(x) + line2.Evaluate(x),
+              (line1 + line2).Evaluate(x));
   }
 }
 
@@ -76,8 +76,8 @@ TEST_F(BezierTestingSuite, TestAddition3) {
   const auto spline2 = CreateRandomSpline(15);
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    EXPECT_FLOAT_EQ(spline1.evaluate(x) + spline2.evaluate(x),
-                    (spline1 + spline2).evaluate(x));
+    EXPECT_FLOAT_EQ(spline1.Evaluate(x) + spline2.Evaluate(x),
+                    (spline1 + spline2).Evaluate(x));
   }
 }
 
@@ -87,8 +87,8 @@ TEST_F(BezierTestingSuite, MultiplicationTest1) {
 
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    EXPECT_FLOAT_EQ(line1.evaluate(x) * line2.evaluate(x),
-                    (line1 * line2).evaluate(x));
+    EXPECT_FLOAT_EQ(line1.Evaluate(x) * line2.Evaluate(x),
+                    (line1 * line2).Evaluate(x));
   }
 }
 
@@ -99,8 +99,8 @@ TEST_F(BezierTestingSuite, MultiplicationTest2) {
   const auto spline2 = CreateRandomSpline(15);
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    EXPECT_FLOAT_EQ(spline1.evaluate(x) * spline2.evaluate(x),
-                    (spline1 * spline2).evaluate(x));
+    EXPECT_FLOAT_EQ(spline1.Evaluate(x) * spline2.Evaluate(x),
+                    (spline1 * spline2).Evaluate(x));
   }
 }
 

@@ -2,7 +2,7 @@
 
 #include <array>
 
-#define MAX_BINOMIAL_DEGREE 62u // Required for second test set
+#define MAX_BINOMIAL_DEGREE 62u  // Required for second test set
 #include "bezierManipulation/src/bezier_spline.hpp"
 
 using namespace beziermanipulation;
@@ -42,11 +42,11 @@ class BezierTestingSuite : public ::testing::Test {
  */
 TEST_F(BezierTestingSuite, Composition) {
   // Expect equality.
-  const auto composed_spline = surface.compose(line);
+  const auto composed_spline = surface.Compose(line);
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    const auto composed_spline_position = composed_spline.evaluate(x);
-    const auto composed_spline_expectation = surface.evaluate(line.evaluate(x));
+    const auto composed_spline_position = composed_spline.Evaluate(x);
+    const auto composed_spline_expectation = surface.Evaluate(line.Evaluate(x));
     for (unsigned int i_dim{}; i_dim < 3; i_dim++) {
       // Compare the different dimensions element-wise
       EXPECT_FLOAT_EQ(composed_spline_position[i_dim],
@@ -62,11 +62,11 @@ TEST_F(BezierTestingSuite, Composition) {
 TEST_F(BezierTestingSuite, CompositionHighOrder) {
   // Increase the order a few times
   for (int i{}; i < 4; i++) {
-    surface.order_elevate_along_parametric_dimension(0)
-        .order_elevate_along_parametric_dimension(1);
-    line.order_elevate_along_parametric_dimension(0);
+    surface.OrderElevateAlongParametricDimension(0)
+        .OrderElevateAlongParametricDimension(1);
+    line.OrderElevateAlongParametricDimension(0);
   }
-  const auto composed_spline = surface.compose(line);
+  const auto composed_spline = surface.Compose(line);
 
   std::cerr << "[          ] surface-degrees: =     \t(" << surface.degrees[0]
             << ", " << surface.degrees[1] << ")" << std::endl;
@@ -77,8 +77,8 @@ TEST_F(BezierTestingSuite, CompositionHighOrder) {
             << composed_spline.degrees[0] << ")" << std::endl;
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    const auto composed_spline_position = composed_spline.evaluate(x);
-    const auto composed_spline_expectation = surface.evaluate(line.evaluate(x));
+    const auto composed_spline_position = composed_spline.Evaluate(x);
+    const auto composed_spline_expectation = surface.Evaluate(line.Evaluate(x));
     for (unsigned int i_dim{}; i_dim < 3; i_dim++) {
       // Compare the different dimensions element-wise
       EXPECT_FLOAT_EQ(composed_spline_position[i_dim],

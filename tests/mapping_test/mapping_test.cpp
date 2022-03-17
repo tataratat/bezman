@@ -40,17 +40,16 @@ class BezierTestingSuite : public ::testing::Test {
  */
 TEST_F(BezierTestingSuite, MappingToUnitCube) {
   // Expect equality.
-  EXPECT_FALSE(surface.fits_unit_cube());
-  surface.fit_to_unit_cube();
-  EXPECT_TRUE(surface.fits_unit_cube());
-  EXPECT_TRUE(reference_surface.fits_unit_cube());
-  for (std::size_t i{}; i < surface.NumberOfControlPoints; i++)
-  {
-    for (std::size_t i_dim{}; i_dim < 3; i_dim++){
-      EXPECT_FLOAT_EQ(surface.control_points[i][i_dim], ref_surface_ctps[i][i_dim]);
+  EXPECT_FALSE(surface.FitsIntoUnitCube());
+  surface.FitToUnitCube();
+  EXPECT_TRUE(surface.FitsIntoUnitCube());
+  EXPECT_TRUE(reference_surface.FitsIntoUnitCube());
+  for (std::size_t i{}; i < surface.NumberOfControlPoints; i++) {
+    for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
+      EXPECT_FLOAT_EQ(surface.control_points[i][i_dim],
+                      ref_surface_ctps[i][i_dim]);
     }
   }
 }
-
 
 }  // namespace beziermanipulation::tests::mapping_test

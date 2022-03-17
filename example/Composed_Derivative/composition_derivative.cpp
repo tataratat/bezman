@@ -36,20 +36,21 @@ int main() {
        i_point < microtile_cross_derivative.control_points.size(); i_point++) {
     microtile_cross_derivative.control_points[i_point] = Point2D{0., 0.};
   }
-  // Define the derivative of the inner function (Here just moving the upper most points to the outside)
+  // Define the derivative of the inner function (Here just moving the upper
+  // most points to the outside)
   microtile_cross_derivative.control_points[2] = Point2D{-1., 0.};
   microtile_cross_derivative.control_points[3] = Point2D{+1., 0.};
 
   auto microstructure_derivative =
-      deformation_function.derive_along_parametric_dimension(0).compose(
+      deformation_function.DerivativeWRTParametricDimension(0).Compose(
           microtile_cross) *
       microtile_cross_derivative.ExtractDimension(0);
   microstructure_derivative +=
-      deformation_function.derive_along_parametric_dimension(1).compose(
+      deformation_function.DerivativeWRTParametricDimension(1).Compose(
           microtile_cross) *
       microtile_cross_derivative.ExtractDimension(1);
 
-  const auto test_composition = deformation_function.compose(microtile_cross);
+  const auto test_composition = deformation_function.Compose(microtile_cross);
   utils::Export::GuessByExtension(test_composition,
                                   "composed_microstructure.xml");
   utils::Export::GuessByExtension(microstructure_derivative,

@@ -150,6 +150,9 @@ class BezierSpline {
   operator+(const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>&
                 rhs) const;
 
+  /// Add two splines of same type
+  constexpr BezierSpline &operator+=(BezierSpline rhs);
+
   /// Check if two splines are equivalent
   constexpr bool operator==(const BezierSpline& rhs) const;
 

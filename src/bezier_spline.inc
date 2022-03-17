@@ -385,6 +385,31 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+=(
+    BezierSpline<parametric_dimension, PhysicalPointType, ScalarType> rhs) {
+  // Increase the order of (*this) spline to be greater or equal to the
+  // RHSs order
+  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
+    while (rhs.degrees[par_dim] > degrees[par_dim]) {
+      order_elevate_along_parametric_dimension(par_dim);
+    }
+  }
+  // Do the same thing to the rhs
+  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
+    while (rhs.degrees[par_dim] < degrees[par_dim]) {
+      rhs.order_elevate_along_parametric_dimension(par_dim);
+    }
+  }
+  // Add control points
+  for (IndexingType i_ctps{}; i_ctps < NumberOfControlPoints; i_ctps++) {
+    control_points[i_ctps] += rhs.control_points[i_ctps];
+  }
+  return (*this);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::ExtractDimension(unsigned int dimension) const {
@@ -601,6 +626,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::compose(
           inner_spline_coordinate_seperations[i_outer_parametric_dimension];
 
       // Boundary cases
+      // @todo (avoid costly power operation and save intermediate states)
       if (i_basis_function_index == 0) {
         factorization_splines[i_outer_parametric_dimension] =
             ((1 - inner_spline_xi).power(n_outer_degree));
@@ -707,6 +733,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::split(
    *    2   1   1 : 11
    */
 
+  // Check bounds (as default knot-vector is [0,0,..,1,1,...])
   assert(("Split Plane out of bounds",
           ((splitting_plane > 0.) && (splitting_plane < 1.))));
 

@@ -36,4 +36,4 @@ if __name__ == "__main__":
     # gus.show.show_vedo([spline, arrows])
     gusSplines = [a.show(return_discrete=True)["spline"] for a in spline_list]
     gusKnots = [a.show(return_discrete=True)["knots"] for a in spline_list]
-    gus.show.show_vedo([*gusSplines,*gusKnots, arrows])
+    plt = gus.show.show_vedo([*gusSplines,*gusKnots, arrows])

@@ -5,7 +5,7 @@ This small prototyping library is created to test out algorithms to create and m
 
 
 ## Installation
-The Project uses cmake, to facilitate integration in other projects (I recommend cmake version 3.16++). *Project is tested on gcc `10.3.xx` and has also been tested on clang `10.0.xx`.*
+The Project uses cmake, to facilitate integration in other projects (I recommend cmake version 3.16++). *Project is tested on gcc `10.3.xx` and has also been tested on clang `11.1.xx` and `12.0.xx`.*
 
 Go to your destinated installation directory and create a build and install directory (can also be inside the bezierManipulation folder). Step into the build directory.
 ```

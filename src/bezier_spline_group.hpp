@@ -69,20 +69,36 @@ class BezierSplineGroup
   constexpr BezierSplineGroup Compose(
       const BezierSplineGroup &inner_function_group) const;
 
-  // Add two Bezier Spline Groups Component wise to the current Group
+  /// Add two Bezier Spline Groups Component wise to the current Group
   constexpr BezierSplineGroup &AddComponentwise(const BezierSplineGroup &rhs);
 
-  // + Operator for concatenation
+  /// Add two Bezier Spline Groups Component wise to the current Group
+  template <typename PointTypeRHS, typename ScalarRHS>
+  constexpr BezierSplineGroup<parametric_dimension,
+                              decltype(PhysicalPointType{} * PointTypeRHS{}),
+                              decltype(ScalarType{} * ScalarRHS{})>
+  MultiplyComponentwise(const BezierSplineGroup<parametric_dimension,
+                                                PointTypeRHS, ScalarRHS> &rhs) const;
+
+  /// Calculate the derivative of all components and return in a new group
+  constexpr BezierSplineGroup DerivativeWRTParametricDimension(
+      const IndexingType par_dim) const;
+
+  /// Extract a specific component of the physical spline (e.g. the x dimension)
+  constexpr BezierSplineGroup<parametric_dimension, ScalarType, ScalarType>
+  ExtractDimension(unsigned int dimension) const;
+
+  /// + Operator for concatenation
   constexpr BezierSplineGroup operator+(const BezierSplineGroup &rhs) const;
 
-  // + Operator for concatenation
+  /// + Operator for concatenation
   constexpr BezierSplineGroup &operator+=(const BezierSplineGroup &rhs);
 
-  // + Operator for concatenation
+  /// + Operator for concatenation
   constexpr BezierSplineGroup operator+(
       const PhysicalPointType &translation) const;
 
-  // + Operator for concatenation
+  /// + Operator for concatenation
   constexpr BezierSplineGroup &operator+=(const PhysicalPointType &translation);
 };  // namespace beziermanipulation
 

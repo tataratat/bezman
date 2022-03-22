@@ -197,6 +197,8 @@ int main() {
   utils::Export::GuessByExtension(deformation_function,
                                   "deformation_function.xml");
   utils::Export::GuessByExtension(microtile, "microtile.xml");
+  utils::Export::GuessByExtension(SimpleCrossTile(thickness, true),
+                                  "microtileDeriv.xml");
 
   // Derive composed geometry
   auto microstructure_derivative =

@@ -8,7 +8,7 @@ set(LOCAL_HEADERS
     )
 
 # Add All Subdirectories
-add_subdirectory(utils) # utilities
+add_subdirectory(utils)
 
 # Install files in according file structure
 install(FILES ${LOCAL_HEADERS} DESTINATION ${include_destination_headers}/src)

@@ -1,3 +1,4 @@
+add_subdirectory(algo_diff_type)
 add_subdirectory(basic_operations)
 add_subdirectory(composition)
 add_subdirectory(composition_group)

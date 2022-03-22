@@ -40,3 +40,4 @@
 
 # ingore build documentation
 **/doxydocs/
+**/doxygen_warnings.txt

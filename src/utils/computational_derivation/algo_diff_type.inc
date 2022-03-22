@@ -5,9 +5,9 @@
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator+(
     const AlgoDiffType<Scalar>& b) const {
-  ADT_ res{(*this)};
-  res += b;
-  return res;
+  ADT_ result_value{(*this)};
+  result_value += b;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -24,9 +24,9 @@ constexpr AlgoDiffType<Scalar>& AlgoDiffType<Scalar>::operator+=(
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator+(
     const Scalar& b) const {
-  ADT_ res{(*this)};
-  res += b;
-  return res;
+  ADT_ result_value{(*this)};
+  result_value += b;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -39,21 +39,21 @@ constexpr AlgoDiffType<Scalar>& AlgoDiffType<Scalar>::operator+=(
 // Substraction and negation
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator-() const {
-  ADT_ res{(*this)};
-  res.v_ = -res.v_;
+  ADT_ result_value{(*this)};
+  result_value.v_ = -result_value.v_;
   for (IndexingType_ i{}; i < GetNumberOfDerivatives(); i++) {
-    res.d_[i] = -res.d_[i];
+    result_value.d_[i] = -result_value.d_[i];
   }
-  return res;
+  return result_value;
 }
 
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator-(
     const AlgoDiffType<Scalar>& b) const {
   assert(b.GetNumberOfDerivatives() == GetNumberOfDerivatives());
-  ADT_ res{(*this)};
-  res -= b;
-  return res;
+  ADT_ result_value{(*this)};
+  result_value -= b;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -68,9 +68,9 @@ constexpr AlgoDiffType<Scalar>& AlgoDiffType<Scalar>::operator-=(
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator-(
     const Scalar& b) const {
-  ADT_ res{(*this)};
-  res -= b;
-  return res;
+  ADT_ result_value{(*this)};
+  result_value -= b;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -84,9 +84,9 @@ constexpr AlgoDiffType<Scalar>& AlgoDiffType<Scalar>::operator-=(
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator*(
     const AlgoDiffType<Scalar>& b) const {
-  ADT_ res{(*this)};
-  res *= b;
-  return res;
+  ADT_ result_value{(*this)};
+  result_value *= b;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -104,9 +104,9 @@ constexpr AlgoDiffType<Scalar>& AlgoDiffType<Scalar>::operator*=(
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator*(
     const Scalar& b) const {
-  ADT_ res{(*this)};
-  res *= b;
-  return res;
+  ADT_ result_value{(*this)};
+  result_value *= b;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -123,9 +123,9 @@ constexpr AlgoDiffType<Scalar>& AlgoDiffType<Scalar>::operator*=(
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator/(
     const AlgoDiffType<Scalar>& b) const {
-  ADT_ res{(*this)};
-  res /= b;
-  return res;
+  ADT_ result_value{(*this)};
+  result_value /= b;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -144,9 +144,9 @@ constexpr AlgoDiffType<Scalar>& AlgoDiffType<Scalar>::operator/=(
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> AlgoDiffType<Scalar>::operator/(
     const Scalar& b) const {
-  ADT_ res{(*this)};
-  res /= b;
-  return res;
+  ADT_ result_value{(*this)};
+  result_value /= b;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -205,10 +205,10 @@ constexpr AlgoDiffType<Scalar> exp(const AlgoDiffType<Scalar>& exponent) {
   } else {
     tmp = exp(exponent.v_);
   }
-  AlgoDiffType<Scalar> res{exponent};
-  res.v_ = Scalar{1.};
-  res *= tmp;
-  return res;
+  AlgoDiffType<Scalar> result_value{exponent};
+  result_value.v_ = Scalar{1.};
+  result_value *= tmp;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -226,12 +226,12 @@ constexpr AlgoDiffType<Scalar> pow(const AlgoDiffType<Scalar>& base,
   } else {
     tmp = pow(base.v_, power - 1.0);
   }
-  AlgoDiffType<Scalar> res{base};
-  res.v_ *= tmp;
+  AlgoDiffType<Scalar> result_value{base};
+  result_value.v_ *= tmp;
   for (std::size_t i{}; i < base.GetNumberOfDerivatives(); i++) {
-    res.d_[i] *= power * tmp;
+    result_value.d_[i] *= power * tmp;
   }
-  return res;
+  return result_value;
 }
 
 template <typename Scalar>
@@ -250,47 +250,158 @@ constexpr AlgoDiffType<Scalar> sqrt(const AlgoDiffType<Scalar>& radicand) {
     root = sqrt(radicand.v_);
   }
   const Scalar& half_inverse_root = 0.5 / root;
-  AlgoDiffType<Scalar> res{radicand};
-  res.v_ = root;
+  AlgoDiffType<Scalar> result_value{radicand};
+  result_value.v_ = root;
   for (std::size_t i{}; i < radicand.GetNumberOfDerivatives(); i++) {
-    res.d_[i] *= half_inverse_root;
+    result_value.d_[i] *= half_inverse_root;
   }
-  return res;
+  return result_value;
 }
 
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> log(const AlgoDiffType<Scalar>& xi) {
   using namespace std;               // required for intrinsic types
   const Scalar& temp = 1.0 / xi.v_;  // Multiplication is cheaper than division
-  AlgoDiffType<Scalar> res{xi};
+  AlgoDiffType<Scalar> result_value{xi};
   if constexpr (std::is_arithmetic_v<Scalar>) {
     // Use STD namespace function
-    res.v_ = std::log(xi.v_);
+    result_value.v_ = std::log(xi.v_);
   } else {
-    res.v_ = log(xi.v_);
+    result_value.v_ = log(xi.v_);
   }
   for (std::size_t i{}; i < xi.GetNumberOfDerivatives(); i++) {
-    res.d_[i] *= temp;
+    result_value.d_[i] *= temp;
   }
-  return res;
+  return result_value;
 }
 
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> log10(const AlgoDiffType<Scalar>& a) {
   using namespace std;  // requ ired for intrinsic types
   const Scalar& temp = 1.0 / (a.v_ * std::log(10.));
-  AlgoDiffType<Scalar> res{a};
+  AlgoDiffType<Scalar> result_value{a};
   if constexpr (std::is_arithmetic_v<Scalar>) {
     // Use STD namespace function
-    res.v_ = std::log10(a.v_);
+    result_value.v_ = std::log10(a.v_);
   } else {
-    res.v_ = log10(a.v_);
+    result_value.v_ = log10(a.v_);
   }
   for (std::size_t i{}; i < a.GetNumberOfDerivatives(); i++) {
-    res.d_[i] *= temp;
+    result_value.d_[i] *= temp;
   }
-  return res;
+  return result_value;
 };
+
+/////////
+// Trigonometric functions
+
+template <typename Scalar>
+constexpr AlgoDiffType<Scalar> cos(const AlgoDiffType<Scalar>& angle) {
+  AlgoDiffType<Scalar> result_value{angle};
+  Scalar sin_of_angle;
+  if constexpr (std::is_arithmetic_v<Scalar>) {
+    // Use STD namespace function
+    sin_of_angle = -std::sin(angle.v_);
+    result_value.v_ = std::cos(angle.v_);
+  } else {
+    sin_of_angle = -sin(angle.v_);
+    result_value.v_ = cos(angle.v_);
+  }
+  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+    result_value.d_[i] *= sin_of_angle;
+  }
+  return result_value;
+}
+
+template <typename Scalar>
+constexpr AlgoDiffType<Scalar> sin(const AlgoDiffType<Scalar>& angle) {
+  AlgoDiffType<Scalar> result_value{angle};
+  Scalar cos_of_angle;
+  if constexpr (std::is_arithmetic_v<Scalar>) {
+    // Use STD namespace function
+    cos_of_angle = std::cos(angle.v_);
+    result_value.v_ = std::sin(angle.v_);
+  } else {
+    cos_of_angle = cos(angle.v_);
+    result_value.v_ = sin(angle.v_);
+  }
+  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+    result_value.d_[i] *= cos_of_angle;
+  }
+  return result_value;
+}
+
+template <typename Scalar>
+constexpr AlgoDiffType<Scalar> tan(const AlgoDiffType<Scalar>& angle) {
+  AlgoDiffType<Scalar> result_value{angle};
+  Scalar auxiliary_value;
+  if constexpr (std::is_arithmetic_v<Scalar>) {
+    // Use STD namespace function
+    auxiliary_value = 1. / std::cos(angle.v_);
+    auxiliary_value *= auxiliary_value;
+    result_value.v_ = std::tan(angle.v_);
+  } else {
+    auxiliary_value = 1. / cos(angle.v_);
+    auxiliary_value *= auxiliary_value;
+    result_value.v_ = tan(angle.v_);
+  }
+  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+    result_value.d_[i] *= auxiliary_value;
+  }
+  return result_value;
+}
+
+template <typename Scalar>
+constexpr AlgoDiffType<Scalar> acos(const AlgoDiffType<Scalar>& angle) {
+  AlgoDiffType<Scalar> result_value{angle};
+  Scalar auxiliary_value;
+  if constexpr (std::is_arithmetic_v<Scalar>) {
+    // Use STD namespace function
+    auxiliary_value = -1. / std::sqrt(1 - angle.v_ * angle.v_);
+    result_value.v_ = std::acos(angle.v_);
+  } else {
+    auxiliary_value = -1. / sqrt(1 - angle.v_ * angle.v_);
+    result_value.v_ = cos(angle.v_);
+  }
+  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+    result_value.d_[i] *= auxiliary_value;
+  }
+  return result_value;
+}
+
+template <typename Scalar>
+constexpr AlgoDiffType<Scalar> asin(const AlgoDiffType<Scalar>& angle) {
+  AlgoDiffType<Scalar> result_value{angle};
+  Scalar auxiliary_value;
+  if constexpr (std::is_arithmetic_v<Scalar>) {
+    // Use STD namespace function
+    auxiliary_value = 1. / std::sqrt(1 - angle.v_ * angle.v_);
+    result_value.v_ = std::asin(angle.v_);
+  } else {
+    auxiliary_value = 1. / std::sqrt(1 - angle.v_ * angle.v_);
+    result_value.v_ = asin(angle.v_);
+  }
+  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+    result_value.d_[i] *= auxiliary_value;
+  }
+  return result_value;
+}
+
+template <typename Scalar>
+constexpr AlgoDiffType<Scalar> atan(const AlgoDiffType<Scalar>& angle) {
+  AlgoDiffType<Scalar> result_value{angle};
+  const Scalar auxiliary_value{1. / (1. + angle.v_ * angle.v_)};
+  if constexpr (std::is_arithmetic_v<Scalar>) {
+    // Use STD namespace function
+    result_value.v_ = std::atan(angle.v_);
+  } else {
+    result_value.v_ = atan(angle.v_);
+  }
+  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+    result_value.d_[i] *= auxiliary_value;
+  }
+  return result_value;
+}
 
 template <typename Scalar>
 constexpr bool operator>(const Scalar& scalar,

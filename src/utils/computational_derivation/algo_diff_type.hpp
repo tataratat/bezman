@@ -30,6 +30,7 @@ namespace beziermanipulation::utils::computational_derivation {
  *  - sqrt, power
  *  - abs
  *  - Boolean operations
+ *  - sin, cos, tan, asin, acos, atan
  *
  * @tparam Scalar      The intrinsic data type for storing the value and the
  *                     derivative components
@@ -310,6 +311,30 @@ class AlgoDiffType {
   template <typename ScalarF>
   friend constexpr AlgoDiffType<ScalarF> log10(const AlgoDiffType<ScalarF> &a);
 
+  /// Cosine function of AlgoDiffType (e.g. \f$ \cos{x_i} \f$)
+  template <typename ScalarF>
+  friend constexpr AlgoDiffType<ScalarF> cos(const AlgoDiffType<ScalarF> &a);
+
+  /// Sine function of AlgoDiffType (e.g. \f$ \sin{x_i} \f$)
+  template <typename ScalarF>
+  friend constexpr AlgoDiffType<ScalarF> sin(const AlgoDiffType<ScalarF> &a);
+
+  /// Tangent function of AlgoDiffType (e.g. \f$ \tan{x_i} \f$)
+  template <typename ScalarF>
+  friend constexpr AlgoDiffType<ScalarF> tan(const AlgoDiffType<ScalarF> &a);
+
+  /// Inverse Cosine function of AlgoDiffType (e.g. \f$ \acos{x_i} \f$)
+  template <typename ScalarF>
+  friend constexpr AlgoDiffType<ScalarF> acos(const AlgoDiffType<ScalarF> &a);
+
+  /// Inverse Sine function of AlgoDiffType (e.g. \f$ \asin{x_i} \f$)
+  template <typename ScalarF>
+  friend constexpr AlgoDiffType<ScalarF> asin(const AlgoDiffType<ScalarF> &a);
+
+  /// Inverse Tangent function of AlgoDiffType (e.g. \f$ \atan{x_i} \f$)
+  template <typename ScalarF>
+  friend constexpr AlgoDiffType<ScalarF> atan(const AlgoDiffType<ScalarF> &a);
+
   /// Greater operator with a Scalar
   template <typename ScalarF>
   friend constexpr bool operator>(const Scalar &scalar,
@@ -339,6 +364,7 @@ class AlgoDiffType {
   template <typename ScalarF>
   friend constexpr bool operator!=(const Scalar &scalar,
                                    const AlgoDiffType<ScalarF> &adt);
+
 
   /** @} */  // End of Friend Injections
 

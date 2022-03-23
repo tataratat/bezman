@@ -191,7 +191,7 @@ constexpr AlgoDiffType<Scalar> operator*(const Scalar& a,
 template <typename Scalar>
 constexpr AlgoDiffType<Scalar> operator/(const Scalar& a,
                                          const AlgoDiffType<Scalar>& b) {
-  constexpr AlgoDiffType<Scalar> one_type{a, b.GetNumberOfDerivatives()};
+  const AlgoDiffType<Scalar> one_type{a, b.GetNumberOfDerivatives()};
   // A few too many operations (multiplication with 0), but typesafe
   return one_type / b;
 }

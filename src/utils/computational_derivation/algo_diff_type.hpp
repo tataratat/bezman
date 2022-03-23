@@ -262,22 +262,22 @@ class AlgoDiffType {
   /// Addition
   template <typename ScalarF>
   friend constexpr AlgoDiffType<ScalarF> operator+(
-      const Scalar &a, const AlgoDiffType<ScalarF> &b);
+      const ScalarF &a, const AlgoDiffType<ScalarF> &b);
 
   /// Substraction
   template <typename ScalarF>
   friend constexpr AlgoDiffType<ScalarF> operator-(
-      const Scalar &a, const AlgoDiffType<ScalarF> &b);
+      const ScalarF &a, const AlgoDiffType<ScalarF> &b);
 
   /// Multiplication
   template <typename ScalarF>
   friend constexpr AlgoDiffType<ScalarF> operator*(
-      const Scalar &a, const AlgoDiffType<ScalarF> &b);
+      const ScalarF &a, const AlgoDiffType<ScalarF> &b);
 
   /// Division
   template <typename ScalarF>
   friend constexpr AlgoDiffType<ScalarF> operator/(
-      const Scalar &a, const AlgoDiffType<ScalarF> &b);
+      const ScalarF &a, const AlgoDiffType<ScalarF> &b);
 
   /// Natural exponent of AlgoDiffType (e.g. \f$ \exp{x_i} \f$)
   template <typename ScalarF>
@@ -337,32 +337,32 @@ class AlgoDiffType {
 
   /// Greater operator with a Scalar
   template <typename ScalarF>
-  friend constexpr bool operator>(const Scalar &scalar,
+  friend constexpr bool operator>(const ScalarF &scalar,
                                   const AlgoDiffType<ScalarF> &adt);
 
   /// Greater equal operator  with a Scalar
   template <typename ScalarF>
-  friend constexpr bool operator>=(const Scalar &scalar,
+  friend constexpr bool operator>=(const ScalarF &scalar,
                                    const AlgoDiffType<ScalarF> &adt);
 
   /// Smaller operator with a Scalar
   template <typename ScalarF>
-  friend constexpr bool operator<(const Scalar &scalar,
+  friend constexpr bool operator<(const ScalarF &scalar,
                                   const AlgoDiffType<ScalarF> &adt);
 
   /// Smaller equal operator  with a Scalar
   template <typename ScalarF>
-  friend constexpr bool operator<=(const Scalar &scalar,
+  friend constexpr bool operator<=(const ScalarF &scalar,
                                    const AlgoDiffType<ScalarF> &adt);
 
   /// Equal operator with a Scalar
   template <typename ScalarF>
-  friend constexpr bool operator==(const Scalar &scalar,
+  friend constexpr bool operator==(const ScalarF &scalar,
                                    const AlgoDiffType<ScalarF> &adt);
 
   /// Unequal operator  with a Scalar
   template <typename ScalarF>
-  friend constexpr bool operator!=(const Scalar &scalar,
+  friend constexpr bool operator!=(const ScalarF &scalar,
                                    const AlgoDiffType<ScalarF> &adt);
 
 

@@ -22,6 +22,19 @@ TEST(AlgoTypeTest, TestValueCorrectnessBasic) {
   EXPECT_FLOAT_EQ((x - y).GetValue(), 3. - 2.);
 };
 
+// Constructors and Basic Operations
+TEST(AlgoTypeTest, TestValueCorrectnessBasicFriends) {
+  // Define some Variables
+  const double  x{3.};  // x = 3
+  ADT y{2., 1, 0};  // y = 2
+
+  // Test Values
+  EXPECT_FLOAT_EQ((x + y).GetValue(), 3. + 2.);
+  EXPECT_FLOAT_EQ((x * y).GetValue(), 3. * 2.);
+  EXPECT_FLOAT_EQ((x / y).GetValue(), 3. / 2.);
+  EXPECT_FLOAT_EQ((x - y).GetValue(), 3. - 2.);
+};
+
 TEST(AlgoTypeTest, TestDerivCorrectnessBasic) {
   // Define some Variables
   const ADT x{3., 2, 0};  // x = 3
@@ -36,11 +49,23 @@ TEST(AlgoTypeTest, TestDerivCorrectnessBasic) {
   // Test Derivatives with respect to x, i.e. d/dy(Expression)
   EXPECT_FLOAT_EQ((x + y).GetDerivatives()[1], 1.);
   EXPECT_FLOAT_EQ((x * y).GetDerivatives()[1], 3.);
-  EXPECT_FLOAT_EQ((x / y).GetDerivatives()[1], -3. / 4.); // -x/y^2
+  EXPECT_FLOAT_EQ((x / y).GetDerivatives()[1], -3. / 4.);  // -x/y^2
   EXPECT_FLOAT_EQ((x - y).GetDerivatives()[1], -1.);
 };
 
-TEST(AlgoTypeTest, TestValueCorrectnessArithmetic) {
+TEST(AlgoTypeTest, TestDerivCorrectnessBasicFriends) {
+  // Define some Variables
+  double x{3.};  // x = 3
+  const ADT y{2., 1, 0};  // y = 2
+
+  // Test Derivatives with respect to x, i.e. d/dx(Expression)
+  EXPECT_FLOAT_EQ((x + y).GetDerivatives()[0], 1.);
+  EXPECT_FLOAT_EQ((x * y).GetDerivatives()[0], 3.);
+  EXPECT_FLOAT_EQ((x / y).GetDerivatives()[0], -3. / 4.);
+  EXPECT_FLOAT_EQ((x - y).GetDerivatives()[0], -1.);
+};
+
+TEST(AlgoTypeTest, TestDerivCorrectnessArithmetic) {
   // Define some Variables
   const ADT x{3., 2, 0};  // x = 3
   const ADT y{2., 2, 1};  // y = 2
@@ -55,7 +80,7 @@ TEST(AlgoTypeTest, TestValueCorrectnessArithmetic) {
   EXPECT_FLOAT_EQ(pow(x, y).GetDerivatives()[0], 2. * 3.);  // y * x^(y-1)
 };
 
-TEST(AlgoTypeTest, TestDerivCorrectnessArithmetic) {
+TEST(AlgoTypeTest, TestValueCorrectnessArithmetic) {
   // Define some Variables
   const ADT x{3., 2, 0};  // x = 3
   const ADT y{2., 2, 1};  // y = 2

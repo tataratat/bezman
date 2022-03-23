@@ -18,8 +18,8 @@ namespace beziermanipulation::utils::computational_derivation {
  * the derivative with respect to the input at the same time.
  *
  * This implementation is based on and largely inspired by @danielwolff1's
- * implementation in campiga, modified to be used at runtime. This slows down the
- * code, but provides more flexibilty.
+ * implementation in campiga, modified to be used at runtime. This slows down
+ * the code, but provides more flexibilty.
  *
  * Supported operations:
  *  - Addition
@@ -87,6 +87,9 @@ class AlgoDiffType {
       : v_{value},
         d_(n_derivatives, Scalar_{}){};  // d_{size} initializes to Scalar{}
 
+  /// Define a destructor
+  ~AlgoDiffType() = default;
+
   /*!
    * Constructor for user initialization of an instance. It initializes an
    * instance with the value \f$ x_i \f$ for which the computation is supposed
@@ -113,6 +116,8 @@ class AlgoDiffType {
     *this = AlgoDiffType(base);
     return *this;
   }
+
+  AlgoDiffType& operator=(const AlgoDiffType &t) = default;
 
   /** @defgroup GetterSetters Getter and Setter Methods
    * Setter methods for values and derivatives
@@ -364,7 +369,6 @@ class AlgoDiffType {
   template <typename ScalarF>
   friend constexpr bool operator!=(const ScalarF &scalar,
                                    const AlgoDiffType<ScalarF> &adt);
-
 
   /** @} */  // End of Friend Injections
 

@@ -152,7 +152,7 @@ BezierGroup CircleGroup(const double innerR, const double outerR,
   BezierGroup ringsegments{segments};
   constexpr double PI = acos(-1);
   const double degrees_per_segment = arc_degrees / segments;
-  const double outdor_fact = 1. / std::sin(PI - degrees_per_segment / 2.);
+  const double outdor_fact = 1. / std::sin(PI / 2. - degrees_per_segment / 2.);
   const std::array<std::size_t, 2> degrees{2, 1};
   for (int i_segment{}; i_segment < segments; i_segment++) {
     const double startsin = std::sin(degrees_per_segment * i_segment);
@@ -162,10 +162,12 @@ BezierGroup CircleGroup(const double innerR, const double outerR,
     const double endsin = std::sin(degrees_per_segment * (i_segment + 1.));
     const double endcos = std::cos(degrees_per_segment * (i_segment + 1.));
     std::vector<Point2D> ctps{Point2D{startcos * outerR, startsin * outerR},
-                              Point2D{middlecos * outerR, middlesin * outerR},
+                              Point2D{middlecos * outdor_fact * outerR,
+                                      middlesin * outdor_fact * outerR},
                               Point2D{endcos * outerR, endsin * outerR},
                               Point2D{startcos * innerR, startsin * innerR},
-                              Point2D{middlecos * innerR, middlesin * innerR},
+                              Point2D{middlecos * outdor_fact * innerR,
+                                      middlesin * outdor_fact * innerR},
                               Point2D{endcos * innerR, endsin * innerR}};
 
     ringsegments[i_segment] =
@@ -181,12 +183,13 @@ int main() {
   auto microtile = SimpleCrossTile(thickness);
   auto microtile_deriv = SimpleCrossTile(thickness, true);
 
-  for(int i{1}; i < n_segments; i++){
+  for (int i{1}; i < n_segments; i++) {
     microtile_deriv += SimpleCrossTile(thickness, true);
   }
 
   // Outer Function
-  auto deformation_function = CircleGroup(1., 2., n_segments, 2 * std::acos(-1));
+  auto deformation_function =
+      CircleGroup(1., 2., n_segments, 2 * std::acos(-1));
   //   auto deformation_function = BulkSquare();
 
   // Compose composition
@@ -199,6 +202,11 @@ int main() {
   utils::Export::GuessByExtension(microtile, "microtile.xml");
   utils::Export::GuessByExtension(SimpleCrossTile(thickness, true),
                                   "microtileDeriv.xml");
+
+  // Layer approach
+  const auto inception_test = microtile.Compose(microtile.Compose(microtile));
+  utils::Export::GuessByExtension(inception_test,
+                                  "composed_inception_microstructure.xml");
 
   // Derive composed geometry
   auto microstructure_derivative =

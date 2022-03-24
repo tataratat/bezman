@@ -41,9 +41,9 @@ class BezierSpline {
   using ScalarType_ = ScalarType;
 
   /// Polynomial degrees
-  std::array<IndexingType, parametric_dimension> degrees;
+  std::array<IndexingType, parametric_dimension> degrees{};
   /// Offsets in Row based control point storage
-  std::array<IndexingType, parametric_dimension> index_offsets;
+  std::array<IndexingType, parametric_dimension> index_offsets{};
   /// Number of control points
   IndexingType NumberOfControlPoints{};
   /// List of all control points in "Row-based" order
@@ -275,6 +275,17 @@ class BezierSpline {
                               ScalarRHS>& inner_function_group) const;
 
   /*
+   * Split the Bezier Spline into two distinct subdivisions
+   *
+   * Splits the Spline along a specific dimension and returns a group
+   * representing the same domain over two splines.
+   */
+  constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                              ScalarType>
+  SplitAtPosition(const ScalarType& splitting_plane,
+                  const IndexingType splitting_dimension = 0) const;
+
+  /*
    * Split the Bezier Spline into several subdivisions
    *
    * Splits the Spline along a specific dimension and returns a group
@@ -282,7 +293,7 @@ class BezierSpline {
    */
   constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType,
                               ScalarType>
-  SplitAtPosition(const ScalarType& splitting_plane,
+  SplitAtPosition(const std::vector<ScalarType>& splitting_planes,
                   const IndexingType splitting_dimension = 0) const;
 };
 

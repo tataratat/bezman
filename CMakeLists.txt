@@ -32,7 +32,7 @@ message(STATUS "Compile using ${CMAKE_CXX_COMPILER_ID} compiler")
 # Set compile information
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:-O3 -march=native>)
-    set(RUNTIME_CHECKS_DEBUG)
+    set(RUNTIME_CHECKS_DEBUG -D_GLIBCXX_DEBUG)
     set(WARNING_FLAGS -Wall -Wextra -Wpedantic -Wzero-as-null-pointer-constant $<$<NOT:$<CONFIG:Debug>>:-Wno-unused>)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message("CLANG generally not supported, and not sufficiently tested,just added the option, for Ludovics Laptop")

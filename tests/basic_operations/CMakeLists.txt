@@ -5,14 +5,14 @@ set(
 
 # Search for the library
 set(CMAKE_CXX_STANDARD 17)
-add_executable(test_operations ${TEST_SOURCES})
+add_executable(operations_test ${TEST_SOURCES})
 
 # Link bezier manipulation library to the executable target
-include_directories(test_operations ${PROJECT_SOURCE_DIR}/..)
-add_dependencies(test_operations ${MY_FANCY_TARGET_NAME})
-target_link_libraries(test_operations 
+include_directories(operations_test ${PROJECT_SOURCE_DIR}/..)
+add_dependencies(operations_test ${MY_FANCY_TARGET_NAME})
+target_link_libraries(operations_test 
                   PRIVATE ${MY_FANCY_TARGET_NAME}
                   PRIVATE gtest_main)
 
 include(GoogleTest)
-add_test(NAME test_operations COMMAND test_operations)
+add_test(NAME operations_test COMMAND operations_test)

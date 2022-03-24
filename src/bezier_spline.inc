@@ -221,9 +221,19 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr PhysicalPointType
-BezierSpline<parametric_dimension, PhysicalPointType,
-             ScalarType>::Evaluate(const PointTypeParametric_& par_coords)
-    const {  // Work on copy of ControlPoint
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
+    const PointTypeParametric_& par_coords) const {
+  /*
+   * Notation:
+   * A group the number of all starting points that are subsequent, i.e. the
+   * size of a group is the number of subsequent 0s. E.g. in the example:
+   * Group size of index 0 is 1, group size of index 1 is 3, etc.. Group
+   * offset is thus the distance between two group-starting-points. The idea is
+   * to collaps the groups one by one starting from the first parametric
+   * dimension going forward. For indexing, see SplitAtPosition(...)
+   */
+
+  // Work on copy of ControlPoint
   std::vector<PointTypePhysical_> ctps_copy{control_points};
   IndexingType ctps_to_consider = NumberOfControlPoints;
 
@@ -234,8 +244,10 @@ BezierSpline<parametric_dimension, PhysicalPointType,
     ctps_to_consider /= degrees[par_dim] + 1;
 
     // For every starting position
-    for (IndexingType start{0}; start < ctps_to_consider; start++) {
-      const auto offset = index_offsets[par_dim + 1] * start;
+    for (IndexingType starting_point_id{0};
+         starting_point_id < ctps_to_consider; starting_point_id++) {
+      const auto offset =
+          (index_offsets[par_dim] * (degrees[par_dim] + 1)) * starting_point_id;
       const auto step_width = index_offsets[par_dim];
 
       for (IndexingType i{0}; i <= degrees[par_dim]; i++) {
@@ -759,7 +771,8 @@ BezierSpline<parametric_dimension, PhysicalPointType,
   // Auxiliary index offsets
   const IndexingType starting_points_per_index_group =
       index_offsets[splitting_dimension];
-  const IndexingType group_offset = index_offsets[splitting_dimension + 1];
+  const IndexingType group_offset =
+      index_offsets[splitting_dimension] * (degrees[splitting_dimension] + 1);
   const IndexingType index_offset = index_offsets[splitting_dimension];
 
   // Loop over all starting points
@@ -786,4 +799,25 @@ BezierSpline<parametric_dimension, PhysicalPointType,
     }
   }
   return spline_group_split;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    SplitAtPosition(const std::vector<ScalarType>& splitting_planes,
+                    const IndexingType splitting_dimension) const {
+  // Init return value
+  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+      return_value(splitting_planes.size());
+
+  // Loop over all entries in the splitting plines vector
+  auto split_spline = SplitAtPosition(splitting_planes[0], splitting_dimension);
+  return_value[0] = split_spline[0];
+  for (std::size_t i_split{1}; i_split < splitting_planes.size(); i_split++) {
+    auto split_spline =
+        SplitAtPosition(splitting_planes[i_split], splitting_dimension);
+    return_value[i_split] = split_spline[0];
+  }
+  return_value[splitting_planes.size() - 1] = split_spline[1];
 }

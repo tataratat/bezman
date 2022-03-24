@@ -206,7 +206,7 @@ void Export::AsXML(
   export_file.open(ensureFileExtension(filename, "xml"));
 
   // Write Header
-  export_file << "<?xml version=\" 1.0 \" encoding=\"utf-8\"?>\n";
+  export_file << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 
   // Start Spline List
   export_file << "<SplineList SplineType = \"1\" NumberOfSplines =\""

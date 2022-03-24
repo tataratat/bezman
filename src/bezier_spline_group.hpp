@@ -43,6 +43,12 @@ class BezierSplineGroup
  public:
   /// Default constructor (to profit from std::vectors implementations)
   constexpr BezierSplineGroup() = default;
+  
+  /// Default constructor (to profit from std::vectors implementations)
+  template <typename IntegralType, typename = typename std::enable_if_t<
+                                       std::is_integral_v<IntegralType>>>
+  constexpr BezierSplineGroup(const IntegralType &init_size)
+      : std::vector<SplineBaseType>(init_size){};
 
   /// Initializer list overload
   template <typename... Splines>

@@ -55,6 +55,9 @@ void Export::format2XMLfile(
     const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
         spline,
     std::ofstream& export_file) {
+  // Handy alias
+  using BezierSplineType =
+      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>;
   // Increase user readability
   const std::string indentation{"  "};
 
@@ -98,7 +101,7 @@ void Export::format2XMLfile(
   // Write Degrees
   export_file << indentation << "<deg>\n" << indentation << indentation;
   for (std::size_t i_par_dim{};
-       i_par_dim < PhysicalPointType ::kSpatialDimension; i_par_dim++) {
+       i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
     export_file << spline.degrees[i_par_dim]
                 << indentation;  // Add \n if required
   }
@@ -107,7 +110,7 @@ void Export::format2XMLfile(
   // Knotvectors (required)
   export_file << indentation << "<kntVecs>\n";
   for (std::size_t i_par_dim{};
-       i_par_dim < PhysicalPointType ::kSpatialDimension; i_par_dim++) {
+       i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
     export_file << indentation << indentation << "<kntVec>\n"
                 << indentation << indentation;
     // Write All Control Points

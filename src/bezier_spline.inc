@@ -809,15 +809,28 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                     const IndexingType splitting_dimension) const {
   // Init return value
   BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
-      return_value(splitting_planes.size());
+      return_value(splitting_planes.size() + 1);
 
-  // Loop over all entries in the splitting plines vector
-  auto split_spline = SplitAtPosition(splitting_planes[0], splitting_dimension);
+  // Check if the split plane vector has increasing values
+  assert(("Split Plane values must be increasing",
+          std::is_sorted(splitting_planes.begin(), splitting_planes.end())));
+
+  // Loop over all split planes and assign the first part to the vector,
+  // then split the remainng part at the relativ required position
+  auto split_spline =
+      SplitAtPosition(splitting_planes[0], splitting_dimension);
   return_value[0] = split_spline[0];
   for (std::size_t i_split{1}; i_split < splitting_planes.size(); i_split++) {
-    auto split_spline =
-        SplitAtPosition(splitting_planes[i_split], splitting_dimension);
+    // Calculate the position of the split position in the remaining spline
+    const double split_in_remaining_part =
+        (splitting_planes[i_split] - splitting_planes[i_split - 1]) /
+        (1. - splitting_planes[i_split - 1]);
+    // Split remainder
+    split_spline = split_spline[1].SplitAtPosition(split_in_remaining_part,
+                                                   splitting_dimension);
     return_value[i_split] = split_spline[0];
   }
-  return_value[splitting_planes.size() - 1] = split_spline[1];
+  // Assign last section to last element
+  return_value[splitting_planes.size()] = split_spline[1];
+  return return_value;
 }

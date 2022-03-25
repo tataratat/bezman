@@ -1,6 +1,7 @@
 #ifndef SRC_BEZIER_SPLINE_HPP
 #define SRC_BEZIER_SPLINE_HPP
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <numeric>
@@ -48,6 +49,9 @@ class BezierSpline {
   IndexingType NumberOfControlPoints{};
   /// List of all control points in "Row-based" order
   std::vector<PointTypePhysical_> control_points{};
+
+  /// Make Parametric dimension publicly available
+  static constexpr IndexingType kParametricDimensions = parametric_dimension;
 
   /*
    * Retrieve individual indices

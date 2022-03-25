@@ -21,9 +21,16 @@ class BezierTestingSuite : public ::testing::Test {
   std::vector<Point2D> line1_order_elev_ctps{Point2D{0., 0.}, Point2D{0.5, 0.5},
                                              Point2D{1., 1.}};
   std::vector<Point2D> line1_derv_ctps{Point2D{1., 1.}};
+  std::vector<Point2D> surface_ctps{
+      Point2D{0., 0.},    Point2D{0.5, 0.2}, Point2D{1., 0.},
+      Point2D{-0.2, 0.5}, Point2D{0.5, 0.5}, Point2D{1.2, 0.5},
+      Point2D{0., 1.},    Point2D{0.5, 0.8}, Point2D{1., 1.},
+  };
+
   std::array<std::size_t, 1> degrees_line{1};
   std::array<std::size_t, 1> degrees_line_order_elev{2};
   std::array<std::size_t, 1> degrees_deriv{0};
+  std::array<std::size_t, 2> surface_degrees{2, 2};
 
   // Some Lines
   BezierSpline<1, Point2D, double> line1 =
@@ -34,9 +41,14 @@ class BezierTestingSuite : public ::testing::Test {
       BezierSpline<1, Point2D, double>(degrees_line_order_elev,
                                        line1_order_elev_ctps);
 
-  auto CreateRandomSpline(unsigned int degree){
-    BezierSpline<1, double, double> randomSpline{std::array<std::size_t, 1>{degree}};
-    for (unsigned int i{}; i < degree; i++){
+  // Some second order scewed plane
+  BezierSpline<2, Point2D, double> surface_spline{surface_degrees,
+                                                  surface_ctps};
+
+  auto CreateRandomSpline(unsigned int degree) {
+    BezierSpline<1, double, double> randomSpline{
+        std::array<std::size_t, 1>{degree}};
+    for (unsigned int i{}; i < degree; i++) {
       randomSpline.ControlPoint(i) =
           static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
     }
@@ -65,6 +77,27 @@ TEST_F(BezierTestingSuite, OrderElevation2) {
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
     EXPECT_FLOAT_EQ(spline1.Evaluate(x), spline1_original.Evaluate(x));
+  }
+}
+
+// Demonstrate Elevation at random Points and random lines
+TEST_F(BezierTestingSuite, OrderElevation3) {
+  // Expect equality.
+  const auto surface_copy{surface_spline};
+  // Elevate the order a couple of times
+  surface_spline.OrderElevateAlongParametricDimension(0)
+      .OrderElevateAlongParametricDimension(1)
+      .OrderElevateAlongParametricDimension(0)
+      .OrderElevateAlongParametricDimension(1)
+      .OrderElevateAlongParametricDimension(1);
+
+  for (int i{}; i < 10; i++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    const double y{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(surface_copy.Evaluate(x, y)[0],
+                    surface_spline.Evaluate(x, y)[0]);
+    EXPECT_FLOAT_EQ(surface_copy.Evaluate(x, y)[1],
+                    surface_spline.Evaluate(x, y)[1]);
   }
 }
 

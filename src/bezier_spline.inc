@@ -787,7 +787,9 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 
     // Going forward on first part and taking last value to second part
     for (IndexingType i{1}; i <= degrees[splitting_dimension]; i++) {
-      for (IndexingType j{i}; j <= degrees[splitting_dimension]; j++) {
+      // Reversed order to prohibit data overwrite
+      for (IndexingType j{degrees[splitting_dimension]};
+           j >= i; j--) {
         ctps_first[global_start_id + j * index_offset] =
             ctps_first[global_start_id + (j - 1) * index_offset] * inv_factor +
             ctps_first[global_start_id + j * index_offset] * factor;

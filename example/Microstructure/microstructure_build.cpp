@@ -10,80 +10,44 @@ using Point2D = Point<2, double>;
 using BezierGroup = BezierSplineGroup<2, Point2D, double>;
 using Bezier = BezierSpline<2, Point2D, double>;
 
-BezierGroup DefineCrossTile(const double thickness_low,
-                            const double thickness_right,
-                            const double thickness_up,
-                            const double thickness_left) {
-  // Consisting of 5 splines with mixed orders
-  constexpr double one_third = 1. / 3.;
-  constexpr double two_thirds = 2. / 3.;
-  // Center dimensions
-  const double center_width = 0.5 * (thickness_low + thickness_up);
-  const double center_height = 0.5 * (thickness_left + thickness_right);
+BezierGroup SimpleCrossTile() {
+  // Degrees
+  std::array<std::size_t, 2> degrees{1, 1};
+  std::array<std::size_t, 2> second_order_degrees{1, 2};
 
-  // center ctps
+  // Auxiliary values
+  const double one_third = 1. / 3.;
+
+  // CTPS
   std::vector<Point2D> ctps_center{
-      Point2D{0.5, 0.5} + 0.5 * Point2D{-center_width, -center_height},
-      Point2D{0.5, 0.5} + 0.5 * Point2D{center_width, -center_height},
-      Point2D{0.5, 0.5} + 0.5 * Point2D{-center_width, center_height},
-      Point2D{0.5, 0.5} + 0.5 * Point2D{center_width, center_height}};
+      Point2D{one_third, 0.25}, Point2D{2. * one_third, 0.25},
+      Point2D{one_third, 0.5}, Point2D{2. * one_third, 0.5}};
 
-  // Lower CTPS
-  std::vector<Point2D> ctps_low{
-      Point2D{0.5 - 0.5 * thickness_low, 0.},
-      Point2D{0.5 + 0.5 * thickness_low, 0.},
-      Point2D{0.5 - 0.5 * thickness_low, one_third * ctps_center[0][1]},
-      Point2D{0.5 + 0.5 * thickness_low, one_third * ctps_center[0][1]},
-      Point2D{ctps_center[0][0], two_thirds * ctps_center[0][1]},
-      Point2D{ctps_center[1][0], two_thirds * ctps_center[0][1]},
-      ctps_center[0],
-      ctps_center[1]};
-
-  // Upper CTPS
-  std::vector<Point2D> ctps_up{
-      ctps_center[2],
-      ctps_center[3],
-      Point2D{ctps_center[2][0], one_third * (2 * ctps_center[2][1] + 1.)},
-      Point2D{ctps_center[3][0], one_third * (2 * ctps_center[2][1] + 1.)},
-      Point2D{0.5 - 0.5 * thickness_up, one_third * (ctps_center[2][1] + 2.)},
-      Point2D{0.5 + 0.5 * thickness_up, one_third * (ctps_center[2][1] + 2.)},
-      Point2D{0.5 - 0.5 * thickness_up, 1.},
-      Point2D{0.5 + 0.5 * thickness_up, 1.}};
-
-  // Left CTPS
   std::vector<Point2D> ctps_left{
-      Point2D{0., 0.5 - 0.5 * thickness_left},
-      Point2D{one_third * ctps_center[0][0], 0.5 - 0.5 * thickness_left},
-      Point2D{two_thirds * ctps_center[0][0], ctps_center[0][1]},
-      ctps_center[0],
-      Point2D{0., 0.5 + 0.5 * thickness_left},
-      Point2D{one_third * ctps_center[2][0], 0.5 + 0.5 * thickness_left},
-      Point2D{two_thirds * ctps_center[2][0], ctps_center[2][1]},
-      ctps_center[2]};
+      Point2D{one_third, 0.25}, Point2D{one_third, 0.5}, Point2D{0., 0.25},
+      Point2D{0., 0.5},         Point2D{0., 0.0},       Point2D{0., 1.}};
 
-  // Right CTPS
-  std::vector<Point2D> ctps_right{
-      ctps_center[1],
-      Point2D{one_third * (1. + 2 * ctps_center[1][0]), ctps_center[1][1]},
-      Point2D{one_third * (2. + ctps_center[1][0]),
-              0.5 - 0.5 * thickness_right},
-      Point2D{1., 0.5 - 0.5 * thickness_right},
-      ctps_center[3],
-      Point2D{one_third * (1. + 2 * ctps_center[1][0]), ctps_center[3][1]},
-      Point2D{one_third * (2. + ctps_center[1][0]),
-              0.5 + 0.5 * thickness_right},
-      Point2D{1., 0.5 + 0.5 * thickness_right}};
+  std::vector<Point2D> ctps_right{Point2D{2. * one_third, 0.5},
+                                  Point2D{2. * one_third, 0.25},
+                                  Point2D{1., 0.5},
+                                  Point2D{1., 0.25},
+                                  Point2D{1., 1.},
+                                  Point2D{1., 0.0}};
 
-  std::array<std::size_t, 2> center_degrees{1, 1};
-  std::array<std::size_t, 2> horizontal_degrees{3, 1};
-  std::array<std::size_t, 2> vertical_degrees{1, 3};
+  std::vector<Point2D> ctps_down{Point2D{2. * one_third, 0.25},
+                                 Point2D{one_third, 0.25}, Point2D{1.0, 0.0},
+                                 Point2D{0.0, 0.0}};
+
+  std::vector<Point2D> ctps_up{
+      Point2D{one_third, 0.5}, Point2D{2. * one_third, 0.5},
+      Point2D{0., 0.85},       Point2D{1., 0.85},
+      Point2D{0., 1.},         Point2D{1., 1.}};
 
   return BezierGroup{
-      Bezier{center_degrees, ctps_center}, Bezier{vertical_degrees, ctps_low},
-      Bezier{vertical_degrees, ctps_up}, Bezier{horizontal_degrees, ctps_left},
-      Bezier{horizontal_degrees, ctps_right}};
+      Bezier{degrees, ctps_center}, Bezier{second_order_degrees, ctps_left},
+      Bezier{second_order_degrees, ctps_right}, Bezier{degrees, ctps_down},
+      Bezier{second_order_degrees, ctps_up}};
 }
-
 BezierGroup SimpleCrossTile(const double thickness, const bool deriv = false) {
   std::array<std::size_t, 2> degrees{1, 1};
   if (!deriv) {
@@ -204,7 +168,14 @@ int main() {
                                   "microtileDeriv.xml");
 
   // Layer approach
-  const auto inception_test = microtile.Compose(microtile.Compose(microtile));
+  const auto microtile_fancy = SimpleCrossTile();
+  const auto inception_test =
+      microtile_fancy[4].Compose(microtile_fancy[4].Compose(microtile_fancy) +
+                                 microtile_fancy[0] + microtile_fancy[1] +
+                                 microtile_fancy[3] + microtile_fancy[2]) 
+      +microtile_fancy[0] + microtile_fancy[1] + microtile_fancy[3] +
+      microtile_fancy[2];
+  utils::Export::GuessByExtension(microtile_fancy, "microtile_fancy.xml");
   utils::Export::GuessByExtension(inception_test,
                                   "composed_inception_microstructure.xml");
 

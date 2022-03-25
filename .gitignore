@@ -41,3 +41,7 @@
 # ingore build documentation
 **/doxydocs/
 **/doxygen_warnings.txt
+
+# ignore exported microstructures
+*.xml
+*.itd

@@ -1,4 +1,4 @@
-from optparse import OptionParser
+from optparse import OptionParser, OptionGroup
 import gustav as gus
 import vedo
 import splinepy as sp
@@ -9,30 +9,36 @@ if __name__ == "__main__":
   parser = OptionParser()
   parser.add_option("-i", "--inputfile", dest="filename",\
                     help="File of the input name",type="string", default=None)
-  parser.add_option("-d", "--derivativefile", dest="derivfilename",\
-                    help="File (name) that stores derivative",type="string", default=None)
   parser.add_option("-r", "--sampleresolution", dest="q_res",\
                     help="Samples per parametric dimension",type="int", default=None)
-  parser.add_option("-D", "--derivativesamples", dest="derv_q_res",\
-                    help="Samples for the spline derivative", type="int", default=10)
   
-  parser.add_option("-k", "--knots",\
+  group = OptionGroup(parser, "Plotting Options")
+  group.add_option("-k", "--knots",\
                     action="store_true", dest="show_knots", default=False,\
                     help="Show Knotlines on spline")
-  parser.add_option("-c", "--controlpoints",\
+  group.add_option("-c", "--controlpoints",\
                     action="store_true", dest="show_ctps", default=False,\
                     help="Show Control Points")
-  parser.add_option("-m", "--controlpointmesh",\
+  group.add_option("-m", "--controlpointmesh",\
                     action="store_true", dest="show_ctps_mesh", default=False,\
                     help="Show Control Points Mesh")
-  parser.add_option("-s", "--Spline",\
+  group.add_option("-s", "--Spline",\
                     action="store_true", dest="show_spline", default=False,\
                     help="Show spline")
+  parser.add_option_group(group)
+
+  group = OptionGroup(parser, "Derivative Options", "If the Derivative is calculated with "
+                            "together with the spline, an additional file can be provided")
+  group.add_option("-d", "--derivativefile", dest="derivfilename",\
+                    help="File (name) that stores derivative",type="string", default=None)
+  group.add_option("-D", "--derivativesamples", dest="derv_q_res",\
+                    help="Samples for the spline derivative", type="int", default=10)
+  group.add_option("-A", "--arrowlength", dest="max_length_arrows",\
+                    help="Maximum Length of the derivative arrows", type="float", default=1.)
+  parser.add_option_group(group)
   
   (options, args) = parser.parse_args()
 
-  max_length_arrows = 0.1
-  
   if options.filename == None:
     print("No filename specified. , set with -i <filename>")
     quit()
@@ -86,7 +92,7 @@ if __name__ == "__main__":
 
     # scale w.r.t. spline cp bounds
     max_length = np.max(np.linalg.norm(der, axis=1))
-    length /= max_length / max_length_arrows
+    length /= max_length / options.max_length_arrows
 
     # Add arrows to the list
     gsObjects += [vedo.shapes.Arrows(origin, origin + length, c="r")]

@@ -26,6 +26,10 @@ make install
 
 That's it. There are no external dependencies, however the `c++17` standard must be supported and new compilers are recommended. To run the unit tests, execute `ctest` (e.g. with the verbose option).
 
+| :grey_question: Changing the standard to `c++20` :grey_question: |
+|:---------------------------|
+| However, `std::vector` are used frequently to store all kinds of informaion (e.g. control points, Spline groups, etc.). The `c++17` standard library prohibits its use at compile time. The new standard allows for these operations|
+
 ## Building an example
 There are also some simple examples provided, that show the usage of the library in a bit more detail. To build one of them go inside the example directory. It is recommended to not build directly inside the directory itself, but to provide an additional build folder. To do so run:
 ```

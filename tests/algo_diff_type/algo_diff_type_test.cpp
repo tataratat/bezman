@@ -8,6 +8,7 @@ using namespace beziermanipulation;
 namespace beziermanipulation::tests::algo_diff_type_test {
 
 using ADT = utils::computational_derivation::AlgoDiffType<double>;
+using ADTstatic = utils::computational_derivation::AlgoDiffType<double, 2>;
 
 // Constructors and Basic Operations
 TEST(AlgoTypeTest, TestValueCorrectnessBasic) {
@@ -109,6 +110,32 @@ TEST(AlgoTypeTest, TestValueCorrectnessTrigonometric) {
 TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometric) {
   // Define some Variables
   const ADT x{.7, 1, 0};  // x = .7
+
+  EXPECT_FLOAT_EQ(cos(x).GetDerivatives()[0], -std::sin(.7));
+  EXPECT_FLOAT_EQ(sin(x).GetDerivatives()[0], std::cos(.7));
+  EXPECT_FLOAT_EQ(tan(x).GetDerivatives()[0],
+                  1 / (std::cos(.7) * std::cos(.7)));
+  EXPECT_FLOAT_EQ(acos(x).GetDerivatives()[0], -1. / std::sqrt(1 - 0.49));
+  EXPECT_FLOAT_EQ(asin(x).GetDerivatives()[0], 1. / std::sqrt(1 - 0.49));
+  EXPECT_FLOAT_EQ(atan(x).GetDerivatives()[0], 1. / (1. + 0.49));
+};
+
+// Constructors and Basic Operations for static types
+TEST(AlgoTypeTest, TestValueCorrectnessBasicStatic) {
+  // Define some Variables
+  ADTstatic x{3., 0};  // x = 3
+  ADTstatic y{2., 1};  // y = 2
+
+  // Test Values
+  EXPECT_FLOAT_EQ((x + y).GetValue(), 3. + 2.);
+  EXPECT_FLOAT_EQ((x * y).GetValue(), 3. * 2.);
+  EXPECT_FLOAT_EQ((x / y).GetValue(), 3. / 2.);
+  EXPECT_FLOAT_EQ((x - y).GetValue(), 3. - 2.);
+};
+
+TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometricStatic) {
+  // Define some Variables
+  const ADTstatic x{.7, 0};  // x = .7
 
   EXPECT_FLOAT_EQ(cos(x).GetDerivatives()[0], -std::sin(.7));
   EXPECT_FLOAT_EQ(sin(x).GetDerivatives()[0], std::cos(.7));

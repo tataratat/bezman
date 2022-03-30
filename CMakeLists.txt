@@ -35,7 +35,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(RUNTIME_CHECKS_DEBUG -D_GLIBCXX_DEBUG)
     set(WARNING_FLAGS -Wall -Wextra -Wpedantic -Wzero-as-null-pointer-constant $<$<NOT:$<CONFIG:Debug>>:-Wno-unused>)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    message("CLANG generally not supported, and not sufficiently tested,just added the option, for Ludovics Laptop")
+    message("CLANG generally not supported, and not sufficiently tested")
     set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:-O3 -march=native>)
     set(RUNTIME_CHECKS_DEBUG)
     set(WARNING_FLAGS -Wall -Wextra -Wmost -Wextra -Wpedantic -Wunreachable-code -Wshadow -Wfloat-equal -Weffc++

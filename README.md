@@ -1,5 +1,5 @@
 # bezierManipulation
-Light weight library in C++ to test out various composition methods for Bézier splines.
+Light weight library in C++ for functional composition for Bézier splines.
 
 This small prototyping library is created to test out algorithms to create and modify small microstructures and analytically derive their control points. The objective is the analytical calculation of gradients of microstructures formed through functional composition between splines
 
@@ -28,7 +28,7 @@ That's it. There are no external dependencies, however the `c++17` standard must
 
 | :grey_question: Changing the standard to `c++20` :grey_question: |
 |:---------------------------|
-| However, `std::vector` are used frequently to store all kinds of informaion (e.g. control points, Spline groups, etc.). The `c++17` standard library prohibits its use at compile time. The new standard allows for these operations|
+| `std::vector` types are used frequently to store all kinds of information (e.g. control points, Spline groups, etc.). The `c++17` standard library prohibits its use at compile time. The new standard allows for these operations|
 
 ## Building an example
 There are also some simple examples provided, that show the usage of the library in a bit more detail. To build one of them go inside the example directory. It is recommended to not build directly inside the directory itself, but to provide an additional build folder. To do so run:
@@ -42,3 +42,13 @@ cmake ..
 make
 ```
 The example files also feature a display script, which is based on the [gustav](https://github.com/j042/gustav-alpha) library.
+
+## Building the documentation
+If you want to build the documentation, you can do so using [doxygen](https://www.doxygen.nl/index.html), by running these commands:
+```
+# Go to the documentation directory
+cd doc
+# Build Documentation
+doxygen Doxyfile
+```
+This will create a new folder named `doxydocs` in the current directory, in which you will find an `index.html` file. Open it with a browser of your choice.

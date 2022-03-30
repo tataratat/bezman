@@ -42,3 +42,13 @@ cmake ..
 make
 ```
 The example files also feature a display script, which is based on the [gustav](https://github.com/j042/gustav-alpha) library.
+
+## Building the documentation
+If you want to build the documentation, you can do so using [doxygen](https://www.doxygen.nl/index.html), by running these commands:
+```
+# Go to the documentation directory
+cd doc
+# Build Documentation
+doxygen Doxyfile
+```
+This will create a new folder named `doxydocs` in the current directory, in which you will find an `index.html` file. Open it with a browser of your choice.

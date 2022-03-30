@@ -235,6 +235,149 @@ class MicrotileExample {
 
     return return_value_group;
   }
+
+  /// Face to be closed
+  enum ClosingFace { X_MIN, X_MAX, Y_MIN, Y_MAX };
+
+  /// Provides a closing tile (tile that closes space water tight in a certain
+  /// direction)
+  static constexpr bool HAS_CLOSING_TILE_DEFINITION = true;
+  /// Number of Evaluation Points for Clusing Tile
+  static constexpr std::size_t kNumberOfEvaluationPointsClosingTile = 4;
+  /// Evaluation Points
+  static constexpr std::array<Point2D, kNumberOfEvaluationPointsClosingTile>
+      kClosingTileEvaluationPoints{Point2D{.5, 0.}, Point2D{1., 0.5},
+                                   Point2D{.5, 1.}, Point2D{0., 0.5}};
+
+  /// Generator Function for Derivatives
+  static std::vector<BezierGroup> GenerateMicrostructureClosingTile(
+      const ClosingFace& closing_face,
+      const std::array<ADT, kNumberOfEvaluationPointsClosingTile>&
+          evaluations) {
+    // Check if all evaluations have the same number of derivatives
+    const auto number_of_derivatives = evaluations[0].GetNumberOfDerivatives();
+    assert(std::all_of(evaluations.begin(), evaluations.end(),
+                       [&number_of_derivatives](const ADT& ev_point) -> bool {
+                         return (ev_point.GetNumberOfDerivatives() ==
+                                 number_of_derivatives);
+                       }));
+
+    // Name abreviations (only readability no purpose)
+    const auto& thickness_low = evaluations[0];
+    const auto& thickness_right = evaluations[1];
+    const auto& thickness_up = evaluations[2];
+    const auto& thickness_left = evaluations[3];
+
+    // Define degrees
+    std::array<std::size_t, 2> base_degrees{1, 1};
+    std::array<std::size_t, 2> connector_degrees{1, 2};
+
+    std::vector<PointADT2D> ctps_connector;
+    std::vector<PointADT2D> ctps_base;
+
+    // Provide Control Point Vectors for every possible case except for the
+    // edges, assuming that only one edge is closed at a time
+    switch (closing_face) {
+      case ClosingFace::X_MIN:
+        ctps_connector = std::vector<PointADT2D>{
+            PointADT2D{ADT(0., number_of_derivatives), thickness_left},
+            PointADT2D{ADT(1., number_of_derivatives), thickness_right},
+            PointADT2D{0.5 * (1. - thickness_up), 0.5 * (thickness_left + 1)},
+            PointADT2D{0.5 * (1. + thickness_up), 0.5 * (thickness_right + 1)},
+            PointADT2D{0.5 * (1. - thickness_up),
+                       ADT(1., number_of_derivatives)},
+            PointADT2D{0.5 * (1. + thickness_up),
+                       ADT(1., number_of_derivatives)}};
+
+        ctps_base = std::vector<PointADT2D>{
+            PointADT2D{ADT(0., number_of_derivatives),
+                       ADT(.0, number_of_derivatives)},
+            PointADT2D{ADT(1., number_of_derivatives),
+                       ADT(.0, number_of_derivatives)},
+            PointADT2D{ADT(0., number_of_derivatives), thickness_left},
+            PointADT2D{ADT(1., number_of_derivatives), thickness_right}};
+        break;
+      case ClosingFace::X_MAX:
+        ctps_connector = std::vector<PointADT2D>{
+            PointADT2D{ADT(1., number_of_derivatives), 1. - thickness_right},
+            PointADT2D{ADT(0., number_of_derivatives), 1. - thickness_left},
+            PointADT2D{0.5 * (1. + thickness_low), 0.5 * (1. - thickness_left)},
+            PointADT2D{0.5 * (1. - thickness_low),
+                       0.5 * (1. - thickness_right)},
+            PointADT2D{0.5 * (1. + thickness_low),
+                       ADT(0., number_of_derivatives)},
+            PointADT2D{0.5 * (1. - thickness_low),
+                       ADT(0., number_of_derivatives)}};
+
+        ctps_base = std::vector<PointADT2D>{
+            PointADT2D{ADT(1., number_of_derivatives),
+                       ADT(1., number_of_derivatives)},
+            PointADT2D{ADT(0., number_of_derivatives),
+                       ADT(1., number_of_derivatives)},
+            PointADT2D{ADT(1., number_of_derivatives), 1. - thickness_right},
+            PointADT2D{ADT(0., number_of_derivatives), 1. - thickness_left}};
+        break;
+      case ClosingFace::Y_MAX:
+        ctps_connector = std::vector<PointADT2D>{
+            PointADT2D{1. - thickness_low, ADT(0., number_of_derivatives)},
+            PointADT2D{1. - thickness_up, ADT(1., number_of_derivatives)},
+            PointADT2D{0.5 * (1. - thickness_low), 0.5 * (1. - thickness_left)},
+            PointADT2D{0.5 * (1. - thickness_up), 0.5 * (1. + thickness_left)},
+            PointADT2D{ADT(0., number_of_derivatives),
+                       0.5 * (1. - thickness_left)},
+            PointADT2D{ADT(0., number_of_derivatives),
+                       0.5 * (1. + thickness_left)}};
+
+        ctps_base = std::vector<PointADT2D>{
+            PointADT2D{ADT(1., number_of_derivatives),
+                       ADT(0., number_of_derivatives)},
+            PointADT2D{ADT(1., number_of_derivatives),
+                       ADT(1., number_of_derivatives)},
+            PointADT2D{1. - thickness_low, ADT(0., number_of_derivatives)},
+            PointADT2D{1. - thickness_up, ADT(1., number_of_derivatives)}};
+        break;
+      case ClosingFace::Y_MIN:
+        ctps_connector = std::vector<PointADT2D>{
+            PointADT2D{thickness_up, ADT(1., number_of_derivatives)},
+            PointADT2D{thickness_low, ADT(0., number_of_derivatives)},
+            PointADT2D{.5 * (thickness_up + 1.), .5 * (1. + thickness_right)},
+            PointADT2D{.5 * (1. + thickness_low), .5 * (1. - thickness_right)},
+            PointADT2D{ADT(1., number_of_derivatives),
+                       .5 * (1. + thickness_right)},
+            PointADT2D{ADT(1., number_of_derivatives),
+                       .5 * (1. - thickness_right)},
+        };
+
+        ctps_base = std::vector<PointADT2D>{
+            PointADT2D{ADT(0., number_of_derivatives),
+                       ADT(1., number_of_derivatives)},
+            PointADT2D{ADT(0., number_of_derivatives),
+                       ADT(0., number_of_derivatives)},
+            PointADT2D{thickness_up, ADT(1., number_of_derivatives)},
+            PointADT2D{thickness_low, ADT(0., number_of_derivatives)}};
+        break;
+
+      default:
+        assert(("Unknown Case", false));
+    }
+    // Initialize return value (with one additional spline for the value)
+    std::vector<BezierGroup> return_value_group(number_of_derivatives + 1);
+
+    // Construct the Microtile as first component of the group
+    return_value_group[0] = BezierGroup{
+        Bezier{connector_degrees, ExtractValuesFromPointCloud(ctps_connector)},
+        Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base)}};
+
+    for (std::size_t i_deriv{}; i_deriv < number_of_derivatives; i_deriv++) {
+      return_value_group[i_deriv + 1ul] = BezierGroup{
+          Bezier{connector_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_connector, i_deriv)},
+          Bezier{base_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_base, i_deriv)}};
+    }
+
+    return return_value_group;
+  }
 };
 
 /**
@@ -251,11 +394,11 @@ class DeformationFunctionExample {
 
  public:
   // Quarter Circle Dimensions
-  static constexpr const double innerR{1.}, outerR{2.}, arc_degrees{PI * 0.5};
+  static constexpr const double innerR{1.}, outerR{2.}, arc_degrees{PI * 0.25};
 
   /// Number of segments in each parametric dimension
-  static constexpr const int kNumberOfXSegments{3};
-  static constexpr const int kNumberOfYSegments{2};
+  static constexpr const int kNumberOfXSegments{5};
+  static constexpr const int kNumberOfYSegments{5};
 
   /// For external access
   static constexpr const std::array<int, 2> kSegmentsPerParametricDimension{
@@ -333,7 +476,7 @@ class ValueFieldExample {
   // Some super parameters
   const std::array<ADT, kNumberOfSuperParameters> kSuperControlPoints{
       ADT(0.1, kNumberOfSuperParameters, 0),
-      ADT(0.1, kNumberOfSuperParameters, 1),
+      ADT(0.2, kNumberOfSuperParameters, 1),
       ADT(0.1, kNumberOfSuperParameters, 2),
       ADT(0.1, kNumberOfSuperParameters, 3),
       ADT(0.1, kNumberOfSuperParameters, 4),
@@ -432,14 +575,51 @@ class ParametrizedComposition {
       for (std::size_t i_def_y{};
            i_def_y < DeformationFunction::kSegmentsPerParametricDimension[1];
            i_def_y++) {
-        const auto transformed_points =
-            TransformPoints_(Point2D{i_def_x * dx, i_def_y * dy},
-                             Point2D{(i_def_x + 1) * dx, (i_def_y + 1) * dy},
-                             Microtile::kEvaluationPoints);
-        // Evaluate microtile based on the generator provided by Microtile
-        const auto microtile_vector =
-            Microtile::GenerateMicrostructureDerivatives(
+        std::vector<BezierGroup> microtile_vector;
+        if constexpr (Microtile::HAS_CLOSING_TILE_DEFINITION) {
+          // If a closing tile is defined we can create watertight structures
+          if (i_def_y == 0) {
+            const auto transformed_points = TransformPoints_(
+                Point2D{i_def_x * dx, i_def_y * dy},
+                Point2D{(i_def_x + 1) * dx, (i_def_y + 1) * dy},
+                Microtile::kClosingTileEvaluationPoints);
+            // Evaluate microtile based on the generator provided by Microtile
+            microtile_vector = Microtile::GenerateMicrostructureClosingTile(
+                Microtile::ClosingFace::X_MIN,
                 value_field.Evaluate(transformed_points));
+          } else if (i_def_y ==
+                     DeformationFunction::kSegmentsPerParametricDimension[1] -
+                         1) {
+            const auto transformed_points = TransformPoints_(
+                Point2D{i_def_x * dx, i_def_y * dy},
+                Point2D{(i_def_x + 1) * dx, (i_def_y + 1) * dy},
+                Microtile::kClosingTileEvaluationPoints);
+            // Evaluate microtile based on the generator provided by Microtile
+            microtile_vector = Microtile::GenerateMicrostructureClosingTile(
+                Microtile::ClosingFace::X_MAX,
+                value_field.Evaluate(transformed_points));
+          } else {
+            // If no closing tile is defined, then we set normal tiles in the
+            // boundary elements
+            const auto transformed_points = TransformPoints_(
+                Point2D{i_def_x * dx, i_def_y * dy},
+                Point2D{(i_def_x + 1) * dx, (i_def_y + 1) * dy},
+                Microtile::kEvaluationPoints);
+            // Evaluate microtile based on the generator provided by Microtile
+            microtile_vector = Microtile::GenerateMicrostructureDerivatives(
+                value_field.Evaluate(transformed_points));
+          }
+        } else {
+          // If no closing tile is defined, then we set normal tiles in the
+          // boundary elements
+          const auto transformed_points =
+              TransformPoints_(Point2D{i_def_x * dx, i_def_y * dy},
+                               Point2D{(i_def_x + 1) * dx, (i_def_y + 1) * dy},
+                               Microtile::kEvaluationPoints);
+          // Evaluate microtile based on the generator provided by Microtile
+          microtile_vector = Microtile::GenerateMicrostructureDerivatives(
+              value_field.Evaluate(transformed_points));
+        }
 
         // Compose the microstructure in first position of vector
         const std::size_t combined_index =
@@ -495,19 +675,10 @@ int main() {
                                   "composed_microstructure.xml");
   for (std::size_t i_deriv{};
        i_deriv < ValueFieldExample::kNumberOfSuperParameters; i_deriv++) {
-    utils::Export::GuessByExtension(test_composition[i_deriv+1],
+    utils::Export::GuessByExtension(test_composition[i_deriv + 1],
                                     std::string("composed_microstructure_") +
                                         std::to_string(i_deriv) +
                                         std::string(".xml"));
   }
-
-  // utils::Export::GuessByExtension(deformation_function,
-  //                                 "deformation_function.xml");
-  // utils::Export::GuessByExtension(microtile, "microtile.xml");
-  // utils::Export::GuessByExtension(microtile_data[0], "microtileDeriv.xml");
-
-  // // Derive composed geometry
-  // utils::Export::GuessByExtension(microstructure_derivative,
-  //                                 "composed_microstructure_derivative.xml");
   return 0;
 }

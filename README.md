@@ -1,5 +1,5 @@
 # bezierManipulation
-Light weight library in C++ to test out various composition methods for Bézier splines.
+Light weight library in C++ for functional composition for Bézier splines.
 
 This small prototyping library is created to test out algorithms to create and modify small microstructures and analytically derive their control points. The objective is the analytical calculation of gradients of microstructures formed through functional composition between splines
 

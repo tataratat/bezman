@@ -1,8 +1,8 @@
 #ifndef SRC_UTILS_EXPORT_INC
 #define SRC_UTILS_EXPORT_INC
 
-std::string Export::ensureFileExtension(
-    const std::string& filename, const std::string& obj_extension) {
+std::string Export::ensureFileExtension(const std::string& filename,
+                                        const std::string& obj_extension) {
   std::size_t ext_start = filename.find_last_of(".");
   const std::string extension = filename.substr(ext_start + 1);
   if (extension == obj_extension) {
@@ -23,11 +23,11 @@ void Export::format2IRITfile(
                 "IRIT natively only supports up to 9D spaces");
 
   // Increase user readability
-  const std::string indentation{"  "};
+  const std::string indentation{"\t"};
 
   // Write Header
-  export_file << indentation << "[MULTIVAR BEZIER " << parametric_dimension
-              << " ";
+  export_file << indentation << indentation << "[MULTIVAR BEZIER "
+              << parametric_dimension << " ";
 
   // Write different degrees
   for (std::size_t i{}; i < parametric_dimension; i++) {
@@ -41,12 +41,12 @@ void Export::format2IRITfile(
   // Write All Control Points
   for (std::size_t i_point{0}; i_point < spline.NumberOfControlPoints;
        i_point++) {
-    export_file << indentation << indentation << spline.control_points[i_point]
-                << "\n";
+    export_file << indentation << indentation << indentation
+                << spline.control_points[i_point] << "\n";
   }
 
   // Write Footer
-  export_file << indentation << "]";
+  export_file << indentation << indentation << "]";
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -129,7 +129,7 @@ void Export::format2XMLfile(
 
 template <typename ExportType>
 void Export::GuessByExtension(const ExportType& export_object,
-                                     const std::string& filename) {
+                              const std::string& filename) {
   // In case of a absolute path strip filename
   std::size_t last_found_id = filename.find_last_of("/\\");
   const std::string file_without_path = filename.substr(last_found_id + 1);
@@ -152,10 +152,9 @@ void Export::GuessByExtension(const ExportType& export_object,
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-void Export::AsIRIT(
-    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
-        spline,
-    const std::string& filename) {
+void Export::AsIRIT(const BezierSpline<parametric_dimension, PhysicalPointType,
+                                       ScalarType>& spline,
+                    const std::string& filename) {
   BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
       spline_group{spline};
   AsIRIT(spline_group, filename);
@@ -176,10 +175,14 @@ void Export::AsIRIT(
 
   // Write all Splines from Group into new file
   for (std::size_t i{0}; i < spline_group.size(); i++) {
+    // Write Header
+    export_file << "\n\t[OBJECT BEZIERSPLINE" << i;
     // Small spacer for Readability
-    export_file << "\n\n";
+    export_file << "\n";
     // Export individual splines seperately
     format2IRITfile(spline_group[i], export_file);
+    // Finalize Current Spline
+    export_file << "\n\t]";
   }
 
   // Write Footer
@@ -189,10 +192,9 @@ void Export::AsIRIT(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-void Export::AsXML(
-    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
-        spline,
-    const std::string& filename) {
+void Export::AsXML(const BezierSpline<parametric_dimension, PhysicalPointType,
+                                      ScalarType>& spline,
+                   const std::string& filename) {
   BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
       spline_group{spline};
   AsXML(spline_group, filename);

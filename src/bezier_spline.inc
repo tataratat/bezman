@@ -788,8 +788,7 @@ BezierSpline<parametric_dimension, PhysicalPointType,
     // Going forward on first part and taking last value to second part
     for (IndexingType i{1}; i <= degrees[splitting_dimension]; i++) {
       // Reversed order to prohibit data overwrite
-      for (IndexingType j{degrees[splitting_dimension]};
-           j >= i; j--) {
+      for (IndexingType j{degrees[splitting_dimension]}; j >= i; j--) {
         ctps_first[global_start_id + j * index_offset] =
             ctps_first[global_start_id + (j - 1) * index_offset] * inv_factor +
             ctps_first[global_start_id + j * index_offset] * factor;
@@ -817,10 +816,15 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   assert(("Split Plane values must be increasing",
           std::is_sorted(splitting_planes.begin(), splitting_planes.end())));
 
+  // If vector is empty return empty group containing only the Spline itself
+  if (splitting_planes.size() == 0) {
+    return_value[0] = (*this);
+    return return_value;
+  }
+
   // Loop over all split planes and assign the first part to the vector,
   // then split the remainng part at the relativ required position
-  auto split_spline =
-      SplitAtPosition(splitting_planes[0], splitting_dimension);
+  auto split_spline = SplitAtPosition(splitting_planes[0], splitting_dimension);
   return_value[0] = split_spline[0];
   for (std::size_t i_split{1}; i_split < splitting_planes.size(); i_split++) {
     // Calculate the position of the split position in the remaining spline

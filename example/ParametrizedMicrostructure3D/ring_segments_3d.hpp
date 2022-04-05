@@ -24,15 +24,13 @@ class RingSegments3D {
   double innerR{1.}, outerR{2.}, arc_degrees{PI * 0.25}, depth{2.};
   std::array<int, 3> numberOfSegments{1, 1, 1};
 
-public:
+ public:
   // All Setter Methods return a reference to the object so that multiple
   // values can be changed in a single line for convenience Quarter Circle
   // Dimensions
 
   /// Set inner radius
-  constexpr RingSegments3D &
-  SetInnerRadius(const double r)
-  {
+  constexpr RingSegments3D& SetInnerRadius(const double r) {
     innerR = r;
     return (*this);
   }
@@ -94,8 +92,7 @@ public:
 
     const double excentricity_of_middle_points =
         1. / std::sin(PI / 2. - degrees_per_segment / 2.);
-    for (int i_z_segment{}; i_z_segment < numberOfSegments[2];
-         i_z_segment++) {
+    for (int i_z_segment{}; i_z_segment < numberOfSegments[2]; i_z_segment++) {
       // Precompute depths
       const double z_start = depth_per_segment * i_z_segment;
       const double z_end = depth_per_segment * (i_z_segment + 1);

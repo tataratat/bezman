@@ -70,305 +70,302 @@ class CrossTile3D {
 
  public:
   /// Number of Splines per Tile
-   static constexpr unsigned int kNumberOfSplines = 7;
-   /// Number of Evaluation Points
-   static constexpr std::size_t kNumberOfEvaluationPoints = 7;
-   /// Evaluation Points
-   static constexpr std::array<Point3D, kNumberOfEvaluationPoints>
-       kEvaluationPoints{Point3D{.5, 0.5, 0.5}, Point3D{.5, 0., 0.5},
-                         Point3D{1., 0.5, 0.5}, Point3D{.5, 1., 0.5},
-                         Point3D{0., 0.5, 0.5}, Point3D{0.5, 0.5, 0.},
-                         Point3D{0.5, 0.5, 1.}};
+  static constexpr unsigned int kNumberOfSplines = 7;
+  /// Number of Evaluation Points
+  static constexpr std::size_t kNumberOfEvaluationPoints = 7;
+  /// Evaluation Points
+  static constexpr std::array<Point3D, kNumberOfEvaluationPoints>
+      kEvaluationPoints{Point3D{.5, 0.5, 0.5}, Point3D{.5, 0., 0.5},
+                        Point3D{1., 0.5, 0.5}, Point3D{.5, 1., 0.5},
+                        Point3D{0., 0.5, 0.5}, Point3D{0.5, 0.5, 0.},
+                        Point3D{0.5, 0.5, 1.}};
 
-   /// Generator Function for Derivatives
-   static std::vector<BezierGroup> GenerateMicrostructureDerivatives(
-       const std::array<ADT, kNumberOfEvaluationPoints> &evaluations)
-   {
-     // Check if all evaluations have the same number of derivatives
-     const auto number_of_derivatives = evaluations[0].GetNumberOfDerivatives();
-     assert(std::all_of(evaluations.begin(), evaluations.end(),
-                        [&number_of_derivatives](const ADT &ev_point) -> bool
-                        {
-                          return (ev_point.GetNumberOfDerivatives() ==
-                                  number_of_derivatives);
-                        }));
-     // Precomputed values and aliases
-     const double one_third{1. / 3.};
-     const double two_thirds{2. / 3.};
+  /// Generator Function for Derivatives
+  static std::vector<BezierGroup> GenerateMicrostructureDerivatives(
+      const std::array<ADT, kNumberOfEvaluationPoints>& evaluations) {
+    // Check if all evaluations have the same number of derivatives
+    const auto number_of_derivatives = evaluations[0].GetNumberOfDerivatives();
+    assert(std::all_of(evaluations.begin(), evaluations.end(),
+                       [&number_of_derivatives](const ADT& ev_point) -> bool {
+                         return (ev_point.GetNumberOfDerivatives() ==
+                                 number_of_derivatives);
+                       }));
+    // Precomputed values and aliases
+    const double one_third{1. / 3.};
+    const double two_thirds{2. / 3.};
 
-     // Name abreviations (only readability no purpose)
-     const auto &center_width = evaluations[0];
-     const auto &thickness_low = evaluations[1];
-     const auto &thickness_right = evaluations[2];
-     const auto &thickness_up = evaluations[3];
-     const auto &thickness_left = evaluations[4];
-     const auto &thickness_front = evaluations[5];
-     const auto &thickness_back = evaluations[6];
+    // Name abreviations (only readability no purpose)
+    const auto& center_width = evaluations[0];
+    const auto& thickness_low = evaluations[1];
+    const auto& thickness_right = evaluations[2];
+    const auto& thickness_up = evaluations[3];
+    const auto& thickness_left = evaluations[4];
+    const auto& thickness_front = evaluations[5];
+    const auto& thickness_back = evaluations[6];
 
-     // Define degrees
-     std::array<std::size_t, 3> center_degrees{1, 1, 1};
-     std::array<std::size_t, 3> horizontal_degrees{3, 1, 1};
-     std::array<std::size_t, 3> vertical_degrees{1, 3, 1};
-     std::array<std::size_t, 3> pass_z_degrees{1, 1, 3};
+    // Define degrees
+    std::array<std::size_t, 3> center_degrees{1, 1, 1};
+    std::array<std::size_t, 3> horizontal_degrees{3, 1, 1};
+    std::array<std::size_t, 3> vertical_degrees{1, 3, 1};
+    std::array<std::size_t, 3> pass_z_degrees{1, 1, 3};
 
-     /*
-      *              *--------*
-      *              |   up   |
-      *       *------*--------*-------*
-      *       | left | center | right |
-      *       *------*--------*-------*
-      *              |  down  |
-      *              *--------*
-      *
-      * Definition of the control points.
-      * order is required to get 90 deg angles from center and from start of
-      * individual branches (center point tangents might not be required)
-      *
-      */
+    /*
+     *              *--------*
+     *              |   up   |
+     *       *------*--------*-------*
+     *       | left | center | right |
+     *       *------*--------*-------*
+     *              |  down  |
+     *              *--------*
+     *
+     * Definition of the control points.
+     * order is required to get 90 deg angles from center and from start of
+     * individual branches (center point tangents might not be required)
+     *
+     */
 
-     // center ctps
-     std::vector<PointADT3D> ctps_center{
-         PointADT3D{0.5 * (1. - center_width), 0.5 * (1. - center_width),
-                    0.5 * (1. - center_width)},
-         PointADT3D{0.5 * (1. + center_width), 0.5 * (1. - center_width),
-                    0.5 * (1. - center_width)},
-         PointADT3D{0.5 * (1. - center_width), 0.5 * (1. + center_width),
-                    0.5 * (1. - center_width)},
-         PointADT3D{0.5 * (1. + center_width), 0.5 * (1. + center_width),
-                    0.5 * (1. - center_width)},
-         PointADT3D{0.5 * (1. - center_width), 0.5 * (1. - center_width),
-                    0.5 * (1. + center_width)},
-         PointADT3D{0.5 * (1. + center_width), 0.5 * (1. - center_width),
-                    0.5 * (1. + center_width)},
-         PointADT3D{0.5 * (1. - center_width), 0.5 * (1. + center_width),
-                    0.5 * (1. + center_width)},
-         PointADT3D{0.5 * (1. + center_width), 0.5 * (1. + center_width),
-                    0.5 * (1. + center_width)}};
+    // center ctps
+    std::vector<PointADT3D> ctps_center{
+        PointADT3D{0.5 * (1. - center_width), 0.5 * (1. - center_width),
+                   0.5 * (1. - center_width)},
+        PointADT3D{0.5 * (1. + center_width), 0.5 * (1. - center_width),
+                   0.5 * (1. - center_width)},
+        PointADT3D{0.5 * (1. - center_width), 0.5 * (1. + center_width),
+                   0.5 * (1. - center_width)},
+        PointADT3D{0.5 * (1. + center_width), 0.5 * (1. + center_width),
+                   0.5 * (1. - center_width)},
+        PointADT3D{0.5 * (1. - center_width), 0.5 * (1. - center_width),
+                   0.5 * (1. + center_width)},
+        PointADT3D{0.5 * (1. + center_width), 0.5 * (1. - center_width),
+                   0.5 * (1. + center_width)},
+        PointADT3D{0.5 * (1. - center_width), 0.5 * (1. + center_width),
+                   0.5 * (1. + center_width)},
+        PointADT3D{0.5 * (1. + center_width), 0.5 * (1. + center_width),
+                   0.5 * (1. + center_width)}};
 
-     // Lower CTPS
-     std::vector<PointADT3D> ctps_low{
-         PointADT3D{0.5 * (1. - thickness_low), ADT(0., number_of_derivatives),
-                    0.5 * (1. - thickness_low)},
-         PointADT3D{0.5 * (1. + thickness_low), ADT(0., number_of_derivatives),
-                    0.5 * (1. - thickness_low)},
-         PointADT3D{0.5 * (1. - thickness_low), one_third * ctps_center[0][1],
-                    0.5 * (1. - thickness_low)},
-         PointADT3D{0.5 * (1. + thickness_low), one_third * ctps_center[0][1],
-                    0.5 * (1. - thickness_low)},
-         PointADT3D{ctps_center[0][0], two_thirds * ctps_center[0][1],
-                    ctps_center[0][2]},
-         PointADT3D{ctps_center[1][0], two_thirds * ctps_center[0][1],
-                    ctps_center[1][2]},
-         ctps_center[0],
-         ctps_center[1],
-         PointADT3D{0.5 * (1. - thickness_low), ADT(0., number_of_derivatives),
-                    0.5 * (1. + thickness_low)},
-         PointADT3D{0.5 * (1. + thickness_low), ADT(0., number_of_derivatives),
-                    0.5 * (1. + thickness_low)},
-         PointADT3D{0.5 * (1. - thickness_low), one_third * ctps_center[0][1],
-                    0.5 * (1. + thickness_low)},
-         PointADT3D{0.5 * (1. + thickness_low), one_third * ctps_center[0][1],
-                    0.5 * (1. + thickness_low)},
-         PointADT3D{ctps_center[4][0], two_thirds * ctps_center[0][1],
-                    ctps_center[4][2]},
-         PointADT3D{ctps_center[5][0], two_thirds * ctps_center[0][1],
-                    ctps_center[5][2]},
-         ctps_center[4],
-         ctps_center[5]};
+    // Lower CTPS
+    std::vector<PointADT3D> ctps_low{
+        PointADT3D{0.5 * (1. - thickness_low), ADT(0., number_of_derivatives),
+                   0.5 * (1. - thickness_low)},
+        PointADT3D{0.5 * (1. + thickness_low), ADT(0., number_of_derivatives),
+                   0.5 * (1. - thickness_low)},
+        PointADT3D{0.5 * (1. - thickness_low), one_third * ctps_center[0][1],
+                   0.5 * (1. - thickness_low)},
+        PointADT3D{0.5 * (1. + thickness_low), one_third * ctps_center[0][1],
+                   0.5 * (1. - thickness_low)},
+        PointADT3D{ctps_center[0][0], two_thirds * ctps_center[0][1],
+                   ctps_center[0][2]},
+        PointADT3D{ctps_center[1][0], two_thirds * ctps_center[0][1],
+                   ctps_center[1][2]},
+        ctps_center[0],
+        ctps_center[1],
+        PointADT3D{0.5 * (1. - thickness_low), ADT(0., number_of_derivatives),
+                   0.5 * (1. + thickness_low)},
+        PointADT3D{0.5 * (1. + thickness_low), ADT(0., number_of_derivatives),
+                   0.5 * (1. + thickness_low)},
+        PointADT3D{0.5 * (1. - thickness_low), one_third * ctps_center[0][1],
+                   0.5 * (1. + thickness_low)},
+        PointADT3D{0.5 * (1. + thickness_low), one_third * ctps_center[0][1],
+                   0.5 * (1. + thickness_low)},
+        PointADT3D{ctps_center[4][0], two_thirds * ctps_center[0][1],
+                   ctps_center[4][2]},
+        PointADT3D{ctps_center[5][0], two_thirds * ctps_center[0][1],
+                   ctps_center[5][2]},
+        ctps_center[4],
+        ctps_center[5]};
 
-     // Upper CTPS
-     std::vector<PointADT3D> ctps_up{
-         ctps_center[2],
-         ctps_center[3],
-         PointADT3D{ctps_center[2][0], one_third * (2. * ctps_center[2][1] + 1.),
-                    ctps_center[2][2]},
-         PointADT3D{ctps_center[3][0], one_third * (2. * ctps_center[2][1] + 1.),
-                    ctps_center[3][2]},
-         PointADT3D{0.5 * (1. - thickness_up),
-                    one_third * (ctps_center[2][1] + 2.),
-                    0.5 * (1. - thickness_up)},
-         PointADT3D{0.5 * (1. + thickness_up),
-                    one_third * (ctps_center[2][1] + 2.),
-                    0.5 * (1. - thickness_up)},
-         PointADT3D{0.5 * (1. - thickness_up), ADT(1., number_of_derivatives),
-                    0.5 * (1. - thickness_up)},
-         PointADT3D{0.5 * (1. + thickness_up), ADT(1., number_of_derivatives),
-                    0.5 * (1. - thickness_up)},
-         ctps_center[6],
-         ctps_center[7],
-         PointADT3D{ctps_center[6][0], one_third * (2. * ctps_center[7][1] + 1.),
-                    ctps_center[6][2]},
-         PointADT3D{ctps_center[7][0], one_third * (2. * ctps_center[6][1] + 1.),
-                    ctps_center[7][2]},
-         PointADT3D{0.5 * (1. - thickness_up),
-                    one_third * (ctps_center[2][1] + 2.),
-                    0.5 * (1. + thickness_up)},
-         PointADT3D{0.5 * (1. + thickness_up),
-                    one_third * (ctps_center[2][1] + 2.),
-                    0.5 * (1. + thickness_up)},
-         PointADT3D{0.5 * (1. - thickness_up), ADT(1., number_of_derivatives),
-                    0.5 * (1. + thickness_up)},
-         PointADT3D{0.5 * (1. + thickness_up), ADT(1., number_of_derivatives),
-                    0.5 * (1. + thickness_up)},
-     };
+    // Upper CTPS
+    std::vector<PointADT3D> ctps_up{
+        ctps_center[2],
+        ctps_center[3],
+        PointADT3D{ctps_center[2][0], one_third * (2. * ctps_center[2][1] + 1.),
+                   ctps_center[2][2]},
+        PointADT3D{ctps_center[3][0], one_third * (2. * ctps_center[2][1] + 1.),
+                   ctps_center[3][2]},
+        PointADT3D{0.5 * (1. - thickness_up),
+                   one_third * (ctps_center[2][1] + 2.),
+                   0.5 * (1. - thickness_up)},
+        PointADT3D{0.5 * (1. + thickness_up),
+                   one_third * (ctps_center[2][1] + 2.),
+                   0.5 * (1. - thickness_up)},
+        PointADT3D{0.5 * (1. - thickness_up), ADT(1., number_of_derivatives),
+                   0.5 * (1. - thickness_up)},
+        PointADT3D{0.5 * (1. + thickness_up), ADT(1., number_of_derivatives),
+                   0.5 * (1. - thickness_up)},
+        ctps_center[6],
+        ctps_center[7],
+        PointADT3D{ctps_center[6][0], one_third * (2. * ctps_center[7][1] + 1.),
+                   ctps_center[6][2]},
+        PointADT3D{ctps_center[7][0], one_third * (2. * ctps_center[6][1] + 1.),
+                   ctps_center[7][2]},
+        PointADT3D{0.5 * (1. - thickness_up),
+                   one_third * (ctps_center[2][1] + 2.),
+                   0.5 * (1. + thickness_up)},
+        PointADT3D{0.5 * (1. + thickness_up),
+                   one_third * (ctps_center[2][1] + 2.),
+                   0.5 * (1. + thickness_up)},
+        PointADT3D{0.5 * (1. - thickness_up), ADT(1., number_of_derivatives),
+                   0.5 * (1. + thickness_up)},
+        PointADT3D{0.5 * (1. + thickness_up), ADT(1., number_of_derivatives),
+                   0.5 * (1. + thickness_up)},
+    };
 
-     // Left CTPS
-     std::vector<PointADT3D> ctps_left{
-         PointADT3D{ADT(0., number_of_derivatives), 0.5 * (1. - thickness_left),
-                    0.5 * (1. - thickness_left)},
-         PointADT3D{one_third * ctps_center[0][0], 0.5 * (1. - thickness_left),
-                    0.5 * (1. - thickness_left)},
-         PointADT3D{two_thirds * ctps_center[0][0], ctps_center[0][1],
-                    ctps_center[0][2]},
-         ctps_center[0],
-         PointADT3D{ADT(0., number_of_derivatives), 0.5 * (1. + thickness_left),
-                    0.5 * (1. - thickness_left)},
-         PointADT3D{one_third * ctps_center[2][0], 0.5 * (1. + thickness_left),
-                    0.5 * (1. - thickness_left)},
-         PointADT3D{two_thirds * ctps_center[2][0], ctps_center[2][1],
-                    ctps_center[2][2]},
-         ctps_center[2],
-         PointADT3D{ADT(0., number_of_derivatives), 0.5 * (1. - thickness_left),
-                    0.5 * (1. + thickness_left)},
-         PointADT3D{one_third * ctps_center[4][0], 0.5 * (1. - thickness_left),
-                    0.5 * (1. + thickness_left)},
-         PointADT3D{two_thirds * ctps_center[4][0], ctps_center[4][1],
-                    ctps_center[4][2]},
-         ctps_center[4],
-         PointADT3D{ADT(0., number_of_derivatives), 0.5 * (1. + thickness_left),
-                    0.5 * (1. + thickness_left)},
-         PointADT3D{one_third * ctps_center[6][0], 0.5 * (1. + thickness_left),
-                    0.5 * (1. + thickness_left)},
-         PointADT3D{two_thirds * ctps_center[6][0], ctps_center[6][1],
-                    ctps_center[6][2]},
-         ctps_center[6]};
+    // Left CTPS
+    std::vector<PointADT3D> ctps_left{
+        PointADT3D{ADT(0., number_of_derivatives), 0.5 * (1. - thickness_left),
+                   0.5 * (1. - thickness_left)},
+        PointADT3D{one_third * ctps_center[0][0], 0.5 * (1. - thickness_left),
+                   0.5 * (1. - thickness_left)},
+        PointADT3D{two_thirds * ctps_center[0][0], ctps_center[0][1],
+                   ctps_center[0][2]},
+        ctps_center[0],
+        PointADT3D{ADT(0., number_of_derivatives), 0.5 * (1. + thickness_left),
+                   0.5 * (1. - thickness_left)},
+        PointADT3D{one_third * ctps_center[2][0], 0.5 * (1. + thickness_left),
+                   0.5 * (1. - thickness_left)},
+        PointADT3D{two_thirds * ctps_center[2][0], ctps_center[2][1],
+                   ctps_center[2][2]},
+        ctps_center[2],
+        PointADT3D{ADT(0., number_of_derivatives), 0.5 * (1. - thickness_left),
+                   0.5 * (1. + thickness_left)},
+        PointADT3D{one_third * ctps_center[4][0], 0.5 * (1. - thickness_left),
+                   0.5 * (1. + thickness_left)},
+        PointADT3D{two_thirds * ctps_center[4][0], ctps_center[4][1],
+                   ctps_center[4][2]},
+        ctps_center[4],
+        PointADT3D{ADT(0., number_of_derivatives), 0.5 * (1. + thickness_left),
+                   0.5 * (1. + thickness_left)},
+        PointADT3D{one_third * ctps_center[6][0], 0.5 * (1. + thickness_left),
+                   0.5 * (1. + thickness_left)},
+        PointADT3D{two_thirds * ctps_center[6][0], ctps_center[6][1],
+                   ctps_center[6][2]},
+        ctps_center[6]};
 
-     // Right CTPS
-     std::vector<PointADT3D> ctps_right{
-         ctps_center[1],
-         PointADT3D{one_third * (1. + 2. * ctps_center[1][0]), ctps_center[1][1],
-                    ctps_center[1][2]},
-         PointADT3D{one_third * (2. + ctps_center[1][0]),
-                    0.5 * (1. - thickness_right), 0.5 * (1. - thickness_right)},
-         PointADT3D{ADT(1., number_of_derivatives), 0.5 * (1. - thickness_right),
-                    0.5 * (1. - thickness_right)},
-         ctps_center[3],
-         PointADT3D{one_third * (1. + 2. * ctps_center[1][0]), ctps_center[3][1],
-                    ctps_center[3][2]},
-         PointADT3D{one_third * (2. + ctps_center[1][0]),
-                    0.5 * (1. + thickness_right), 0.5 * (1. - thickness_right)},
-         PointADT3D{ADT(1., number_of_derivatives), 0.5 * (1. + thickness_right),
-                    0.5 * (1. - thickness_right)},
-         ctps_center[5],
-         PointADT3D{one_third * (1. + 2. * ctps_center[5][0]), ctps_center[5][1],
-                    ctps_center[5][2]},
-         PointADT3D{one_third * (2. + ctps_center[1][0]),
-                    0.5 * (1. - thickness_right), 0.5 * (1. + thickness_right)},
-         PointADT3D{ADT(1., number_of_derivatives), 0.5 * (1. - thickness_right),
-                    0.5 * (1. + thickness_right)},
-         ctps_center[7],
-         PointADT3D{one_third * (1. + 2. * ctps_center[7][0]), ctps_center[7][1],
-                    ctps_center[7][2]},
-         PointADT3D{one_third * (2. + ctps_center[1][0]),
-                    0.5 * (1. + thickness_right), 0.5 * (1. + thickness_right)},
-         PointADT3D{ADT(1., number_of_derivatives), 0.5 * (1. + thickness_right),
-                    0.5 * (1. + thickness_right)}};
+    // Right CTPS
+    std::vector<PointADT3D> ctps_right{
+        ctps_center[1],
+        PointADT3D{one_third * (1. + 2. * ctps_center[1][0]), ctps_center[1][1],
+                   ctps_center[1][2]},
+        PointADT3D{one_third * (2. + ctps_center[1][0]),
+                   0.5 * (1. - thickness_right), 0.5 * (1. - thickness_right)},
+        PointADT3D{ADT(1., number_of_derivatives), 0.5 * (1. - thickness_right),
+                   0.5 * (1. - thickness_right)},
+        ctps_center[3],
+        PointADT3D{one_third * (1. + 2. * ctps_center[1][0]), ctps_center[3][1],
+                   ctps_center[3][2]},
+        PointADT3D{one_third * (2. + ctps_center[1][0]),
+                   0.5 * (1. + thickness_right), 0.5 * (1. - thickness_right)},
+        PointADT3D{ADT(1., number_of_derivatives), 0.5 * (1. + thickness_right),
+                   0.5 * (1. - thickness_right)},
+        ctps_center[5],
+        PointADT3D{one_third * (1. + 2. * ctps_center[5][0]), ctps_center[5][1],
+                   ctps_center[5][2]},
+        PointADT3D{one_third * (2. + ctps_center[1][0]),
+                   0.5 * (1. - thickness_right), 0.5 * (1. + thickness_right)},
+        PointADT3D{ADT(1., number_of_derivatives), 0.5 * (1. - thickness_right),
+                   0.5 * (1. + thickness_right)},
+        ctps_center[7],
+        PointADT3D{one_third * (1. + 2. * ctps_center[7][0]), ctps_center[7][1],
+                   ctps_center[7][2]},
+        PointADT3D{one_third * (2. + ctps_center[1][0]),
+                   0.5 * (1. + thickness_right), 0.5 * (1. + thickness_right)},
+        PointADT3D{ADT(1., number_of_derivatives), 0.5 * (1. + thickness_right),
+                   0.5 * (1. + thickness_right)}};
 
-     // Front CTPS
-     std::vector<PointADT3D> ctps_front{
-         PointADT3D{0.5 * (1. - thickness_front), 0.5 * (1. - thickness_front),
-                    ADT(0., number_of_derivatives)},
-         PointADT3D{0.5 * (1. + thickness_front), 0.5 * (1. - thickness_front),
-                    ADT(0., number_of_derivatives)},
-         PointADT3D{0.5 * (1. - thickness_front), 0.5 * (1. + thickness_front),
-                    ADT(0., number_of_derivatives)},
-         PointADT3D{0.5 * (1. + thickness_front), 0.5 * (1. + thickness_front),
-                    ADT(0., number_of_derivatives)},
-         PointADT3D{0.5 * (1. - thickness_front), 0.5 * (1. - thickness_front),
-                    one_third * (ctps_center[0][2])},
-         PointADT3D{0.5 * (1. + thickness_front), 0.5 * (1. - thickness_front),
-                    one_third * (ctps_center[1][2])},
-         PointADT3D{0.5 * (1. - thickness_front), 0.5 * (1. + thickness_front),
-                    one_third * (ctps_center[2][2])},
-         PointADT3D{0.5 * (1. + thickness_front), 0.5 * (1. + thickness_front),
-                    one_third * (ctps_center[3][2])},
-         PointADT3D{ctps_center[0][0], ctps_center[0][1],
-                    two_thirds * (ctps_center[0][2])},
-         PointADT3D{ctps_center[1][0], ctps_center[1][1],
-                    two_thirds * (ctps_center[1][2])},
-         PointADT3D{ctps_center[2][0], ctps_center[2][1],
-                    two_thirds * (ctps_center[2][2])},
-         PointADT3D{ctps_center[3][0], ctps_center[3][1],
-                    two_thirds * (ctps_center[3][2])},
-         ctps_center[0],
-         ctps_center[1],
-         ctps_center[2],
-         ctps_center[3]};
+    // Front CTPS
+    std::vector<PointADT3D> ctps_front{
+        PointADT3D{0.5 * (1. - thickness_front), 0.5 * (1. - thickness_front),
+                   ADT(0., number_of_derivatives)},
+        PointADT3D{0.5 * (1. + thickness_front), 0.5 * (1. - thickness_front),
+                   ADT(0., number_of_derivatives)},
+        PointADT3D{0.5 * (1. - thickness_front), 0.5 * (1. + thickness_front),
+                   ADT(0., number_of_derivatives)},
+        PointADT3D{0.5 * (1. + thickness_front), 0.5 * (1. + thickness_front),
+                   ADT(0., number_of_derivatives)},
+        PointADT3D{0.5 * (1. - thickness_front), 0.5 * (1. - thickness_front),
+                   one_third * (ctps_center[0][2])},
+        PointADT3D{0.5 * (1. + thickness_front), 0.5 * (1. - thickness_front),
+                   one_third * (ctps_center[1][2])},
+        PointADT3D{0.5 * (1. - thickness_front), 0.5 * (1. + thickness_front),
+                   one_third * (ctps_center[2][2])},
+        PointADT3D{0.5 * (1. + thickness_front), 0.5 * (1. + thickness_front),
+                   one_third * (ctps_center[3][2])},
+        PointADT3D{ctps_center[0][0], ctps_center[0][1],
+                   two_thirds * (ctps_center[0][2])},
+        PointADT3D{ctps_center[1][0], ctps_center[1][1],
+                   two_thirds * (ctps_center[1][2])},
+        PointADT3D{ctps_center[2][0], ctps_center[2][1],
+                   two_thirds * (ctps_center[2][2])},
+        PointADT3D{ctps_center[3][0], ctps_center[3][1],
+                   two_thirds * (ctps_center[3][2])},
+        ctps_center[0],
+        ctps_center[1],
+        ctps_center[2],
+        ctps_center[3]};
 
-     // Back CTPS
-     std::vector<PointADT3D> ctps_back{
-         ctps_center[4],
-         ctps_center[5],
-         ctps_center[6],
-         ctps_center[7],
-         PointADT3D{ctps_center[4][0], ctps_center[4][1],
-                    one_third * (1. + 2. * ctps_center[4][2])},
-         PointADT3D{ctps_center[5][0], ctps_center[5][1],
-                    one_third * (1. + 2. * ctps_center[5][2])},
-         PointADT3D{ctps_center[6][0], ctps_center[6][1],
-                    one_third * (1. + 2. * ctps_center[6][2])},
-         PointADT3D{ctps_center[7][0], ctps_center[7][1],
-                    one_third * (1. + 2. * ctps_center[7][2])},
-         PointADT3D{0.5 * (1. - thickness_back), 0.5 * (1. - thickness_back),
-                    one_third * (2. + 1. * ctps_center[4][2])},
-         PointADT3D{0.5 * (1. + thickness_back), 0.5 * (1. - thickness_back),
-                    one_third * (2. + 1. * ctps_center[5][2])},
-         PointADT3D{0.5 * (1. - thickness_back), 0.5 * (1. + thickness_back),
-                    one_third * (2. + 1. * ctps_center[6][2])},
-         PointADT3D{0.5 * (1. + thickness_back), 0.5 * (1. + thickness_back),
-                    one_third * (2. + 1. * ctps_center[7][2])},
-         PointADT3D{0.5 * (1. - thickness_back), 0.5 * (1. - thickness_back),
-                    ADT(1., number_of_derivatives)},
-         PointADT3D{0.5 * (1. + thickness_back), 0.5 * (1. - thickness_back),
-                    ADT(1., number_of_derivatives)},
-         PointADT3D{0.5 * (1. - thickness_back), 0.5 * (1. + thickness_back),
-                    ADT(1., number_of_derivatives)},
-         PointADT3D{0.5 * (1. + thickness_back), 0.5 * (1. + thickness_back),
-                    ADT(1., number_of_derivatives)}};
+    // Back CTPS
+    std::vector<PointADT3D> ctps_back{
+        ctps_center[4],
+        ctps_center[5],
+        ctps_center[6],
+        ctps_center[7],
+        PointADT3D{ctps_center[4][0], ctps_center[4][1],
+                   one_third * (1. + 2. * ctps_center[4][2])},
+        PointADT3D{ctps_center[5][0], ctps_center[5][1],
+                   one_third * (1. + 2. * ctps_center[5][2])},
+        PointADT3D{ctps_center[6][0], ctps_center[6][1],
+                   one_third * (1. + 2. * ctps_center[6][2])},
+        PointADT3D{ctps_center[7][0], ctps_center[7][1],
+                   one_third * (1. + 2. * ctps_center[7][2])},
+        PointADT3D{0.5 * (1. - thickness_back), 0.5 * (1. - thickness_back),
+                   one_third * (2. + 1. * ctps_center[4][2])},
+        PointADT3D{0.5 * (1. + thickness_back), 0.5 * (1. - thickness_back),
+                   one_third * (2. + 1. * ctps_center[5][2])},
+        PointADT3D{0.5 * (1. - thickness_back), 0.5 * (1. + thickness_back),
+                   one_third * (2. + 1. * ctps_center[6][2])},
+        PointADT3D{0.5 * (1. + thickness_back), 0.5 * (1. + thickness_back),
+                   one_third * (2. + 1. * ctps_center[7][2])},
+        PointADT3D{0.5 * (1. - thickness_back), 0.5 * (1. - thickness_back),
+                   ADT(1., number_of_derivatives)},
+        PointADT3D{0.5 * (1. + thickness_back), 0.5 * (1. - thickness_back),
+                   ADT(1., number_of_derivatives)},
+        PointADT3D{0.5 * (1. - thickness_back), 0.5 * (1. + thickness_back),
+                   ADT(1., number_of_derivatives)},
+        PointADT3D{0.5 * (1. + thickness_back), 0.5 * (1. + thickness_back),
+                   ADT(1., number_of_derivatives)}};
 
-     // Initialize return value (with one additional spline for the value)
-     std::vector<BezierGroup> return_value_group(number_of_derivatives + 1);
+    // Initialize return value (with one additional spline for the value)
+    std::vector<BezierGroup> return_value_group(number_of_derivatives + 1);
 
-     // Construct the Microtile as first component of the group
-     return_value_group[0] = BezierGroup{
-         Bezier{center_degrees, ExtractValuesFromPointCloud(ctps_center)},
-         Bezier{vertical_degrees, ExtractValuesFromPointCloud(ctps_low)},
-         Bezier{vertical_degrees, ExtractValuesFromPointCloud(ctps_up)},
-         Bezier{horizontal_degrees, ExtractValuesFromPointCloud(ctps_left)},
-         Bezier{horizontal_degrees, ExtractValuesFromPointCloud(ctps_right)},
-         Bezier{pass_z_degrees, ExtractValuesFromPointCloud(ctps_front)},
-         Bezier{pass_z_degrees, ExtractValuesFromPointCloud(ctps_back)}};
+    // Construct the Microtile as first component of the group
+    return_value_group[0] = BezierGroup{
+        Bezier{center_degrees, ExtractValuesFromPointCloud(ctps_center)},
+        Bezier{vertical_degrees, ExtractValuesFromPointCloud(ctps_low)},
+        Bezier{vertical_degrees, ExtractValuesFromPointCloud(ctps_up)},
+        Bezier{horizontal_degrees, ExtractValuesFromPointCloud(ctps_left)},
+        Bezier{horizontal_degrees, ExtractValuesFromPointCloud(ctps_right)},
+        Bezier{pass_z_degrees, ExtractValuesFromPointCloud(ctps_front)},
+        Bezier{pass_z_degrees, ExtractValuesFromPointCloud(ctps_back)}};
 
-     for (std::size_t i_deriv{}; i_deriv < number_of_derivatives; i_deriv++)
-     {
-       return_value_group[i_deriv + 1ul] = BezierGroup{
-           Bezier{center_degrees,
-                  ExtractDerivativeFromPointCloud(ctps_center, i_deriv)},
-           Bezier{vertical_degrees,
-                  ExtractDerivativeFromPointCloud(ctps_low, i_deriv)},
-           Bezier{vertical_degrees,
-                  ExtractDerivativeFromPointCloud(ctps_up, i_deriv)},
-           Bezier{horizontal_degrees,
-                  ExtractDerivativeFromPointCloud(ctps_left, i_deriv)},
-           Bezier{horizontal_degrees,
-                  ExtractDerivativeFromPointCloud(ctps_right, i_deriv)},
-           Bezier{pass_z_degrees,
-                  ExtractDerivativeFromPointCloud(ctps_front, i_deriv)},
-           Bezier{pass_z_degrees,
-                  ExtractDerivativeFromPointCloud(ctps_back, i_deriv)}};
-     }
+    for (std::size_t i_deriv{}; i_deriv < number_of_derivatives; i_deriv++) {
+      return_value_group[i_deriv + 1ul] = BezierGroup{
+          Bezier{center_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_center, i_deriv)},
+          Bezier{vertical_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_low, i_deriv)},
+          Bezier{vertical_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_up, i_deriv)},
+          Bezier{horizontal_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_left, i_deriv)},
+          Bezier{horizontal_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_right, i_deriv)},
+          Bezier{pass_z_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_front, i_deriv)},
+          Bezier{pass_z_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_back, i_deriv)}};
+    }
 
-     return return_value_group;
+    return return_value_group;
   }
 
   /// Face to be closed

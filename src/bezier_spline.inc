@@ -695,6 +695,11 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
               [outer_spline_ctps_indices[i_outer_parametric_dimension]];
     }
 
+    // Check if the bernstein_basis_tensor_product has the degrees (and number
+    // of control_points) as expected
+    assert(("Degree mismatch".new_degrees ==
+            bernstein_basis_tensor_product.degrees));
+
     // Now that all factors have been precomputed we can determine the
     // control-points of the resulting spline
     for (IndexingType i_control_point_composition{};

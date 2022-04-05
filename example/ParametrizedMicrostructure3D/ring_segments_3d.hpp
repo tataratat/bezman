@@ -131,8 +131,8 @@ class RingSegments3D {
             Point3D{endcos * innerR, endsin * innerR, z_end}};
         // Define and split up circle segment
         const auto CircleWedge = Bezier{degrees, ctps}
-                                     .OrderElevateAlongParametricDimension(1)
-                                     .OrderElevateAlongParametricDimension(2)
+                                     //.OrderElevateAlongParametricDimension(1)
+                                     //.OrderElevateAlongParametricDimension(2)
                                      .SplitAtPosition(y_knot_lines, 1);
         // Assign splines to Splinegroup
         const int index_offset = i_x_segment + numberOfSegments[0] *

@@ -697,7 +697,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
     // Check if the bernstein_basis_tensor_product has the degrees (and number
     // of control_points) as expected
-    assert(("Degree mismatch".new_degrees ==
+    assert(("Degree mismatch", new_degrees ==
             bernstein_basis_tensor_product.degrees));
 
     // Now that all factors have been precomputed we can determine the

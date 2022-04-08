@@ -8,6 +8,8 @@ set(LOCAL_HEADERS
 
 # Add All Subdirectories
 add_subdirectory(computational_derivation)
+add_subdirectory(type_traits)
+add_subdirectory(uniquify_groups)
 
 # Install files in according file structure
 install(FILES ${LOCAL_HEADERS} DESTINATION ${include_destination_headers}/src/utils)

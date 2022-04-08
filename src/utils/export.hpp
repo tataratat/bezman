@@ -55,6 +55,19 @@ class Export {
           &spline,
       std::ofstream &export_file);
 
+  /*
+   * Formats spline in custom json format
+   *
+   * Actual implementation of the spline Export to be called for every spline in
+   * a group Pipes everything directly into a file
+   */
+  template <std::size_t parametric_dimension, typename PhysicalPointType,
+            typename ScalarType>
+  static void format2JSONfile(
+      const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
+          &spline,
+      std::ofstream &export_file);
+
  public:
   /// Permit creation of class instance
   Export() = delete;
@@ -90,6 +103,21 @@ class Export {
   template <std::size_t parametric_dimension, typename PhysicalPointType,
             typename ScalarType>
   static void AsXML(
+      const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                              ScalarType> &spline_group,
+      const std::string &filename);
+
+  /// Export Single Spline as custom JSON
+  template <std::size_t parametric_dimension, typename PhysicalPointType,
+            typename ScalarType>
+  static void AsJSON(const BezierSpline<parametric_dimension, PhysicalPointType,
+                                       ScalarType> &spline,
+                    const std::string &filename);
+
+  /// Export Group as  custom JSON
+  template <std::size_t parametric_dimension, typename PhysicalPointType,
+            typename ScalarType>
+  static void AsJSON(
       const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                               ScalarType> &spline_group,
       const std::string &filename);

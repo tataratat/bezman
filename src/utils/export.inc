@@ -51,6 +51,43 @@ void Export::format2IRITfile(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+void Export::format2JSONfile(
+    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
+        spline,
+    std::ofstream& export_file) {
+  // Increase user readability
+  const std::string indentation{"      "};
+
+  // Write Dimensionality
+  export_file << indentation
+              << "\"Dimension\" : " << PhysicalPointType::kSpatialDimension
+              << ",\n";
+
+  // Write Parametric Dimensionality
+  export_file << indentation
+              << "\"ParametricDimension\" : " << parametric_dimension << ",\n";
+
+  // Write degrees
+  export_file << indentation << "\"Degrees\" : [" << spline.degrees[0];
+  for (std::size_t i{1}; i < parametric_dimension; i++) {
+    // IRIT expexts order not degrees
+    export_file << ", " << spline.degrees[i];
+  }
+  export_file << "],\n";
+
+  // Write All Control Points
+  export_file << indentation << "\"ControlPoints\" : [\n"
+              << indentation << "  " << spline.control_points[0];
+  for (std::size_t i_point{0}; i_point < spline.NumberOfControlPoints;
+       i_point++) {
+    export_file << ",\n"
+                << indentation << "  " << spline.control_points[i_point];
+  }
+  export_file << "\n" << indentation << "]\n";
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 void Export::format2XMLfile(
     const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
         spline,
@@ -145,6 +182,9 @@ void Export::GuessByExtension(const ExportType& export_object,
   } else if (extension_str == "xml") {
     // Export as XML
     AsXML(export_object, filename);
+  } else if (extension_str == "json") {
+    // Export as custom JSON
+    AsJSON(export_object, filename);
   } else {
     throw std::invalid_argument("File Extension not supported");
   }
@@ -225,6 +265,56 @@ void Export::AsXML(
 
   // Write Footer
   export_file << "</SplineList>\n";
+  export_file.close();
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::AsJSON(const BezierSpline<parametric_dimension, PhysicalPointType,
+                                       ScalarType>& spline,
+                    const std::string& filename) {
+  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+      spline_group{spline};
+  AsXML(spline_group, filename);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::AsJSON(
+    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                            ScalarType>& spline_group,
+    const std::string& filename) {
+  // Create File Stream
+  std::ofstream export_file;
+  export_file.open(ensureFileExtension(filename, "json"));
+
+  // Write Header
+  export_file << "{\n  \"Name\" : \"BezierSplineGroup\",\n";
+
+  // Number of Splines
+  export_file << "  \"NumberOfSplines\" : " << spline_group.size() << ",\n";
+
+  // Start Spline Export
+  export_file << "  \"SplineList\" : [\n";
+
+  // Write all Splines from Group into new file
+  for (std::size_t i{0}; i < spline_group.size(); i++) {
+    // ID and Type are set here
+    export_file
+        << "    {\n      \"SplineType\" : \"Bezier\",\n      \"SplineID\" : "
+        << i << ",\n";
+    // Export individual splines seperately
+    format2JSONfile(spline_group[i], export_file);
+    export_file << "    }";
+    if (i < spline_group.size() - 1) {
+      export_file << ",\n";
+    } else {
+      export_file << "\n";
+    }
+  }
+
+  // Write Footer
+  export_file << "  ]\n}";
   export_file.close();
 }
 

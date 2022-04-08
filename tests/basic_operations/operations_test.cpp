@@ -64,8 +64,12 @@ TEST_F(BezierTestingSuite, TestAddition2) {
 
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    EXPECT_EQ(line1.Evaluate(x) + line2.Evaluate(x),
-              (line1 + line2).Evaluate(x));
+    EXPECT_FLOAT_EQ((line1.Evaluate(x) + line2.Evaluate(x))[0],
+                    (line1 + line2).ForwardEvaluate(x)[0]);
+    EXPECT_FLOAT_EQ((line1.Evaluate(x) + line2.Evaluate(x))[1],
+                    (line1 + line2).ForwardEvaluate(x)[1]);
+    EXPECT_FLOAT_EQ((line1.Evaluate(x) + line2.Evaluate(x))[2],
+                    (line1 + line2).ForwardEvaluate(x)[2]);
   }
 }
 

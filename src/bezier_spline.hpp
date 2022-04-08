@@ -38,6 +38,12 @@ class BezierSpline {
 
   constexpr void UpdateIndexOffsets_();
 
+  template <typename... Indices>
+  constexpr PhysicalPointType AddUpContributionsToControlPointVector_(
+      PhysicalPointType& evaluation_point,
+      const std::array<std::vector<ScalarType>, parametric_dimension>& factors,
+      const ScalarType& factor_product, const Indices&... indices) const;
+
  public:
   using ScalarType_ = ScalarType;
 
@@ -136,6 +142,7 @@ class BezierSpline {
   constexpr BezierSpline DerivativeWRTParametricDimension(
       const IndexingType par_dim) const;
 
+  /// Evaluate the spline using the de Casteljau algorithm
   template <typename... T>
   constexpr PointTypePhysical_ Evaluate(const T&... par_coords) const {
     return (*this).Evaluate(PointTypeParametric_{par_coords...});
@@ -144,6 +151,16 @@ class BezierSpline {
   /// Evaluate the spline via the deCasteljau algorithm
   constexpr PointTypePhysical_ Evaluate(
       const PointTypeParametric_& par_coords) const;
+
+  /// Evaluate the spline via the explicit precomputation of bernstein values
+  constexpr PointTypePhysical_ ForwardEvaluate(
+      const PointTypeParametric_& par_coords) const;
+
+  /// Evaluate the spline using the de Casteljau algorithm
+  template <typename... T>
+  constexpr PointTypePhysical_ ForwardEvaluate(const T&... par_coords) const {
+    return (*this).ForwardEvaluate(PointTypeParametric_{par_coords...});
+  }
 
   /// Addition of Two Splines resulting in a new spline that describes the
   /// pointwise addition of the two Beziers

@@ -264,6 +264,80 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr PhysicalPointType BezierSpline<
+    parametric_dimension, PhysicalPointType,
+    ScalarType>::ForwardEvaluate(const PointTypeParametric_& par_coords) const {
+  /*
+   * Here we avoid Point operations and try to precompute as many values as
+   * possible, this greatly increases the complexity of the necessary code.
+   */
+  std::array<std::vector<ScalarType>, parametric_dimension> factors;
+
+  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
+    ScalarType_ cfactor = static_cast<ScalarType>(1.);
+    const ScalarType_ t_value = par_coords[par_dim];
+    const ScalarType_ inv_t_value = 1. - par_coords[par_dim];
+    const IndexingType c_degree = degrees[par_dim];
+    // Initialize vector of precomputed factors
+    factors[par_dim].resize(c_degree + 1);
+    // Loop over dimensionwise ctps
+    for (IndexingType i_ctps{0}; i_ctps < c_degree + 1; i_ctps++) {
+      factors[par_dim][i_ctps] =
+          static_cast<ScalarType>(
+              utils::FastBinomialCoefficient::choose(c_degree, i_ctps)) *
+          cfactor;
+      cfactor *= t_value;
+    }
+    // Backwards assignment
+    cfactor = static_cast<ScalarType>(1.);
+    for (IndexingType i_ctps{0}; i_ctps < c_degree + 1; i_ctps++) {
+      factors[par_dim][c_degree - i_ctps] *= cfactor;
+      cfactor *= inv_t_value;
+    }
+  }
+
+  /*
+   * Now that all values have been precomputed we have to sum up the individual
+   * contributions using (compile-time) recursion
+   */
+  PointTypePhysical_ evaluation_point{};
+
+  return AddUpContributionsToControlPointVector_(evaluation_point, factors,
+                                                 static_cast<ScalarType>(1.));
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename... Indices>
+constexpr PhysicalPointType
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    AddUpContributionsToControlPointVector_(
+        PhysicalPointType& evaluation_point,
+        const std::array<std::vector<ScalarType>, parametric_dimension>&
+            factors,
+        const ScalarType& factor_product, const Indices&... indices) const {
+  // Check that all are indices
+
+  // Loop over current parametric dimensions
+  const IndexingType c_par_dim = sizeof...(Indices);
+  const IndexingType i_ctps_per_par_dim = degrees[c_par_dim] + 1;
+
+  for (IndexingType i_ctps{}; i_ctps < i_ctps_per_par_dim; i_ctps++) {
+    if constexpr (sizeof...(indices) + 1 == parametric_dimension) {
+      evaluation_point += factor_product * factors[c_par_dim][i_ctps] *
+                          ControlPoint(indices..., i_ctps);
+    } else {
+      evaluation_point += AddUpContributionsToControlPointVector_(
+          evaluation_point, factors,
+          factors[c_par_dim][i_ctps] * factor_product, indices..., i_ctps);
+    }
+  }
+
+  return evaluation_point;
+};
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 constexpr bool
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator==(
     const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&

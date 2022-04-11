@@ -68,13 +68,13 @@ TEST_F(BezierTestingSuite, CompositionHighOrder) {
   }
   const auto composed_spline = surface.Compose(line);
 
-  std::cerr << "[          ] surface-degrees: =     \t(" << surface.degrees[0]
-            << ", " << surface.degrees[1] << ")" << std::endl;
-  std::cerr << "[          ] line-degree: =         \t(" << line.degrees[0]
+  std::cerr << "[          ] surface-degrees: =     \t(" << surface.GetDegrees()[0]
+            << ", " << surface.GetDegrees()[1] << ")" << std::endl;
+  std::cerr << "[          ] line-degree: =         \t(" << line.GetDegrees()[0]
             << ")" << std::endl;
 
   std::cerr << "[          ] composition-degrees: = \t("
-            << composed_spline.degrees[0] << ")" << std::endl;
+            << composed_spline.GetDegrees()[0] << ")" << std::endl;
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
     const auto composed_spline_position = composed_spline.Evaluate(x);

@@ -134,6 +134,9 @@ class BezierSpline {
   /// Set Degrees
   constexpr void UpdateDegrees(const std::array<std::size_t, parametric_dimension>& new_degrees){
     degrees = new_degrees;
+    for (unsigned int i{}; i < parametric_dimension; i++)
+      NumberOfControlPoints *= degrees[i] + 1;
+    control_points.resize(NumberOfControlPoints);
     UpdateIndexOffsets_();
   }
 

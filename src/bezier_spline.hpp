@@ -41,7 +41,8 @@ class BezierSpline {
   template <typename... Indices>
   constexpr PhysicalPointType AddUpContributionsToControlPointVector_(
       PhysicalPointType& evaluation_point,
-      const std::array<std::vector<ScalarType>, parametric_dimension>& factors,
+      const std::array<std::array<ScalarType, MAX_BINOMIAL_DEGREE + 1>,
+                       parametric_dimension>& factors,
       const ScalarType& factor_product, const Indices&... indices) const;
 
  public:

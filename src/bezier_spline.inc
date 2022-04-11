@@ -270,16 +270,19 @@ constexpr PhysicalPointType BezierSpline<
   /*
    * Here we avoid Point operations and try to precompute as many values as
    * possible, this greatly increases the complexity of the necessary code.
+   *
+   * They are all stored into an array to store them on the stack and avoid
+   * allocation
    */
-  std::array<std::vector<ScalarType>, parametric_dimension> factors;
+  std::array<std::array<ScalarType, MAX_BINOMIAL_DEGREE + 1>,
+             parametric_dimension>
+      factors;
 
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
     ScalarType_ cfactor = static_cast<ScalarType>(1.);
     const ScalarType_ t_value = par_coords[par_dim];
     const ScalarType_ inv_t_value = 1. - par_coords[par_dim];
     const IndexingType c_degree = degrees[par_dim];
-    // Initialize vector of precomputed factors
-    factors[par_dim].resize(c_degree + 1);
     // Loop over dimensionwise ctps
     for (IndexingType i_ctps{0}; i_ctps < c_degree + 1; i_ctps++) {
       factors[par_dim][i_ctps] =
@@ -313,8 +316,8 @@ constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     AddUpContributionsToControlPointVector_(
         PhysicalPointType& evaluation_point,
-        const std::array<std::vector<ScalarType>, parametric_dimension>&
-            factors,
+        const std::array<std::array<ScalarType, MAX_BINOMIAL_DEGREE + 1>,
+                         parametric_dimension>& factors,
         const ScalarType& factor_product, const Indices&... indices) const {
   // Check that all are indices
 

@@ -330,7 +330,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
       evaluation_point += factor_product * factors[c_par_dim][i_ctps] *
                           ControlPoint(indices..., i_ctps);
     } else {
-      evaluation_point += AddUpContributionsToControlPointVector_(
+      AddUpContributionsToControlPointVector_(
           evaluation_point, factors,
           factors[c_par_dim][i_ctps] * factor_product, indices..., i_ctps);
     }

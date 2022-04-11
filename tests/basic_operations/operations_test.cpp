@@ -37,9 +37,20 @@ class BezierTestingSuite : public ::testing::Test {
   BezierSpline<1, Point3D, double> line2_copy{line2};
   BezierSpline<1, Point3D, double> line3_copy{line3};
 
-  const auto CreateRandomSpline(unsigned int degree){
-    BezierSpline<1, double, double> randomSpline{std::array<std::size_t, 1>{degree}};
-    for (unsigned int i{}; i < degree; i++){
+  // Surface for testing evaluation routines
+  std::vector<Point2D> surface_ctps{
+      Point2D{0., 0.},    Point2D{0.5, 0.2}, Point2D{1., 0.},
+      Point2D{-0.2, 0.5}, Point2D{0.5, 0.5}, Point2D{1.2, 0.5},
+      Point2D{0., 1.},    Point2D{0.5, 0.8}, Point2D{1., 1.},
+  };
+  std::array<std::size_t, 2> surface_degrees{2, 2};
+  BezierSpline<2, Point2D, double> surface_spline{surface_degrees,
+                                                  surface_ctps};
+
+  const auto CreateRandomSpline(unsigned int degree) {
+    BezierSpline<1, double, double> randomSpline{
+        std::array<std::size_t, 1>{degree}};
+    for (unsigned int i{}; i < degree; i++) {
       randomSpline.ControlPoint(i) =
           static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
     }
@@ -70,6 +81,20 @@ TEST_F(BezierTestingSuite, TestAddition2) {
                     (line1 + line2).ForwardEvaluate(x)[1]);
     EXPECT_FLOAT_EQ((line1.Evaluate(x) + line2.Evaluate(x))[2],
                     (line1 + line2).ForwardEvaluate(x)[2]);
+  }
+}
+
+// Demonstrate Additions at random points
+TEST_F(BezierTestingSuite, TestEvaluationRoutines) {
+  // Expect equalityS.
+
+  for (int i{}; i < 10; i++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    const double y{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(surface_spline.Evaluate(x, y)[0],
+                    surface_spline.ForwardEvaluate(x, y)[0]);
+    EXPECT_FLOAT_EQ(surface_spline.Evaluate(x, y)[1],
+                    surface_spline.ForwardEvaluate(x, y)[1]);
   }
 }
 

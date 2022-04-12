@@ -87,6 +87,10 @@ TEST_F(BezierTestingSuite, TestAddition2) {
 // Demonstrate Additions at random points
 TEST_F(BezierTestingSuite, TestEvaluationRoutines) {
   // Expect equalityS.
+  for (int i{0}; i < 9; i++) {
+    surface_spline.OrderElevateAlongParametricDimension(0);
+    surface_spline.OrderElevateAlongParametricDimension(1);
+  }
 
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};

@@ -397,8 +397,8 @@ class DeformationFunctionExample {
   static constexpr const double innerR{1.}, outerR{2.}, arc_degrees{PI * 0.25};
 
   /// Number of segments in each parametric dimension
-  static constexpr const int kNumberOfXSegments{5};
-  static constexpr const int kNumberOfYSegments{5};
+  static constexpr const int kNumberOfXSegments{3};
+  static constexpr const int kNumberOfYSegments{3};
 
   /// For external access
   static constexpr const std::array<int, 2> kSegmentsPerParametricDimension{
@@ -672,13 +672,23 @@ int main() {
       micro_structure_generator.ComposeMicrostructureAndDerivatives();
 
   utils::Export::GuessByExtension(test_composition[0],
-                                  "composed_microstructure.xml");
+                                  "composed_microstructure.json");
+  const auto microstructure = MicrotileExample::GenerateMicrostructureDerivatives(
+      std::array<ADT,4> {
+        ADT(0.1,1,0),
+        ADT(0.1,1,0),
+        ADT(0.1,1,0),
+        ADT(0.1,1,0)}
+      );
+
+  utils::Export::GuessByExtension(microstructure[0], "microtile.json");
+
   for (std::size_t i_deriv{};
        i_deriv < ValueFieldExample::kNumberOfSuperParameters; i_deriv++) {
     utils::Export::GuessByExtension(test_composition[i_deriv + 1],
                                     std::string("composed_microstructure_") +
                                         std::to_string(i_deriv) +
-                                        std::string(".xml"));
+                                        std::string(".json"));
   }
   return 0;
 }

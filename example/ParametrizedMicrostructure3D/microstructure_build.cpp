@@ -121,57 +121,26 @@ int main() {
       MicrostructureGenerator<CrossTile3D, RingSegments3D, ValueFieldExample>{};
   // Modify the deformation function
   micro_structure_generator.deformation_function_generator.SetNumberOfSegments(
-      std::array<int, 3>{2,2,2});
+      std::array<int, 3>{15, 15, 15});
 
   // Construct the composition
   const auto test_composition =
       micro_structure_generator.ComposeMicrostructureAndDerivatives();
-
+  std::cout << "Starting the file export" << std::endl;
   // Export the MS and its derivatives
   utils::Export::GuessByExtension(test_composition[0],
                                   "composed_microstructure.itd");
-// #ifdef ENABLE_OPEN_MP_PARALLEL
-// #pragma omp parallel for
-// #endif
-//   for (std::size_t i_deriv = std::size_t{};
-//        i_deriv < ValueFieldExample::kNumberOfSuperParameters; i_deriv++) {
-//     utils::Export::GuessByExtension(test_composition[i_deriv + 1],
-//                                     std::string("composed_microstructure_") +
-//                                         std::to_string(i_deriv) +
-//                                         std::string(".itd"));
-//   }
 
-  // /// Second part
-  // // Build some random CrossTile3D
-
-  // using ADT = utils::computational_derivation::AlgoDiffType<double>;
-  // std::array<ADT, 7ul> evaluations{
-  //     ADT(.5, 1, 0),   ADT(1., 1, 0),  ADT(.3, 1, 0), ADT(1.0, 1, 0),
-  //     ADT(0.25, 1, 0), ADT(0.3, 1, 0), ADT(0.3, 1, 0)};
-  // auto microtile = CrossTile3D::GenerateMicrostructureDerivatives(evaluations);
-  // utils::Export::GuessByExtension(microtile[0], "microtile3D.xml");
-
-  // // Generate some closing tile
-  // std::array<ADT, 6ul> face_evaluations{ADT(1., 1, 0),  ADT(.3, 1, 0),
-  //                                       ADT(1.0, 1, 0), ADT(0.25, 1, 0),
-  //                                       ADT(0.3, 1, 0), ADT(0.3, 1, 0)};
-  // auto closing_tileMIN = CrossTile3D::GenerateMicrostructureClosingTile(
-  //     CrossTile3D::ClosingFace::X_MIN, face_evaluations);
-  // utils::Export::GuessByExtension(closing_tileMIN[0],
-  //                                 "closingmicrotile3Dxmin.xml");
-  // auto closing_tileMAX = CrossTile3D::GenerateMicrostructureClosingTile(
-  //     CrossTile3D::ClosingFace::X_MAX, face_evaluations);
-  // utils::Export::GuessByExtension(closing_tileMAX[0],
-  //                                 "closingmicrotile3Dxmax.xml");
-  // auto DeformationFunctionGenerator =
-  //     RingSegments3D()
-  //         .SetInnerRadius(2.)
-  //         .SetDepth(1.)
-  //         .SetOuterRadius(4.)
-  //         .SetNumberOfSegments(std::array<int, 3>{2, 2, 2});
-  // auto deformation_function = DeformationFunctionGenerator.Create();
-  // utils::Export::GuessByExtension(deformation_function,
-  //                                 "deformation_function.xml");
+#ifdef ENABLE_OPEN_MP_PARALLEL
+#pragma omp parallel for
+#endif
+  for (std::size_t i_deriv = std::size_t{};
+       i_deriv < ValueFieldExample::kNumberOfSuperParameters; i_deriv++) {
+    utils::Export::GuessByExtension(test_composition[i_deriv + 1],
+                                    std::string("composed_microstructure_") +
+                                        std::to_string(i_deriv) +
+                                        std::string(".itd"));
+  }
 
   return 0;
 }

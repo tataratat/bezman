@@ -674,6 +674,24 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     }
   }
 
+  /*
+   * @todo The current loop can be made more efficient by precomputing spline
+   * products
+   *
+   * for the three-dimensional case C = T_{ijk} Bi Bj Bk
+   * Looping over all i j k (as is currently done) is very inefficient, as many
+   * splines Products are ccomputed multiple times (ijk). If the product can be
+   * organized as follows, the computational cost can significantly be reduced.
+   * for i:
+   *    for j:
+   *        Bij = Bi * Bj
+   *        for k:
+   *            Bijk = Bij * Bk
+   *
+   * In this example for every k -- (k-1) fewer spline products are computed as
+   * Bij can be reused for every iteration of k. This effect becomes more
+   * important for parametric dimensions of the deformation function
+   */
   // Loop over control points of the outer spline to start the interpolation
   for (unsigned int i_control_point_outer_spline{};
        i_control_point_outer_spline < NumberOfControlPoints;
@@ -697,8 +715,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
     // Check if the bernstein_basis_tensor_product has the degrees (and number
     // of control_points) as expected
-    assert(("Degree mismatch", new_degrees ==
-            bernstein_basis_tensor_product.degrees));
+    assert(("Degree mismatch",
+            new_degrees == bernstein_basis_tensor_product.degrees));
 
     // Now that all factors have been precomputed we can determine the
     // control-points of the resulting spline

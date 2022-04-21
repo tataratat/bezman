@@ -501,13 +501,18 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::ExtractDimension(unsigned int dimension) const {
-  assert(dimension < PointTypePhysical_::kSpatialDimension);
-  BezierSpline<parametric_dimension, ScalarType, ScalarType> extracted_spline(
-      degrees);
-  for (std::size_t i{}; i < NumberOfControlPoints; i++) {
-    extracted_spline.control_points[i] = control_points[i][dimension];
+  if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+    assert(dimension == 0ul);
+    return (*this);
+  } else {
+    assert(dimension < PointTypePhysical_::kSpatialDimension);
+    BezierSpline<parametric_dimension, ScalarType, ScalarType> extracted_spline(
+        degrees);
+    for (std::size_t i{}; i < NumberOfControlPoints; i++) {
+      extracted_spline.control_points[i] = control_points[i][dimension];
+    }
+    return extracted_spline;
   }
-  return extracted_spline;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -630,7 +635,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator*(
   std::array<IndexingType, parametric_dimension> product_degrees;
   for (IndexingType param_dim{}; param_dim < parametric_dimension;
        param_dim++) {
-    product_degrees[param_dim] = degrees[param_dim] + rhs.GetDegrees()[param_dim];
+    product_degrees[param_dim] =
+        degrees[param_dim] + rhs.GetDegrees()[param_dim];
   }
 
   // Initialize the return type
@@ -674,9 +680,13 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
                ScalarReturnT>
       composition{new_degrees};
 
-  // Check Dimensions
-  static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
-                "Dimension mismatch");
+  // Check Dimensions (Scalar Value splines to be treaded as kSpDim = 1)
+  if constexpr (std::is_arithmetic_v<PointTypeRHS>) {
+    static_assert(parametric_dimension == 1, "Dimension mismatch");
+  } else {
+    static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
+                  "Dimension mismatch");
+  }
 
   // Extraction and Precomputation
   /*

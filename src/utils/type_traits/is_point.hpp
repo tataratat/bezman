@@ -13,7 +13,7 @@ struct isPoint {
 };
 
 /// Checker if a template type is an instance of Point
-template <unsigned int spatial_dimension, typename BaseType>
+template <std::size_t spatial_dimension, typename BaseType>
 struct isPoint<Point<spatial_dimension, BaseType>> {
   constexpr static bool value = true;
 };

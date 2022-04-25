@@ -6,6 +6,7 @@
 #include <string>
 
 #include "bezierManipulation/src/bezier_spline.hpp"
+#include "bezierManipulation/src/utils/base64.hpp"
 #include "bezierManipulation/src/bezier_spline_group.hpp"
 
 namespace beziermanipulation::utils {
@@ -66,7 +67,7 @@ class Export {
   static void format2JSONfile(
       const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
           &spline,
-      std::ofstream &export_file);
+      std::ofstream &export_file, const bool base64encoding);
 
  public:
   /// Permit creation of class instance
@@ -111,8 +112,9 @@ class Export {
   template <std::size_t parametric_dimension, typename PhysicalPointType,
             typename ScalarType>
   static void AsJSON(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                       ScalarType> &spline,
-                    const std::string &filename);
+                                        ScalarType> &spline,
+                     const std::string &filename,
+                     const bool base64encoding = true);
 
   /// Export Group as  custom JSON
   template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -120,7 +122,7 @@ class Export {
   static void AsJSON(
       const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                               ScalarType> &spline_group,
-      const std::string &filename);
+      const std::string &filename, const bool base64encoding = true);
 };
 
 #include "bezierManipulation/src/utils/export.inc"

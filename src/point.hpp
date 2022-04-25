@@ -22,7 +22,7 @@ namespace beziermanipulation {
  * @tparam BaseType           Scalar Type describing the coordinates (to impose
  * CD-Types easier)
  */
-template <unsigned int spatial_dimension, typename BaseType = double>
+template <std::size_t spatial_dimension, typename BaseType = double>
 class Point : public std::array<BaseType, spatial_dimension> {
  public:
   /// Provide data to external users

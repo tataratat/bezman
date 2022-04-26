@@ -28,6 +28,9 @@ class Point : public std::array<BaseType, spatial_dimension> {
   /// Provide data to external users
   constexpr static unsigned int kSpatialDimension = spatial_dimension;
 
+  /// Provide Type for external use
+  using ScalarType = BaseType;
+
   /// Output precision
   int output_precision{5};
 

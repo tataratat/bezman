@@ -2,6 +2,7 @@
 #define SRC_UTILS_BASE64_HPP
 
 #include <array>
+#include <cassert>
 #include <vector>
 
 #include "bezierManipulation/src/point.hpp"
@@ -16,7 +17,8 @@ namespace beziermanipulation::utils {
  * exactly in textformat
  *
  */
-class Base64 {
+template <typename FOO = void*>
+class Base64_ {
  private:
   /// Alias for one byte type
   using ByteRepresentation = unsigned char;
@@ -29,6 +31,25 @@ class Base64 {
       'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
+  /**
+   * @brief Reverse the encoding table in an array
+   *
+   * chars are one byte in size
+   *
+   * @return constexpr std::array<unsigned, 256>
+   */
+  static constexpr std::array<unsigned, 256> ReverseCharEncodeTable_() {
+    static_assert(sizeof(char{}) == 1, "Invalid char size.");
+    std::array<unsigned, 256> et_reversed{};
+    for (unsigned i{}; i < char_encode_table.size(); i++) {
+      et_reversed[static_cast<unsigned>(char_encode_table[i])] = i;
+    }
+    return et_reversed;
+  }
+
+  static constexpr std::array<unsigned, 256> char_decode_table =
+      ReverseCharEncodeTable_();
+
  public:
   /**
    * @brief Actual encoding routine
@@ -37,13 +58,15 @@ class Base64 {
    * @param data_vector data to be encoded
    * @return std::string encoded data
    */
-  template <typename BaseType, std::enable_if_t<!type_traits::isPoint_v<BaseType>, int> = 0>
+  template <
+      typename BaseType,
+      std::enable_if_t<!type_traits::isPoint_v<BaseType>, void*> = nullptr>
   static std::string Encode(const std::vector<BaseType>& data_vector) {
     const ByteRepresentation* vector_as_bytes =
         reinterpret_cast<const ByteRepresentation*>(&data_vector[0]);
 
     // Number of bytes for an entry
-    const std::size_t length_of_entry{sizeof(BaseType{})};
+    constexpr const std::size_t length_of_entry{sizeof(BaseType{})};
     // Minimum number of bytes required
     const std::size_t minimum_n_bytes_required =
         length_of_entry * data_vector.size();
@@ -109,7 +132,90 @@ class Base64 {
     }
     return Encode(ctps_converted);
   }
+
+  /// Overload for Points
+  template <
+      typename OutputType,
+      std::enable_if_t<type_traits::isPoint_v<OutputType>, void*> = nullptr>
+  static std::vector<beziermanipulation::Point<OutputType::kSpatialDimension,
+                                               typename OutputType::ScalarType>>
+  Decode(const std::string& base64string) {
+    // Aliases for readability
+    using ScalarType = typename OutputType::ScalarType;
+    constexpr std::size_t dimension = OutputType::kSpatialDimension;
+
+    // Convert into Scalar Vector
+    const std::vector<ScalarType> data_vector =
+        Decode<ScalarType>(base64string);
+
+    // Check dimensionality
+    const std::size_t n_ctps = data_vector.size() / dimension;
+    assert(data_vector.size() % dimension == 0);
+
+    // Init return type
+    std::vector<beziermanipulation::Point<dimension, ScalarType>> ct_points(
+        n_ctps);
+
+    // Transfer data
+    for (std::size_t i_point{}; i_point < n_ctps; i_point++) {
+      for (std::size_t i_dim{}; i_dim < dimension; i_dim++) {
+        ct_points[i_point][i_dim] = data_vector[i_point * dimension + i_dim];
+      }
+    }
+    return ct_points;
+  }
+
+  template <
+      typename OutputType,
+      std::enable_if_t<!type_traits::isPoint_v<OutputType>, void*> = nullptr>
+  static std::vector<OutputType> Decode(const std::string& base64string) {
+    // Check validity of string
+    assert(base64string.size() % 4 == 0);
+
+    // Init return value
+    const std::size_t number_of_groups{base64string.size() / 4};
+    constexpr const std::size_t length_of_entry{sizeof(OutputType{})};
+    const std::size_t number_of_output_values{(number_of_groups * 3) /
+                                              length_of_entry};
+    std::vector<OutputType> return_value;
+    return_value.resize(number_of_output_values);
+
+    // Access as byte stream
+    ByteRepresentation* vector_as_bytes =
+        reinterpret_cast<ByteRepresentation*>(&return_value[0]);
+
+    // Start the reverse process
+    for (std::size_t i_group{}; i_group < number_of_groups; i_group++) {
+      const std::size_t buffer_index = i_group * 4;
+      std::array<unsigned, 4> buffer{};
+      for (unsigned i{}; i < 4; i++) {
+        buffer[i] = base64string[buffer_index + i] != '='
+                        ? char_decode_table[static_cast<unsigned>(
+                              base64string[buffer_index + i])]
+                        : 255;
+      }
+
+      // Write bytes
+      if (buffer[1] != 255) {
+        vector_as_bytes[i_group * 3] =
+            ((buffer[0] & 0x3f) << 2) + ((buffer[1] & 0x30) >> 4);
+      }
+      if (buffer[2] != 255) {
+        vector_as_bytes[i_group * 3 + 1] =
+            ((buffer[1] & 0x0f) << 4) + ((buffer[2] & 0x3c) >> 2);
+      }
+      if (buffer[3] != 255) {
+        vector_as_bytes[i_group * 3 + 2] =
+            ((buffer[2] & 0x03) << 6) + ((buffer[3] & 0x3f) >> 0);
+      }
+    }
+    return return_value;
+  }
 };
+
+/// Non-template implementation can't use compile time functions as constexpr
+using Base64 = Base64_<>;
+
 }  // namespace beziermanipulation::utils
 
 #endif  // SRC_UTILS_BASE64_HPP

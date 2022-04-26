@@ -7,16 +7,13 @@ import numpy as np
 
 def import_json_to_list(filename):
     # Import data from file into dict format
-    jsonbz = json.load(open(filename, "r"))
-
+    jsonbz = sp.io.json.load(filename) 
+    
     gusbzList = []
-    for jbz in jsonbz["SplineList"]:
-        gusbzList.append(
-            gus.Bezier(
-                degrees=jbz["Degrees"],
-                control_points=jbz["ControlPoints"]
-            )
-        )
+    gusbzList += [gus.Bezier(**splineDict) for splineDict in jsonbz["Bezier"]]
+    gusbzList += [gus.NURBS(**splineDict) for splineDict in jsonbz["NURBS"]]
+    gusbzList += [gus.BSpline(**splineDict) for splineDict in jsonbz["BSpline"]]
+    
     return gusbzList
 
 if __name__ == "__main__":

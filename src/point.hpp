@@ -2,6 +2,7 @@
 #define SRC_POINT_HPP
 
 #include <array>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -113,6 +114,20 @@ class Point : public std::array<BaseType, spatial_dimension> {
       result += (*this)[i] * point[i];
     }
     return result;
+  }
+
+  /// Calculate norm
+  BaseType SquaredEuclidianNorm() const {
+    BaseType norm{};
+    for (unsigned int i{}; i < spatial_dimension; i++) {
+      norm += (*this)[i] * (*this)[i];
+    }
+    return norm;
+  }
+
+  /// Calculate norm
+  BaseType EuclidianNorm() const {
+    return std::sqrt((*this).SquaredEuclidianNorm());
   }
 
   /// Facilitate User Output

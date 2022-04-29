@@ -232,7 +232,7 @@ auto GetConnectivityForSplineGroup(
   // Get Connectivity
   return FindConnectivity(
       face_edges,
-      // Matrix for internal ordering
+      // Metric for internal ordering
       spline_group.MaximumCorner() - spline_group.MinimumCorner(),
       opposite_faces);
 }

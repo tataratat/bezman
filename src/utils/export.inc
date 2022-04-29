@@ -354,8 +354,41 @@ void Export::AsMFEM(
   const auto connectivity =
       uniquify::GetConnectivityForSplineGroup(spline_group);
 
+  /*
+   * Further steps:
+   * 1. Calculate Vertices based on connectivity.
+   *    - Create a new matrix that contains vertex-ids
+   *    - Loop over elements and edges (increasing ekement id)
+   *    - Add Vertex ID in two steps
+   *      1. Retrieve all neighbors, that have a lower element-ID
+   *      2. Use their existing Vertex IDs on connected faces
+   *      3. Assign new Ids to unset vertices
+   *      - As the element ID is increasing, no double association will take
+   *        place
+   * 2. Determine KnotVector IDs
+   *    - Create a new Matrix, that has the same dimensions as the connectivity
+   *    - Assign all Entries in new matrix to a dummy-value, that represents
+   *      "untouched", e.g., -1
+   *    - Pseudoalgorithm:
+   *      for i_el in elements:
+   *        for i_face in face:
+   *          if knotV[i_el, i_face] is touched:
+   *            continue
+   *          else:
+   *            -Assign new knotV ID to this face
+   *            while True:
+   *              - Get next element that connects to this face
+   *              - Assign new knotVID
+   *              if connected face is (a) already assigned this id or (b)
+   *                            boundary:
+   *                break
+   *              else if connected face is already assigned a different id
+   *                -> ERROR
+   *            - Do the same while loop in other direction 
+   * 3. Export data into mesh format
+   */
+
   // Write Footer
-  export_file << "  ]\n}";
   export_file.close();
 }
 

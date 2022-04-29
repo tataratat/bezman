@@ -353,6 +353,8 @@ void Export::AsMFEM(
   // Retrieve Connectivity
   const auto connectivity =
       uniquify::GetConnectivityForSplineGroup(spline_group);
+  // @todo throw exception
+  assert(connectivity.size() > 0);
 
   /*
    * Further steps:
@@ -384,10 +386,70 @@ void Export::AsMFEM(
    *                break
    *              else if connected face is already assigned a different id
    *                -> ERROR
-   *            - Do the same while loop in other direction 
+   *            - Do the same while loop in other direction
    * 3. Export data into mesh format
    */
 
+  // Auxiliary values
+  const std::size_t number_of_splines{spline_group.size()};
+  constexpr auto face_vertex_indices =
+      algorithms::HyperCube<parametric_dimension>::FaceVertexIndices();
+  constexpr auto opposite_faces =
+      algorithms::HyperCube<parametric_dimension>::GetOppositeFaces();
+  constexpr std::size_t number_of_element_faces{opposite_faces.size()};
+  constexpr std::size_t number_of_vertices_per_face{
+      face_vertex_indices[0].size()};
+  constexpr std::size_t number_of_element_vertices{
+      algorithms::IntPower(static_cast<std::size_t>(2), parametric_dimension)};
+
+  // Start with 1. (overflow as -1 to imply untouched)
+  std::vector<std::array<std::size_t, number_of_element_vertices>> vertex_id(
+      spline_group.size(),
+      // Fill with array created by lambda function
+      []() {
+        std::array<std::size_t, number_of_element_vertices> a{};
+        a.fill(static_cast<std::size_t>(-1));
+        return a;
+      }());
+
+  // Start loop
+  std::size_t n_assigned_vertices{};
+  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
+      // Check if neighbor id is smaller than current spline id
+      if (connectivity[i_spline][i_face] < i_spline) {
+        const std::size_t& face_in_neighbor_spline = opposite_faces[i_face];
+        const std::size_t& neighbor_id = connectivity[i_spline][i_face];
+        // This is a bit inefficient, because some vertices might be touched
+        // multiple times
+        for (std::size_t i_vertex_in_face{};
+             i_vertex_in_face < number_of_vertices_per_face;
+             i_vertex_in_face++) {
+          vertex_id[i_spline][face_vertex_indices[i_face][i_vertex_in_face]] =
+              vertex_id[neighbor_id]
+                       [face_vertex_indices[face_in_neighbor_spline]
+                                           [i_vertex_in_face]];
+        }
+      }
+    }
+    // Enumerate remaining vertices
+    for (std::size_t i_vertex{}; i_vertex < number_of_element_vertices;
+         i_vertex++) {
+      if (vertex_id[i_spline][i_vertex] == static_cast<std::size_t>(-1)) {
+        vertex_id[i_spline][i_vertex] = n_assigned_vertices;
+        n_assigned_vertices++;
+      }
+    }
+  }
+  //
+
+  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    for (std::size_t i_vertex{}; i_vertex < number_of_element_vertices;
+         i_vertex++) {
+      std::cout << vertex_id[i_spline][i_vertex] << " ";
+    }
+    std::cout << std::endl;
+  }
   // Write Footer
   export_file.close();
 }

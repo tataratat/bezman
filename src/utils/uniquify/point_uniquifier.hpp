@@ -5,8 +5,9 @@
 #include <cassert>
 #include <vector>
 
-#include "bezierManipulation/src/point.hpp"
 #include "bezierManipulation/src/bezier_spline_group.hpp"
+#include "bezierManipulation/src/point.hpp"
+#include "bezierManipulation/src/utils/algorithms/hypercube.hpp"
 #include "bezierManipulation/src/utils/algorithms/sort.hpp"
 
 namespace beziermanipulation::utils::uniquify {
@@ -73,7 +74,7 @@ auto FindConnectivity(
   }
 
   // Sort Metric Vector
-  const auto metric_order_indices = sort::IndexListSort(scalar_metric);
+  const auto metric_order_indices = algorithms::IndexListSort(scalar_metric);
 
   // Loop over points
   for (unsigned int lower_limit = 0; lower_limit < n_total_points - 1;
@@ -156,55 +157,9 @@ auto GetConnectivityForSplineGroup(
                     parametric_dimension == 2),
                 "High-Dimensional and Line Patches not supported");
 
-  // Define some auxiliary values (simpler than in external definitions)
-  struct SplineParamSpaceAuxFunctions {
-    static constexpr std::array<std::size_t, parametric_dimension * 2>
-    GetOppositeFaces() {
-      static_assert((parametric_dimension == 3 || parametric_dimension == 2),
-                    "High-Dimensional and Line Patches not supported");
-      if constexpr (parametric_dimension == 2) {
-        return std::array<std::size_t, parametric_dimension * 2>{2, 3, 0, 1};
-      } else {
-        // Must be 3D
-        return std::array<std::size_t, parametric_dimension * 2>{5, 3, 4,
-                                                                 1, 2, 0};
-      }
-    }
-
-    static auto GetLocalVertexIndices(
-        const std::array<std::size_t, parametric_dimension>& degrees) {
-      static_assert((parametric_dimension == 3 || parametric_dimension == 2),
-                    "High-Dimensional and Line Patches not supported");
-      if constexpr (parametric_dimension == 2) {
-        /* returns:
-         *
-         *  3 --(2)>- 2
-         *  ^         ^
-         * (3)   0   (1)
-         *  |         |
-         *  0 --(0)>- 1
-         */
-        return std::array<std::array<std::size_t, 2>, parametric_dimension * 2>{
-            0,
-            degrees[0],
-            degrees[0],
-            (degrees[0] + 1) * (degrees[1] + 1) - 1,
-            (degrees[0] + 1) * degrees[1],
-            (degrees[0] + 1) * (degrees[1] + 1) - 1,
-            0,
-            (degrees[0] + 1) * degrees[1]};
-      } else {
-        // Must be 3D (@todo implement)
-        static_assert(parametric_dimension != 2, "Not Implemented");
-        return std::array<std::array<std::size_t, 4>,
-                          parametric_dimension * 2>{};
-      }
-    }
-  };
-
   // Array that stores opposite faces
   constexpr auto opposite_faces =
-      SplineParamSpaceAuxFunctions::GetOppositeFaces();
+      algorithms::HyperCube<parametric_dimension>::GetOppositeFaces();
 
   // Create Face-Center-Point Vector
   std::vector<PhysicalPointType> face_edges(spline_group.size() *
@@ -216,12 +171,13 @@ auto GetConnectivityForSplineGroup(
   const std::size_t number_of_element_faces = opposite_faces.size();
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     const auto face_vertices =
-        SplineParamSpaceAuxFunctions::GetLocalVertexIndices(
+        algorithms::HyperCube<parametric_dimension>::ControlPointIndicesOnFace(
             spline_group[i_spline].GetDegrees());
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
       face_edges[i_spline * number_of_element_faces + i_face] =
           spline_group[i_spline].control_points[face_vertices[i_face][0]];
-      for (std::size_t i_point{1}; i_point < face_vertices[0].size(); i_point++) {
+      for (std::size_t i_point{1}; i_point < face_vertices[0].size();
+           i_point++) {
         face_edges[i_spline * number_of_element_faces + i_face] +=
             spline_group[i_spline]
                 .control_points[face_vertices[i_face][i_point]];

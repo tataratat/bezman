@@ -9,6 +9,7 @@
 #include "bezierManipulation/src/bezier_spline_group.hpp"
 #include "bezierManipulation/src/point.hpp"
 #include "bezierManipulation/src/utils/base64.hpp"
+#include "bezierManipulation/src/utils/algorithms/int_power.hpp"
 #include "bezierManipulation/src/utils/uniquify/point_uniquifier.hpp"
 
 namespace beziermanipulation::utils {

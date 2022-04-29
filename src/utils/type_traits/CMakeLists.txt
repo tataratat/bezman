@@ -1,5 +1,5 @@
 # Add Files
-set(LOCAL_HEADERS 
+set(LOCAL_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/is_bezier_spline.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/is_point.hpp
 )

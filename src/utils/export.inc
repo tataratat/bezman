@@ -301,7 +301,7 @@ void Export::AsJSON(
 
   // Encoding
   export_file << "  \"Base64Encoding\" : " << base64encoding << ",\n";
-  
+
   // Start Spline Export
   export_file << "  \"SplineList\" : [\n";
 
@@ -320,6 +320,39 @@ void Export::AsJSON(
       export_file << "\n";
     }
   }
+
+  // Write Footer
+  export_file << "  ]\n}";
+  export_file.close();
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::AsMFEM(const BezierSpline<parametric_dimension, PhysicalPointType,
+                                       ScalarType>& spline,
+                    const std::string& filename) {
+  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+      spline_group{spline};
+  AsMFEM(spline_group, filename);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::AsMFEM(
+    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                            ScalarType>& spline_group,
+    const std::string& filename) {
+  // Create File Stream
+  std::ofstream export_file;
+  export_file.open(ensureFileExtension(filename, "json"));
+
+  // MFEM format currently restricted to 2D2D and 3D3D
+  static_assert(parametric_dimension == PhysicalPointType::kSpatialDimension,
+                "Mismatch between parametric and physical dimension");
+
+  // Retrieve Connectivity
+  const auto connectivity =
+      uniquify::GetConnectivityForSplineGroup(spline_group);
 
   // Write Footer
   export_file << "  ]\n}";

@@ -6,8 +6,10 @@
 #include <string>
 
 #include "bezierManipulation/src/bezier_spline.hpp"
-#include "bezierManipulation/src/utils/base64.hpp"
 #include "bezierManipulation/src/bezier_spline_group.hpp"
+#include "bezierManipulation/src/point.hpp"
+#include "bezierManipulation/src/utils/base64.hpp"
+#include "bezierManipulation/src/utils/uniquify/point_uniquifier.hpp"
 
 namespace beziermanipulation::utils {
 
@@ -123,6 +125,21 @@ class Export {
       const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                               ScalarType> &spline_group,
       const std::string &filename, const bool base64encoding = true);
+
+  /// Export Single Spline as custom MFEM
+  template <std::size_t parametric_dimension, typename PhysicalPointType,
+            typename ScalarType>
+  static void AsMFEM(const BezierSpline<parametric_dimension, PhysicalPointType,
+                                        ScalarType> &spline,
+                     const std::string &filename);
+
+  /// Export Group as  custom MFEM
+  template <std::size_t parametric_dimension, typename PhysicalPointType,
+            typename ScalarType>
+  static void AsMFEM(
+      const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                              ScalarType> &spline_group,
+      const std::string &filename);
 };
 
 #include "bezierManipulation/src/utils/export.inc"

@@ -441,15 +441,104 @@ void Export::AsMFEM(
       }
     }
   }
-  //
 
+  // Continue with 2.
+  // @todo Replace all the assertions with exceptions
+  // Enumerate knot vectors
+  std::vector<std::array<std::size_t, number_of_element_faces>> knot_vector_ids(
+      number_of_splines,
+      // Fill with array created by lambda function
+      []() {
+        std::array<std::size_t, number_of_element_faces> init_{};
+        init_.fill(static_cast<std::size_t>(-1));
+        return init_;
+      }());
+
+  // Start the loop over all knot_vectors
+  std::size_t n_assigned_knot_vector{};
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    for (std::size_t i_vertex{}; i_vertex < number_of_element_vertices;
-         i_vertex++) {
-      std::cout << vertex_id[i_spline][i_vertex] << " ";
+    for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
+      // Skip knot vector if assigned
+      if (knot_vector_ids[i_spline][i_face] != static_cast<std::size_t>(-1)) {
+        continue;
+      } else {
+        knot_vector_ids[i_spline][i_face] = n_assigned_knot_vector;
+        // Initialize Variables
+        std::size_t neighbor_element = i_spline;
+        std::size_t neighbor_face = i_face;
+        // Loop into the direction of the neighboring spline
+        while (connectivity[neighbor_element][neighbor_face] != -1) {
+          neighbor_element = connectivity[i_spline][i_face];
+          neighbor_face = opposite_faces[i_face];
+          // If the loop is closed -> stop
+          if (knot_vector_ids[neighbor_element][neighbor_face] ==
+              n_assigned_knot_vector) {
+            break;
+          }
+          // Check if there might be an orientation error
+          assert(knot_vector_ids[neighbor_element][neighbor_face] ==
+                 static_cast<std::size_t>(-1));
+          // Assign knot vector
+          knot_vector_ids[neighbor_element][neighbor_face] =
+              n_assigned_knot_vector;
+          // Update neighbor face
+          neighbor_face = opposite_faces[neighbor_face];
+          // If the loop is closed -> stop
+          if (knot_vector_ids[neighbor_element][neighbor_face] ==
+              n_assigned_knot_vector) {
+            break;
+          }
+          assert(knot_vector_ids[neighbor_element][neighbor_face] ==
+                 static_cast<std::size_t>(-1));
+          knot_vector_ids[neighbor_element][neighbor_face] =
+              n_assigned_knot_vector;
+        }
+        // Continue the same loop into the other direction
+        neighbor_face = opposite_faces[i_face];
+        neighbor_element = i_spline;
+        // Check if there might be an orientation error
+        assert((knot_vector_ids[neighbor_element][neighbor_face] ==
+                static_cast<std::size_t>(-1)) ||
+               (knot_vector_ids[neighbor_element][neighbor_face] ==
+                n_assigned_knot_vector));
+        // Assign and loop in the other direction
+        knot_vector_ids[neighbor_element][neighbor_face] =
+            n_assigned_knot_vector;
+        while (connectivity[neighbor_element][neighbor_face] != -1) {
+          // Continue to next element if applies
+          neighbor_element = connectivity[neighbor_element][neighbor_face];
+          neighbor_face = opposite_faces[neighbor_face];
+          // If the loop is closed -> stop
+          if (knot_vector_ids[neighbor_element][neighbor_face] ==
+              n_assigned_knot_vector) {
+            break;
+          }
+          // Check if there might be an orientation error
+          assert(knot_vector_ids[neighbor_element][neighbor_face] ==
+                 static_cast<std::size_t>(-1));
+          // Assign knot vector
+          knot_vector_ids[neighbor_element][neighbor_face] =
+              n_assigned_knot_vector;
+          // Update neighbor face
+          neighbor_face = opposite_faces[neighbor_face];
+          // If the loop is closed -> stop
+          if (knot_vector_ids[neighbor_element][neighbor_face] ==
+              n_assigned_knot_vector) {
+            break;
+          }
+          assert(knot_vector_ids[neighbor_element][neighbor_face] ==
+                 static_cast<std::size_t>(-1));
+          knot_vector_ids[neighbor_element][neighbor_face] =
+              n_assigned_knot_vector;
+        }
+        // Update counter
+        n_assigned_knot_vector++;
+      }
     }
-    std::cout << std::endl;
   }
+  // Now all information is available... Write data into file accoring to
+  // @deltaluki
+
   // Write Footer
   export_file.close();
 }

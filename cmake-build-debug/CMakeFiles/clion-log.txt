@@ -1,0 +1,7 @@
+/snap/clion/189/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/189/bin/ninja/linux/ninja -G Ninja -S /home/lukas/bezier_manipulation/bezierManipulation/bezierManipulation -B /home/lukas/bezier_manipulation/bezierManipulation/bezierManipulation/cmake-build-debug
+-- Compile using GNU compiler
+-- Build debug!
+-- Build tests!
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/lukas/bezier_manipulation/bezierManipulation/bezierManipulation/cmake-build-debug

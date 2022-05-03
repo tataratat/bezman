@@ -1,0 +1,44 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"src/utils/computational_derivation/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 10,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "include/bezierManipulation/src/utils/computational_derivation",
+			"paths" : 
+			[
+				"src/utils/computational_derivation/algo_diff_type.hpp",
+				"src/utils/computational_derivation/algo_diff_type.inc"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "src/utils/computational_derivation",
+		"source" : "src/utils/computational_derivation"
+	}
+}

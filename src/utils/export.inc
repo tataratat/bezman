@@ -190,7 +190,13 @@ void Export::GuessByExtension(const ExportType& export_object,
   } else if (extension_str == "json") {
     // Export as custom JSON
     AsJSON(export_object, filename);
-  } else {
+    //TODO insert MFEM type: .mesh
+  }  else if (extension_str == "mesh") {
+      // Export as custom JSON
+      if constexpr()
+      AsMFEM(export_object, filename);
+      //TODO insert MFEM type: .mesh
+  }else {
     throw std::invalid_argument("File Extension not supported");
   }
 }
@@ -344,7 +350,7 @@ void Export::AsMFEM(
     const std::string& filename) {
   // Create File Stream
   std::ofstream export_file;
-  export_file.open(ensureFileExtension(filename, "json"));
+  export_file.open(ensureFileExtension(filename, "mesh"));
 
   // MFEM format currently restricted to 2D2D and 3D3D
   static_assert(parametric_dimension == PhysicalPointType::kSpatialDimension,
@@ -539,8 +545,25 @@ void Export::AsMFEM(
   // Now all information is available... Write data into file accoring to
   // @deltaluki
 
-  // Write Footer
-  export_file.close();
+    // Write Header
+    export_file << "MFEM NURBS mesh v1.0\n";
+
+    // Write dimension
+    export_file << "\ndimension \n" << parametric_dimension << std::endl;
+
+    // Write segment element
+    export_file << "\nelements\n";
+    export_file << number_of_splines << std::endl;
+
+
+
+    //export_file << "spline group size: " << spline_group.size() << std::endl;
+    for (std::size_t i{0}; i < number_of_splines; i++){
+        export_file << "i" << std::endl;
+    }
+
+    // Write Footer
+    export_file.close();
 }
 
 #endif  // SRC_UTILS_EXPORT_INC

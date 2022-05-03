@@ -1,0 +1,47 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"src/utils/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 17,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "include/bezierManipulation/src/utils",
+			"paths" : 
+			[
+				"src/utils/binomialcoefficientlookuptablecreator.hpp",
+				"src/utils/fastbinomialcoefficient.hpp",
+				"src/utils/export.hpp",
+				"src/utils/export.inc",
+				"src/utils/base64.hpp"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "src/utils",
+		"source" : "src/utils"
+	}
+}

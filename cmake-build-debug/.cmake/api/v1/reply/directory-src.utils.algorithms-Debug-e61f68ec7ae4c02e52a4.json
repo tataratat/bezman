@@ -1,0 +1,45 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"src/utils/algorithms/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 11,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "include/bezierManipulation/src/utils/algorithms",
+			"paths" : 
+			[
+				"src/utils/algorithms/hypercube.hpp",
+				"src/utils/algorithms/int_power.hpp",
+				"src/utils/algorithms/sort.hpp"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "src/utils/algorithms",
+		"source" : "src/utils/algorithms"
+	}
+}

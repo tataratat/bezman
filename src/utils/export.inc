@@ -169,9 +169,23 @@ void Export::format2XMLfile(
   export_file << indentation << "</SplineEntry>\n";
 }
 
-template <typename ExportType>
-void Export::GuessByExtension(const ExportType& export_object,
-                              const std::string& filename) {
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::GuessByExtension(
+    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
+        spline,
+    const std::string& filename) {
+  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+      spline_group{spline};
+  GuessByExtension(spline_group, filename);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::GuessByExtension(
+    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                            ScalarType>& spline_group,
+    const std::string& filename) {
   // In case of a absolute path strip filename
   std::size_t last_found_id = filename.find_last_of("/\\");
   const std::string file_without_path = filename.substr(last_found_id + 1);
@@ -183,20 +197,24 @@ void Export::GuessByExtension(const ExportType& export_object,
 
   if (extension_str == "itd") {
     // Export as IRIT
-    AsIRIT(export_object, filename);
+    AsIRIT(spline_group, filename);
   } else if (extension_str == "xml") {
     // Export as XML
-    AsXML(export_object, filename);
+    AsXML(spline_group, filename);
   } else if (extension_str == "json") {
     // Export as custom JSON
-    AsJSON(export_object, filename);
-    //TODO insert MFEM type: .mesh
-  }  else if (extension_str == "mesh") {
-      // Export as custom JSON
-      if constexpr()
-      AsMFEM(export_object, filename);
-      //TODO insert MFEM type: .mesh
-  }else {
+    AsJSON(spline_group, filename);
+    // TODO insert MFEM type: .mesh
+  } else if (extension_str == "mesh") {
+    // Export as custom JSON
+    if constexpr (parametric_dimension == 2 &&
+                  PhysicalPointType::kSpatialDimension == 2) {
+      AsMFEM(spline_group, filename);
+    } else {
+      assert(false);
+    }
+    // TODO insert MFEM type: .mesh
+  } else {
     throw std::invalid_argument("File Extension not supported");
   }
 }
@@ -545,25 +563,23 @@ void Export::AsMFEM(
   // Now all information is available... Write data into file accoring to
   // @deltaluki
 
-    // Write Header
-    export_file << "MFEM NURBS mesh v1.0\n";
+  // Write Header
+  export_file << "MFEM NURBS mesh v1.0\n";
 
-    // Write dimension
-    export_file << "\ndimension \n" << parametric_dimension << std::endl;
+  // Write dimension
+  export_file << "\ndimension \n" << parametric_dimension << std::endl;
 
-    // Write segment element
-    export_file << "\nelements\n";
-    export_file << number_of_splines << std::endl;
+  // Write segment element
+  export_file << "\nelements\n";
+  export_file << number_of_splines << std::endl;
 
+  // export_file << "spline group size: " << spline_group.size() << std::endl;
+  for (std::size_t i{0}; i < number_of_splines; i++) {
+    export_file << "i" << std::endl;
+  }
 
-
-    //export_file << "spline group size: " << spline_group.size() << std::endl;
-    for (std::size_t i{0}; i < number_of_splines; i++){
-        export_file << "i" << std::endl;
-    }
-
-    // Write Footer
-    export_file.close();
+  // Write Footer
+  export_file.close();
 }
 
 #endif  // SRC_UTILS_EXPORT_INC

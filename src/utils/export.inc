@@ -627,7 +627,7 @@ void Export::AsMFEM(
                 index_vertex_2 = 0;
             }
             export_file << knot_vector_ids[i_spline][j] <<
-            " " << vertex_id[i_spline][j] << " " << index_vertex_2 << std::endl;
+            " " << vertex_id[i_spline][j] << " " << vertex_id[i_spline][index_vertex_2] << std::endl;
         }
     }
     export_file << std::endl;
@@ -669,12 +669,9 @@ void Export::AsMFEM(
         export_file << "\n\ncontrolpoints_cartesian\n";
         for (std::size_t i_point{}; i_point < spline_group[i_spline].NumberOfControlPoints;
              i_point++) {
-         //   export_file << "\n" << indentation << indentation;
-          //  export_file << std::endl;
             for (std::size_t i_dim{}; i_dim < PhysicalPointType ::kSpatialDimension;
                  i_dim++) {
-                export_file << std::setw(12) << std::setprecision(10)
-                            << spline_group[i_spline].control_points[i_point][i_dim]
+                export_file << spline_group[i_spline].control_points[i_point][i_dim]
                             << " ";
             }
             //write weight

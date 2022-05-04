@@ -20,6 +20,8 @@ set(MY_FANCY_TARGET_NAME "${PROJECT_NAME}")
 # Testing
 option(GOOGLETEST "Build with GoogleTest" ON)
 
+# Allow Logging
+option(LOGGING "Enable Logging" ON)
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -118,4 +120,9 @@ if(GOOGLETEST)
     add_subdirectory(tests)
 else()
     message(STATUS "No tests!")
+endif()
+
+# Enable Logging by setting a preprocessor flag
+if (LOGGING)
+    target_compile_definitions(${MY_FANCY_TARGET_NAME} INTERFACE ENABLE_LOGGING)
 endif()

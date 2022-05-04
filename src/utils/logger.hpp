@@ -9,10 +9,24 @@
 #include <string>
 
 namespace beziermanipulation::utils {
-
+/**
+ * @brief Provides functionality for output information
+ *
+ * The logger class provides functionality to write log files and to format user
+ * informaion, warnings and errors for the console output. There only ever
+ * exists a single instance of the Logger class, as it is provided as a
+ * singleton object. The Level of information that is provided by the logger can
+ * be changed at runtime, however, the logger needs to be activated with a
+ * Preprocessor flag at compile time
+ */
 class Logger {
  public:
-  // OutputLevel options
+  /**
+   * @brief Describes the scope of output information
+   *
+   * Each enum object describes a specific bit of information and if it is to be
+   * respected or not
+   */
   enum class OutputLevel : unsigned int {
     nothing = 0,
     userinfo = 1,
@@ -23,20 +37,41 @@ class Logger {
     time_stamp = 32,
     warning_file = 64,
     error_file = 128,
-    log_file = 256
+    log_file = 256,
+    all = 511
   };
 
+  /**
+   * @brief Get the Logger object
+   *
+   * Returns a singleton reference to the logger instance.
+   */
   static Logger& GetLogger() {
     static Logger singleton_instance;
     singleton_instance.init();
     return singleton_instance;
   }
 
+  /**
+   * @brief Set the Output Level
+   *
+   * Set the output level, default its just written into the terminal. The
+   * outputlevel is set via an unsigned integer value which represents the sum
+   * of all chossen enum objects, see OutputLevel
+   */
   void SetOutputLevel(unsigned int outputlevel) {
     outputlevel_ = outputlevel;
     init();
   }
 
+  /**
+   * @brief Set the Output Level
+   *
+   * Set the output level, default its just written into the terminal. The
+   * outputlevel is set via a series of OutputLevel options, possible call is
+   *
+   * SetOutputLevel({OutputLevel::warnings, OutputLevel::errors});
+   */
   void SetOutputLevel(
       const std::initializer_list<OutputLevel>& output_options) {
     outputlevel_ = 0;
@@ -47,125 +82,186 @@ class Logger {
     init();
   }
 
+  /**
+   * @brief Write a formated warning into the terminal and warning log file
+   *
+   * The function writes formated output based on the chosen level of
+   * information
+   */
   void Warning(const std::string& warning_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::warnings) & outputlevel_) {
-      std::cout << "[" << std::setw(padding_first_column)
+      std::cout << "[" << std::setw(padding_first_col_console)
                 << ColorText("warning", Color::yellow) << "]" << GetTimeStamp()
                 << " : " << ColorText(warning_text, Color::yellow) << "\n";
     }
     if (static_cast<unsigned>(OutputLevel::warning_file) & outputlevel_) {
-      warning_file << "[" << std::setw(padding_first_column) << "warning"
+      warning_file << "[" << std::setw(padding_first_col_files) << "warning"
                    << "]" << GetTimeStamp() << " : " << warning_text << "\n";
     }
 #endif
   }
 
+  /**
+   * @brief Write a formated user information into the terminal and log file
+   *
+   * The function writes formated output based on the chosen level of
+   * information
+   */
   void UserInfo(const std::string& info_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::userinfo) & outputlevel_) {
-      std::cout << "[" << std::setw(padding_first_column)
+      std::cout << "[" << std::setw(padding_first_col_console)
                 << ColorText("user info", Color::blue) << "]" << GetTimeStamp()
                 << " : " << ColorText(info_text, Color::blue) << "\n";
     }
     if (static_cast<unsigned>(OutputLevel::log_file) & outputlevel_) {
-      log_file << "[" << std::setw(padding_first_column) << "user info"
+      log_file << "[" << std::setw(padding_first_col_files) << "user info"
                << "]" << GetTimeStamp() << " : " << info_text << "\n";
     }
 #endif
   }
 
+  /**
+   * @brief Write a formated logging information into the terminal and log file
+   *
+   * The function writes formated output based on the chosen level of
+   * information
+   */
   void Logging(const std::string& log_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::logging) & outputlevel_) {
-      std::cout << "[" << std::setw(padding_first_column)
+      std::cout << "[" << std::setw(padding_first_col_console)
                 << ColorText("log", Color::shell_default) << "]"
                 << GetTimeStamp() << " : "
                 << ColorText(log_text, Color::shell_default) << "\n";
     }
     if (static_cast<unsigned>(OutputLevel::log_file) & outputlevel_) {
-      log_file << "[" << std::setw(padding_first_column) << "user info"
+      log_file << "[" << std::setw(padding_first_col_files) << "user info"
                << "]" << GetTimeStamp() << " : " << log_text << "\n";
     }
 #endif
   }
 
+  /**
+   * @brief Write a formated extended information into the terminal and log file
+   *
+   * The function writes formated output based on the chosen level of
+   * information
+   */
   void ExtendedInformation(const std::string& log_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::logging_verbose) & outputlevel_) {
-      std::cout << "[" << std::setw(padding_first_column)
+      std::cout << "[" << std::setw(padding_first_col_console)
                 << ColorText("log", Color::green) << "]" << GetTimeStamp()
                 << " : " << ColorText(log_text, Color::green) << "\n";
     }
     if (static_cast<unsigned>(OutputLevel::log_file) & outputlevel_) {
-      log_file << "[" << std::setw(padding_first_column) << "user info"
+      log_file << "[" << std::setw(padding_first_col_files) << "user info"
                << "]" << GetTimeStamp() << " : " << log_text << "\n";
     }
 #endif
   }
 
+  /**
+   * @brief Write foramted error warnings into the terminal and the error file
+   *
+   * This function writes formated output, but also terminates the execution of
+   * the problem
+   */
   void Error(const std::string& error_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::errors) & outputlevel_) {
-      std::cout << "[" << std::setw(padding_first_column)
+      std::cout << "[" << std::setw(padding_first_col_console)
                 << ColorText("error", Color::red) << "]" << GetTimeStamp()
                 << " : " << ColorText(error_text, Color::red) << "\n";
     }
     if (static_cast<unsigned>(OutputLevel::error_file) & outputlevel_) {
-      error_file << "[" << std::setw(padding_first_column) << "error"
+      error_file << "[" << std::setw(padding_first_col_files) << "error"
                  << "]" << GetTimeStamp() << " : " << error_text << "\n";
     }
 #endif
   }
 
-  ~Logger() {
+  /**
+   * @brief Write foramted error warnings into the terminal and the error file
+   *
+   * This function writes formated output, but also throws an exception which
+   * potentially leads to the termination of the program
+   */
+  template <typename ExceptionType = std::runtime_error>
+  void TerminatingError(const std::string& error_text) {
+    if (static_cast<unsigned>(OutputLevel::errors) & outputlevel_) {
+      std::cout << "[" << std::setw(padding_first_col_console)
+                << ColorText("crit. error", Color::red) << "]" << GetTimeStamp()
+                << " : " << ColorText(error_text, Color::red) << "\n";
+    }
 #ifdef ENABLE_LOGGING
-    if (static_cast<unsigned>(OutputLevel::log_file) & outputlevel_) {
-      if (is_init) {
-        log_file.close();
-      }
-    }
-    if (static_cast<unsigned>(OutputLevel::warning_file) & outputlevel_) {
-      if (is_init) {
-        warning_file.close();
-      }
-    }
     if (static_cast<unsigned>(OutputLevel::error_file) & outputlevel_) {
-      if (is_init) {
-        error_file.close();
-      }
+      error_file << "[" << std::setw(padding_first_col_files) << "error"
+                 << "]" << GetTimeStamp() << " : " << error_text << "\n";
     }
 #endif
+    // Close file streams in order to save error file
+    close();
+    // Throw exception
+    throw ExceptionType(error_text);
   }
 
+  /**
+   * @brief Destroy the Logger object and close files
+   */
+  ~Logger() { close(); }
+
  private:
-  /// Padding
-  const unsigned int padding_first_column{18};
+  /// Padding in console
+  const unsigned int padding_first_col_console{20};
+
+  /// Padding in text files
+  const unsigned int padding_first_col_files{10};
 
   /// File Streams
   std::ofstream log_file;
   std::ofstream warning_file;
   std::ofstream error_file;
 
-  /// Initialized
-  bool is_init{false};
-
   /// Initialize output streams
   void init() {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::log_file) & outputlevel_) {
-      if (!is_init) {
+      if (!log_file.is_open()) {
         log_file.open("log_file.log");
       }
     }
     if (static_cast<unsigned>(OutputLevel::warning_file) & outputlevel_) {
-      if (!is_init) {
+      if (!warning_file.is_open()) {
         warning_file.open("warning_file.log");
       }
     }
     if (static_cast<unsigned>(OutputLevel::error_file) & outputlevel_) {
-      if (!is_init) {
+      if (!error_file.is_open()) {
         error_file.open("error_file.log");
+      }
+    }
+#endif
+  }
+
+  /// Close File-Streams to save log files
+  void close() {
+#ifdef ENABLE_LOGGING
+    if (static_cast<unsigned>(OutputLevel::log_file) & outputlevel_) {
+      if (log_file.is_open()) {
+        log_file.close();
+      }
+    }
+    if (static_cast<unsigned>(OutputLevel::warning_file) & outputlevel_) {
+      if (warning_file.is_open()) {
+        warning_file.close();
+      }
+    }
+    if (static_cast<unsigned>(OutputLevel::error_file) & outputlevel_) {
+      if (error_file.is_open()) {
+        error_file.close();
       }
     }
 #endif
@@ -174,7 +270,9 @@ class Logger {
   /// Output Level
   unsigned int outputlevel_{39};
 
-  /// Get the time stamp
+  /**
+   * @brief Get the Time Stamp as a string in brackets
+   */
   std::string GetTimeStamp() {
     if (static_cast<unsigned>(OutputLevel::time_stamp) & outputlevel_) {
       std::time_t result = std::time(nullptr);
@@ -214,6 +312,7 @@ class Logger {
     }
   }
 
+  // Prohibit implementation of Loggers constructors by making them private
   Logger() {}
   Logger(Logger const&);          // Don't Implement.
   void operator=(Logger const&);  // Don't implement

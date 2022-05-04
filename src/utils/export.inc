@@ -588,8 +588,9 @@ void Export::AsMFEM(
     int max_vertices = 0;
 
     //write boundary segment
+    int counter = 0;
     export_file << "\n\nboundary\n";
-    export_file << "70\n"; //TODO working for solution
+    export_file << "100\n"; //TODO working for solution
     for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
         auto element = connectivity[i_spline];
 
@@ -600,7 +601,7 @@ void Export::AsMFEM(
             }
             if(element[i] == -1){
                 // 1 and 3 edges (__)
-                if(i == 0 || i == 4){
+                if(i == 0 || i == 3){
                     export_file << 1 << " " << 1 << " " << vertex_id[i_spline][i];
                     if(i == 4){
                         export_file << " "<< vertex_id[i_spline][0] << std::endl;
@@ -608,11 +609,10 @@ void Export::AsMFEM(
                         export_file << " " << vertex_id[i_spline][i+1] << std::endl;
                     }
                 // 2 and 4 edges (||)
-                }else if(i == 1 || i == 3){
+                }else if(i == 1 || i == 2){
                     export_file << 2 << " " << 1 << " " <<
                     vertex_id[i_spline][i] << " " <<vertex_id[i_spline][i+1]<< std::endl;
                 }
-
             }
         }
     }

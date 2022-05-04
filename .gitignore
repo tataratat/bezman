@@ -37,6 +37,7 @@
 
 # build and install directories
 **/build/
+**/cmake-build-debug/
 **/install/
 
 # ingore build documentation

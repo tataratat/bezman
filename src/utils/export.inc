@@ -424,8 +424,6 @@ void Export::AsMFEM(
   constexpr std::size_t number_of_element_vertices{
       algorithms::IntPower(static_cast<std::size_t>(2), parametric_dimension)};
 
-  int number_of_boundaries = 0;
-
   // Start with 1. (overflow as -1 to imply untouched)
   std::vector<std::array<std::size_t, number_of_element_vertices>> vertex_id(
       spline_group.size(),
@@ -435,11 +433,14 @@ void Export::AsMFEM(
         a.fill(static_cast<std::size_t>(-1));
         return a;
       }());
-
+  std::size_t number_of_boundaries{};
   // Start loop
   std::size_t n_assigned_vertices{};
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
+        if (connectivity[i_spline][i_face] == -1){
+            number_of_boundaries++;
+        }
       // Check if neighbor id is smaller than current spline id
       if (connectivity[i_spline][i_face] < i_spline) {
         const std::size_t& face_in_neighbor_spline = opposite_faces[i_face];
@@ -567,75 +568,72 @@ void Export::AsMFEM(
   export_file << "MFEM NURBS mesh v1.0\n";
 
   // Write dimension
-  export_file << "\ndimension \n" << parametric_dimension << std::endl;
+  export_file << "\ndimension \n" << parametric_dimension << "\n";
 
   // Write segment element
   export_file << "\nelements\n";
-  export_file << number_of_splines << std::endl;
+  export_file << number_of_splines << "\n";
 
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    // write attribute and geometry type TODO: use var for geo type and attr
+    // write attribute and geometry type @todo: use var for geo type and attr
     export_file << 1 << " " << 3;
     for (std::size_t i_vertex{}; i_vertex < number_of_element_vertices;
          i_vertex++) {
       export_file << " " << vertex_id[i_spline][i_vertex];
     }
-    export_file << std::endl;
+    export_file << "\n";
   }
-
-  // TODO maybe a better solution
-  // is needed in the vertices segment
-  int max_vertices = 0;
 
   // write boundary segment
   int counter = 0;
   export_file << "\n\nboundary\n";
-  export_file << "100\n";  // TODO working for solution
-  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    auto element = connectivity[i_spline];
+  export_file << number_of_boundaries <<"\n";
+      for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+          for (std::size_t i_face{};
+               i_face < face_vertex_indices.size(); i_face++) {
+              if(connectivity[i_spline][i_face] == -1){
+                  export_file << 1 << " " << 1; // @todo identify boundary ids
+                  for (std::size_t i_local_vertex_on_face{};
+                       i_local_vertex_on_face < face_vertex_indices[0].size();
+                       i_local_vertex_on_face++) {
 
-    for (int i = 0; i < 4; i++) {
-      // search max vertices
-      if (element[i] > max_vertices) {
-        max_vertices = element[i];
-      }
-      if (element[i] == -1) {
-        // 1 and 3 edges (__)
-        if (i == 0 || i == 3) {
-          export_file << 1 << " " << 1 << " " << vertex_id[i_spline][i];
-          if (i == 4) {
-            export_file << " " << vertex_id[i_spline][0] << std::endl;
-          } else {
-            export_file << " " << vertex_id[i_spline][i + 1] << std::endl;
+                      export_file << " " << vertex_id[i_spline][
+                              face_vertex_indices[i_face][i_local_vertex_on_face]];
+
+                  }
+                  export_file << "\n";
+              }
+
           }
-          // 2 and 4 edges (||)
-        } else if (i == 1 || i == 2) {
-          export_file << 2 << " " << 1 << " " << vertex_id[i_spline][i] << " "
-                      << vertex_id[i_spline][i + 1] << std::endl;
-        }
       }
-    }
-  }
+
 
   // write edge boundary
   export_file << "\n\nedges\n";
-  export_file << (number_of_splines * 4) << std::endl;
+  export_file << ((number_of_splines * face_vertex_indices.size()) - number_of_boundaries)/2 + number_of_boundaries << "\n";
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    for (int j = 0; j < 4; j++) {
-      int index_vertex_2 = j + 1;
-      if (j == 3) {
-        index_vertex_2 = 0;
+      for (std::size_t i_face{};
+           i_face < face_vertex_indices.size(); i_face++) {
+          if(connectivity[i_spline][i_face] < i_spline){
+              continue;
+          }
+          export_file << knot_vector_ids[i_spline][i_face];
+          for (std::size_t i_local_vertex_on_face{};
+               i_local_vertex_on_face < face_vertex_indices[0].size();
+               i_local_vertex_on_face++) {
+
+              export_file << " " << vertex_id[i_spline][
+                      face_vertex_indices[i_face][i_local_vertex_on_face]];
+
+          }
+          export_file << "\n";
       }
-      export_file << knot_vector_ids[i_spline][j] << " "
-                  << vertex_id[i_spline][j] << " "
-                  << vertex_id[i_spline][index_vertex_2] << std::endl;
-    }
   }
-  export_file << std::endl;
+  export_file << "\n";
 
   // write vertices
   export_file << "\n\nvertices\n";
-  export_file << max_vertices + 1 << std::endl;
+  export_file << n_assigned_vertices << "\n";
 
   using BezierSplineType =
       BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>;
@@ -644,8 +642,8 @@ void Export::AsMFEM(
   export_file << "\n\npatches\n";
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     // write knotvectors
-    export_file << "\nknotvectors" << std::endl;
-    export_file << BezierSplineType::kParametricDimensions << std::endl;
+    export_file << "\nknotvectors" << "\n";
+    export_file << BezierSplineType::kParametricDimensions << "\n";
 
     // copy code from format2XMLfile  ;)
     for (std::size_t i_par_dim{};
@@ -661,13 +659,13 @@ void Export::AsMFEM(
                     ? "0.0 "
                     : "1.0 ");
       }
-      export_file << std::endl;
+      export_file << "\n";
     }
 
     // write dimension
-    export_file << "\ndimension" << std::endl;
-    // TODO is this the correct value?
-    export_file << BezierSplineType::kParametricDimensions << std::endl;
+    export_file << "\ndimension" << "\n";
+    // @todo is this the correct value?
+    export_file << BezierSplineType::kParametricDimensions << "\n";
 
     // controlpoints_cartesian
     export_file << "\n\ncontrolpoints_cartesian\n";
@@ -679,10 +677,10 @@ void Export::AsMFEM(
                     << " ";
       }
       // write weight
-      export_file << " " << 1 << std::endl;
+      export_file << " " << 1 << "\n";
     }
 
-    export_file << std::endl;
+    export_file << "\n";
   }
 
   // Write Footer

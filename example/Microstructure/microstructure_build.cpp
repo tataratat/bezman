@@ -141,14 +141,14 @@ BezierGroup CircleGroup(const double innerR, const double outerR,
 }
 
 int main() {
-  const int n_segments = 2;
+  const int n_segments = 20;
   const double thickness = 0.3;
   // Inner function
   auto microtile = SimpleCrossTile(thickness);
 
   // Outer Function
   auto deformation_function =
-      CircleGroup(1., 2., n_segments, 0.5*std::acos(-1));
+      CircleGroup(1., 2., n_segments, 2*std::acos(-1));
 
   // Compose composition
   const auto test_composition = deformation_function.Compose(microtile);

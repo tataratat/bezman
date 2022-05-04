@@ -651,7 +651,8 @@ void Export::AsMFEM(
         for (std::size_t i_par_dim{};
              i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
             // Write All Control Points
-            export_file << 4 << " " << 5 << " "; // TODO set values
+            export_file << spline_group[i_spline].GetDegrees()[i_par_dim] << " "
+            << spline_group[i_spline].GetDegrees()[i_par_dim]+1 << " ";
             for (std::size_t i_point{0};
                  i_point < 2 * spline_group[i_spline].GetDegrees()[i_par_dim] + 2; i_point++) {
                 export_file <<

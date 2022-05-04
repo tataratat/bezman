@@ -94,6 +94,8 @@ auto FindConnectivity(
                             .SquaredEuclidianNorm() < tolerance_squared;
       if (found_duplicate) {
         break;
+      } else {
+        upper_limit++;
       }
     }
 

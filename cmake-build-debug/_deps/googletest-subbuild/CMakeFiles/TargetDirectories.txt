@@ -1,3 +1,0 @@
-/home/lukas/bezier_manipulation/bezierManipulation/bezierManipulation/cmake-build-debug/_deps/googletest-subbuild/CMakeFiles/googletest-populate.dir
-/home/lukas/bezier_manipulation/bezierManipulation/bezierManipulation/cmake-build-debug/_deps/googletest-subbuild/CMakeFiles/edit_cache.dir
-/home/lukas/bezier_manipulation/bezierManipulation/bezierManipulation/cmake-build-debug/_deps/googletest-subbuild/CMakeFiles/rebuild_cache.dir

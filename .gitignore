@@ -31,8 +31,9 @@
 *.out
 *.app
 
-# Exclude the VScode folder
+# Exclude the IDE folder
 .vscode/
+.idea/
 
 # build and install directories
 **/build/

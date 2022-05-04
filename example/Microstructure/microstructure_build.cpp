@@ -141,25 +141,19 @@ BezierGroup CircleGroup(const double innerR, const double outerR,
 }
 
 int main() {
-  const int n_segments = 10;
+  const int n_segments = 2;
   const double thickness = 0.3;
   // Inner function
   auto microtile = SimpleCrossTile(thickness);
-  auto microtile_deriv = SimpleCrossTile(thickness, true);
-
-  for (int i{1}; i < n_segments; i++) {
-    microtile_deriv += SimpleCrossTile(thickness, true);
-  }
 
   // Outer Function
   auto deformation_function =
-      CircleGroup(1., 2., n_segments, 2 * std::acos(-1));
-  //   auto deformation_function = BulkSquare();
+      CircleGroup(1., 2., n_segments, 0.5*std::acos(-1));
 
   // Compose composition
   const auto test_composition = deformation_function.Compose(microtile);
 
-  utils::Export::AsMFEM(test_composition,
-                                  "composed_microstructure");
+  utils::Export::AsJSON(test_composition, "composed_microstructure");
+  utils::Export::AsMFEM(test_composition, "composed_microstructure");
   return 0;
 }

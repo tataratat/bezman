@@ -374,7 +374,7 @@ void Export::AsMFEM(
 
   // Retrieve Connectivity
   const auto connectivity =
-      uniquify::GetConnectivityForSplineGroup(spline_group);
+          beziermanipulation::utils::algorithms::GetConnectivityForSplineGroup(spline_group);
   // @todo throw exception
   assert(connectivity.size() > 0);
 
@@ -415,7 +415,7 @@ void Export::AsMFEM(
   // Auxiliary values
   const std::size_t number_of_splines{spline_group.size()};
   constexpr auto face_vertex_indices =
-      algorithms::HyperCube<parametric_dimension>::FaceVertexIndices();
+          algorithms::HyperCube<parametric_dimension>::EdgeVertexIndices();
   constexpr auto opposite_faces =
       algorithms::HyperCube<parametric_dimension>::GetOppositeFaces();
   constexpr std::size_t number_of_element_faces{opposite_faces.size()};

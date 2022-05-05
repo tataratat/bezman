@@ -10,7 +10,6 @@ set(LOCAL_HEADERS
 # Add All Subdirectories
 add_subdirectory(computational_derivation)
 add_subdirectory(type_traits)
-add_subdirectory(uniquify)
 add_subdirectory(algorithms)
 
 # Install files in according file structure

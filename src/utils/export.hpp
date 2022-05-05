@@ -9,8 +9,8 @@
 #include "bezierManipulation/src/bezier_spline_group.hpp"
 #include "bezierManipulation/src/point.hpp"
 #include "bezierManipulation/src/utils/algorithms/int_power.hpp"
-#include "bezierManipulation/src/utils/base64.hpp"
 #include "bezierManipulation/src/utils/algorithms/point_uniquifier.hpp"
+#include "bezierManipulation/src/utils/base64.hpp"
 
 namespace beziermanipulation::utils {
 
@@ -88,8 +88,8 @@ class Export {
   template <std::size_t parametric_dimension, typename PhysicalPointType,
             typename ScalarType>
   static void GuessByExtension(
-      const BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
-          &spline_group,
+      const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                              ScalarType> &spline_group,
       const std::string &filename);
 
   /// Export as IRIT

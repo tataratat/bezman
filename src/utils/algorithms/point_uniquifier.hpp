@@ -31,10 +31,9 @@ namespace beziermanipulation::utils::algorithms {
 template <std::size_t physical_dimension, typename ScalarType,
           std::size_t number_of_element_faces>
 auto FindConnectivity(
-    const std::vector<Point<
-        physical_dimension, ScalarType>>& face_center_points,
-    const Point<physical_dimension, ScalarType>
-        orientation_metric,
+    const std::vector<Point<physical_dimension, ScalarType>>&
+        face_center_points,
+    const Point<physical_dimension, ScalarType> orientation_metric,
     const std::array<std::size_t, number_of_element_faces>& opposite_face_list,
     const ScalarType tolerance = 1e-5) {
   // Check if number of faces is a divisor of the point list length
@@ -42,10 +41,9 @@ auto FindConnectivity(
 
   // Assure Metric is normed and non-zero
   assert(orientation_metric.EuclidianNorm() > 0);
-  const Point<physical_dimension, ScalarType>
-      normed_orientation_metric =
-          orientation_metric *
-          (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
+  const Point<physical_dimension, ScalarType> normed_orientation_metric =
+      orientation_metric *
+      (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
 
   // Store information in Auxiliary Values
   const std::size_t n_total_points{face_center_points.size()};
@@ -171,19 +169,24 @@ auto GetConnectivityForSplineGroup(
   // (Instead of using the mean of the face vertices, using the sum)
   const std::size_t number_of_splines = spline_group.size();
   const std::size_t number_of_element_faces = opposite_faces.size();
-  constexpr auto edge_vertex_id = HyperCube<parametric_dimension>::EdgeVertexIndices();
+  
+  // Retrieve Edge-Vertex Ids in local system
+  constexpr auto edge_vertex_ids =
+      HyperCube<parametric_dimension>::EdgeVertexIndices();
+  
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     const auto global_vertex_id =
         HyperCube<parametric_dimension>::VertexIdForDegrees(
             spline_group[i_spline].GetDegrees());
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
       face_edges[i_spline * number_of_element_faces + i_face] =
-          spline_group[i_spline].control_points[global_vertex_id[edge_vertex_id[i_face][0]]];
-      for (std::size_t i_point{1}; i_point < edge_vertex_id[0].size();
+          spline_group[i_spline]
+              .control_points[global_vertex_id[edge_vertex_ids[i_face][0]]];
+      for (std::size_t i_point{1}; i_point < edge_vertex_ids[0].size();
            i_point++) {
         face_edges[i_spline * number_of_element_faces + i_face] +=
-            spline_group[i_spline]
-                .control_points[global_vertex_id[edge_vertex_id[i_face][i_point]]];
+            spline_group[i_spline].control_points
+                [global_vertex_id[edge_vertex_ids[i_face][i_point]]];
       }
     }
   }
@@ -196,5 +199,5 @@ auto GetConnectivityForSplineGroup(
       opposite_faces);
 }
 
-}  // namespace beziermanipulation::utils::uniquify
+}  // namespace beziermanipulation::utils::algorithms
 #endif  // UTILS_UNIQUIFY_POINT_UNIQUIFIER_HPP

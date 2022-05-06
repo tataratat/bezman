@@ -452,7 +452,6 @@ void Export::AsMFEM(
         // References for readability (should be optimized out by compiler)
         const std::size_t& face_in_neighbor_spline = opposite_faces[i_face];
         const std::size_t& neighbor_id = connectivity[i_spline][i_face];
-        const std::size_t& neighbor_id = connectivity[i_spline][i_face];
         const auto& neighbor_edge_vertex_indices =
             local_edge_vertex_indices_indices[face_in_neighbor_spline];
         // This is a bit inefficient, because some vertices might be touched

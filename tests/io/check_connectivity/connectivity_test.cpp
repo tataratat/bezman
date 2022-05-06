@@ -46,7 +46,10 @@ class ConnectivityCheckSuite : public ::testing::Test {
   std::array<std::size_t, 4> opposite_faces{2, 3, 0, 1};
 
   // Metric
-  Point2D metric{0.25, 1.};
+  Point2D metric{1.1, 1.};
+
+  // Unique List
+  std::vector<std::size_t> uniquelist{1, 5, 4, 0, 6, 9, 8, 5, 3, 7, 6, 2};
 };
 
 /*
@@ -58,6 +61,17 @@ TEST_F(ConnectivityCheckSuite, ConnectivityTest) {
       algorithms::FindConnectivity(face_center_points, metric, opposite_faces);
 
   EXPECT_EQ(connectivity, expected_connectivity);
+}
+
+/*
+ * Check if the uniquifying methods for single points works as well
+ */
+TEST_F(ConnectivityCheckSuite, UniquifyPointsTest) {
+  // Calculate the connectivity
+  const auto connectivity =
+      algorithms::IndexUniquePointList(face_center_points, metric);
+
+  EXPECT_EQ(connectivity, uniquelist);
 }
 
 }  // namespace beziermanipulation::tests::io::connectivity_check

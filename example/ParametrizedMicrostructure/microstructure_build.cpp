@@ -333,9 +333,9 @@ class MicrotileExample {
                        ADT(0.25, number_of_derivatives)},
             PointADT2D{0.5 * (1. + thickness_low),
                        ADT(0.25, number_of_derivatives)},
-            PointADT2D{ADT(0., number_of_derivatives),
+            PointADT2D{ADT(0.05, number_of_derivatives),
                        ADT(0.5, number_of_derivatives)},
-            PointADT2D{ADT(1., number_of_derivatives),
+            PointADT2D{ADT(0.95, number_of_derivatives),
                        ADT(0.5, number_of_derivatives)}};
 
         ctps_base =
@@ -492,12 +492,12 @@ class ValueFieldExample {
 
   // Some super parameters
   const std::array<ADT, kNumberOfSuperParameters> kSuperControlPoints{
-      ADT(0.1, kNumberOfSuperParameters, 0),
-      ADT(0.2, kNumberOfSuperParameters, 1),
+      ADT(0.3, kNumberOfSuperParameters, 0),
+      ADT(0.4, kNumberOfSuperParameters, 1),
       ADT(0.3, kNumberOfSuperParameters, 2),
-      ADT(0.4, kNumberOfSuperParameters, 3),
-      ADT(0.5, kNumberOfSuperParameters, 4),
-      ADT(0.6, kNumberOfSuperParameters, 5)};
+      ADT(0.25, kNumberOfSuperParameters, 3),
+      ADT(0.25, kNumberOfSuperParameters, 4),
+      ADT(0.25, kNumberOfSuperParameters, 5)};
 
   /**
    * @brief Evaluate the Value field function

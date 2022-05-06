@@ -146,6 +146,102 @@ auto FindConnectivity(
   return connectivity;
 }
 
+/**
+ * @brief Finds duplicate Points and returns a list with indices that can be
+ * used to build this list.
+ *
+ * example:
+ * the list
+ * [[0,1],[2,1],[0,1],[0,2]]
+ * could return
+ * [2,1,2,0] (order depends on orientation metric)
+ */
+template <std::size_t physical_dimension, typename ScalarType>
+std::vector<std::size_t> IndexUniquePointList(
+    const std::vector<Point<physical_dimension, ScalarType>>&
+        original_point_list,
+    const Point<physical_dimension, ScalarType> orientation_metric,
+    const ScalarType tolerance = 1e-5) {
+  // Assure Metric is normed and non-zero
+  assert(orientation_metric.EuclidianNorm() > 0);
+  const Point<physical_dimension, ScalarType> normed_orientation_metric =
+      orientation_metric *
+      (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
+
+  // Store information in Auxiliary Values
+  const std::size_t n_total_points{original_point_list.size()};
+  const ScalarType tolerance_squared{tolerance * tolerance};
+
+  // Init unique_indices and metric value
+  // (-1 : untouched)
+  // {in c++20 this expression could be constexpr}
+  std::vector<std::size_t> unique_indices(
+      // Size of vector
+      n_total_points,
+      // default value
+      static_cast<std::size_t>(-1));
+
+  // Initialize Metric
+  std::vector<ScalarType> scalar_metric(n_total_points);
+
+  // Check Metric Dimension and Vector Size
+  for (unsigned int i{}; i < n_total_points; i++) {
+    scalar_metric[i] = normed_orientation_metric * original_point_list[i];
+  }
+
+  // Sort Metric Vector
+  const auto metric_order_indices = algorithms::IndexListSort(scalar_metric);
+
+  // Start Uniquifying
+  std::size_t number_of_new_points{};
+  for (std::size_t lower_limit{0}; lower_limit < n_total_points - 1;
+       lower_limit++) {
+    // Point already processed
+    if (unique_indices[metric_order_indices[lower_limit]] !=
+        static_cast < std::size_t>(-1)) {
+      continue;
+    }
+
+    // Point has not been processed -> add it to new point list
+    unique_indices[metric_order_indices[lower_limit]] = number_of_new_points;
+
+    // Now check allowed range for duplicates
+    unsigned int upper_limit = lower_limit + 1;
+    while (scalar_metric[metric_order_indices[upper_limit]] -
+                   scalar_metric[metric_order_indices[lower_limit]] <
+               tolerance &&
+           upper_limit < n_total_points) {
+      const bool found_duplicate =
+          (original_point_list[metric_order_indices[lower_limit]] -
+           original_point_list[metric_order_indices[upper_limit]])
+              .SquaredEuclidianNorm() < tolerance_squared;
+      if (found_duplicate) {
+        if (unique_indices[metric_order_indices[upper_limit]] !=
+            static_cast < std::size_t>(-1)) {
+          assert(true);  // Use logger here
+        }
+        unique_indices[metric_order_indices[upper_limit]] =
+            number_of_new_points;
+      }
+      upper_limit++;
+    }
+    number_of_new_points++;
+  }
+
+  // Special case
+  const auto& last_index = metric_order_indices.size() - 1;
+  if (unique_indices[metric_order_indices[last_index]] == static_cast<std::size_t>(-1)) {
+    unique_indices[metric_order_indices[last_index]] = number_of_new_points;
+  }
+  return unique_indices;
+}
+
+/**
+ * @brief Get the Connectivity between splines in a SplineGroup
+ *
+ * Calculates the face points and uses FindConnectivity to identify
+ * neighbors
+ */
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 auto GetConnectivityForSplineGroup(
@@ -169,11 +265,11 @@ auto GetConnectivityForSplineGroup(
   // (Instead of using the mean of the face vertices, using the sum)
   const std::size_t number_of_splines = spline_group.size();
   const std::size_t number_of_element_faces = opposite_faces.size();
-  
+
   // Retrieve Edge-Vertex Ids in local system
   constexpr auto edge_vertex_ids =
       HyperCube<parametric_dimension>::EdgeVertexIndices();
-  
+
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     const auto global_vertex_id =
         HyperCube<parametric_dimension>::VertexIdForDegrees(

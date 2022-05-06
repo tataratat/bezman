@@ -1,5 +1,5 @@
-#ifndef UTILS_TYPE_TRAITS_HYPERCUBE_HPP
-#define UTILS_TYPE_TRAITS_HYPERCUBE_HPP
+#ifndef UTILS_ALGORITHMS_HYPERCUBE_HPP
+#define UTILS_ALGORITHMS_HYPERCUBE_HPP
 
 #include <array>
 
@@ -28,6 +28,8 @@ class HyperCube {
    *                      Array with corresponding faces
    */
   static constexpr std::array<std::size_t, dimension * 2> GetOppositeFaces() {
+    static_assert((dimension == 3 || dimension == 2),
+                  "High-Dimensional and Line Patches not supported");
     if constexpr (dimension == 2) {
       return std::array<std::size_t, dimension * 2>{2, 3, 0, 1};
     } else if constexpr (dimension == 3) {
@@ -38,14 +40,22 @@ class HyperCube {
       return std::array<std::size_t, dimension * 2>{};
     }
   }
+
   /**
-   * @brief Control point indices of associated faces
+   * @brief Control point indices to corner-vertices
    *
-   * @param degrees
-   * @return auto
+   * The function returns the associated indices in the controlpoint vector with
+   * respect to the spline degrees. The enumeration is based on the mfem element
+   * definitions
    */
-  static auto ControlPointIndicesOnFace(
-      const std::array<std::size_t, dimension>& degrees) {
+  static std::array<std::size_t,
+                    beziermanipulation::utils::algorithms::IntPower(
+                        static_cast<std::size_t>(2), dimension)>
+  VertexIdForDegrees(const std::array<std::size_t, dimension> &degrees) {
+    // Alias for Readability
+    using ReturnType =
+        std::array<std::size_t, beziermanipulation::utils::algorithms::IntPower(
+                                    static_cast<std::size_t>(2), dimension)>;
     static_assert((dimension == 3 || dimension == 2),
                   "High-Dimensional and Line Patches not supported");
     if constexpr (dimension == 2) {
@@ -57,45 +67,54 @@ class HyperCube {
        *  |         |
        *  0 --(0)>- 1
        */
-      return std::array<std::array<std::size_t, 2>, dimension * 2>{
-          0,
-          degrees[0],
-          degrees[0],
-          (degrees[0] + 1) * (degrees[1] + 1) - 1,
-          (degrees[0] + 1) * degrees[1],
-          (degrees[0] + 1) * (degrees[1] + 1) - 1,
-          0,
-          (degrees[0] + 1) * degrees[1]};
+      return ReturnType{
+          0,                                        // 0
+          degrees[0],                               // 1
+          (degrees[0] + 1) * (degrees[1] + 1) - 1,  // 2
+          (degrees[0] + 1) * degrees[1]             // 3
+      };
     } else {
-      // Must be 3D (@todo implement)
-      static_assert(dimension == 2, "Not Implemented");
-      return std::array<std::array<std::size_t, 4>, dimension * 2>{};
+      return std::array<std::array<std::size_t, 4>, dimension * 2>{
+          // bottom: 0 - 1 - 2 - 3
+          0,                                        // 0
+          degrees[0],                               // 1
+          (degrees[0] + 1) * (degrees[1] + 1) - 1,  // 2
+          (degrees[0] + 1) * degrees[1],            // 3
+          // top: 4 - 5 - 6 - 7
+          degrees[2],                                            // 4
+          degrees[2] + degrees[0],                               // 5
+          degrees[2] + (degrees[0] + 1) * (degrees[1] + 1) - 1,  // 6
+          degrees[2] + (degrees[0] + 1) * degrees[1],            // 7
+      };
     }
   }
+
   /**
-   * @brief Vertex indices (of corners) on faces
-   *
-   * @return constexpr std::array<std::size_t, 2^(dim-1)> vertices on faces
+   * @brief Local Element Vertex indices associated to the edges
    */
   static constexpr std::array<
-      std::array<std::size_t, beziermanipulation::utils::algorithms::IntPower(
-                                  static_cast<std::size_t>(2), dimension - 1)>,
-      2 * dimension>
-  FaceVertexIndices() {
+      std::array<std::size_t, static_cast<std::size_t>(2)>,
+      dimension == 2 ? static_cast<std::size_t>(4)
+                     : static_cast<std::size_t>(12)>
+  EdgeVertexIndices() {
     using ReturnType =
         std::array<std::array<std::size_t,
                               beziermanipulation::utils::algorithms::IntPower(
                                   static_cast<std::size_t>(2), dimension - 1)>,
                    2 * dimension>;
+
+    static_assert(dimension == 2 || dimension == 3, "Not Implemented");
     if constexpr (dimension == 2) {
       return ReturnType{0, 1, 1, 2, 3, 2, 0, 3};
     } else if constexpr (dimension == 3) {
-      // Must be 3D (@todo implement)
-      static_assert(dimension == 2, "Not Implemented");
-      return ReturnType{};
+      return ReturnType{// Horizontal edges bottom
+                        0, 1, 1, 2, 3, 2, 0, 3,
+                        // Horizontal Edges Top
+                        4, 5, 5, 6, 7, 6, 4, 7,
+                        // Vertical edges
+                        0, 4, 1, 5, 2, 6, 3, 7};
     }
   }
 };
 }  // namespace beziermanipulation::utils::algorithms
-
-#endif  // UTILS_TYPE_TRAITS_HYPERCUBE_HPP
+#endif  // UTILS_ALGORITHMS_HYPERCUBE_HPP

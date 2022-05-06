@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "bezierManipulation/src/point.hpp"
-#include "bezierManipulation/src/utils/uniquify/point_uniquifier.hpp"
+#include "bezierManipulation/src/utils/algorithms/point_uniquifier.hpp"
 
 using namespace beziermanipulation::utils;
 
@@ -55,7 +55,7 @@ class ConnectivityCheckSuite : public ::testing::Test {
 TEST_F(ConnectivityCheckSuite, ConnectivityTest) {
   // Calculate the connectivity
   const auto connectivity =
-      uniquify::FindConnectivity(face_center_points, metric, opposite_faces);
+      algorithms::FindConnectivity(face_center_points, metric, opposite_faces);
 
   EXPECT_EQ(connectivity, expected_connectivity);
 }

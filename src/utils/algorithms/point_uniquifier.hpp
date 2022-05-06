@@ -1,5 +1,5 @@
-#ifndef UTILS_UNIQUIFY_POINT_UNIQUIFIER_HPP
-#define UTILS_UNIQUIFY_POINT_UNIQUIFIER_HPP
+#ifndef UTILS_ALGORITHMS_POINT_UNIQUIFIER_HPP
+#define UTILS_ALGORITHMS_POINT_UNIQUIFIER_HPP
 
 #include <array>
 #include <cassert>
@@ -10,7 +10,7 @@
 #include "bezierManipulation/src/utils/algorithms/hypercube.hpp"
 #include "bezierManipulation/src/utils/algorithms/sort.hpp"
 
-namespace beziermanipulation::utils::uniquify {
+namespace beziermanipulation::utils::algorithms {
 
 /**
  * @brief Takes a set of points and determines point-connectivity using a metric
@@ -31,10 +31,9 @@ namespace beziermanipulation::utils::uniquify {
 template <std::size_t physical_dimension, typename ScalarType,
           std::size_t number_of_element_faces>
 auto FindConnectivity(
-    const std::vector<beziermanipulation::Point<
-        physical_dimension, ScalarType>>& face_center_points,
-    const beziermanipulation::Point<physical_dimension, ScalarType>
-        orientation_metric,
+    const std::vector<Point<physical_dimension, ScalarType>>&
+        face_center_points,
+    const Point<physical_dimension, ScalarType> orientation_metric,
     const std::array<std::size_t, number_of_element_faces>& opposite_face_list,
     const ScalarType tolerance = 1e-5) {
   // Check if number of faces is a divisor of the point list length
@@ -42,10 +41,9 @@ auto FindConnectivity(
 
   // Assure Metric is normed and non-zero
   assert(orientation_metric.EuclidianNorm() > 0);
-  const beziermanipulation::Point<physical_dimension, ScalarType>
-      normed_orientation_metric =
-          orientation_metric *
-          (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
+  const Point<physical_dimension, ScalarType> normed_orientation_metric =
+      orientation_metric *
+      (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
 
   // Store information in Auxiliary Values
   const std::size_t n_total_points{face_center_points.size()};
@@ -94,6 +92,8 @@ auto FindConnectivity(
                             .SquaredEuclidianNorm() < tolerance_squared;
       if (found_duplicate) {
         break;
+      } else {
+        upper_limit++;
       }
     }
 
@@ -159,7 +159,7 @@ auto GetConnectivityForSplineGroup(
 
   // Array that stores opposite faces
   constexpr auto opposite_faces =
-      algorithms::HyperCube<parametric_dimension>::GetOppositeFaces();
+      HyperCube<parametric_dimension>::GetOppositeFaces();
 
   // Create Face-Center-Point Vector
   std::vector<PhysicalPointType> face_edges(spline_group.size() *
@@ -169,18 +169,24 @@ auto GetConnectivityForSplineGroup(
   // (Instead of using the mean of the face vertices, using the sum)
   const std::size_t number_of_splines = spline_group.size();
   const std::size_t number_of_element_faces = opposite_faces.size();
+  
+  // Retrieve Edge-Vertex Ids in local system
+  constexpr auto edge_vertex_ids =
+      HyperCube<parametric_dimension>::EdgeVertexIndices();
+  
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    const auto face_vertices =
-        algorithms::HyperCube<parametric_dimension>::ControlPointIndicesOnFace(
+    const auto global_vertex_id =
+        HyperCube<parametric_dimension>::VertexIdForDegrees(
             spline_group[i_spline].GetDegrees());
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
       face_edges[i_spline * number_of_element_faces + i_face] =
-          spline_group[i_spline].control_points[face_vertices[i_face][0]];
-      for (std::size_t i_point{1}; i_point < face_vertices[0].size();
+          spline_group[i_spline]
+              .control_points[global_vertex_id[edge_vertex_ids[i_face][0]]];
+      for (std::size_t i_point{1}; i_point < edge_vertex_ids[0].size();
            i_point++) {
         face_edges[i_spline * number_of_element_faces + i_face] +=
-            spline_group[i_spline]
-                .control_points[face_vertices[i_face][i_point]];
+            spline_group[i_spline].control_points
+                [global_vertex_id[edge_vertex_ids[i_face][i_point]]];
       }
     }
   }
@@ -193,5 +199,5 @@ auto GetConnectivityForSplineGroup(
       opposite_faces);
 }
 
-}  // namespace beziermanipulation::utils::uniquify
+}  // namespace beziermanipulation::utils::algorithms
 #endif  // UTILS_UNIQUIFY_POINT_UNIQUIFIER_HPP

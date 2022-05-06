@@ -141,54 +141,19 @@ BezierGroup CircleGroup(const double innerR, const double outerR,
 }
 
 int main() {
-  const int n_segments = 10;
+  const int n_segments = 20;
   const double thickness = 0.3;
   // Inner function
   auto microtile = SimpleCrossTile(thickness);
-  auto microtile_deriv = SimpleCrossTile(thickness, true);
-
-  for (int i{1}; i < n_segments; i++) {
-    microtile_deriv += SimpleCrossTile(thickness, true);
-  }
 
   // Outer Function
   auto deformation_function =
-      CircleGroup(1., 2., n_segments, 2 * std::acos(-1));
-  //   auto deformation_function = BulkSquare();
+      CircleGroup(1., 2., n_segments, 2*std::acos(-1));
 
   // Compose composition
   const auto test_composition = deformation_function.Compose(microtile);
 
-  utils::Export::GuessByExtension(test_composition,
-                                  "composed_microstructure.xml");
-  utils::Export::GuessByExtension(deformation_function,
-                                  "deformation_function.xml");
-  utils::Export::GuessByExtension(microtile, "microtile.xml");
-  utils::Export::GuessByExtension(SimpleCrossTile(thickness, true),
-                                  "microtileDeriv.xml");
-
-  // Layer approach
-  const auto microtile_fancy = SimpleCrossTile();
-  const auto inception_test =
-      microtile_fancy[4].Compose(microtile_fancy[4].Compose(microtile_fancy) +
-                                 microtile_fancy[0] + microtile_fancy[1] +
-                                 microtile_fancy[3] + microtile_fancy[2]) 
-      +microtile_fancy[0] + microtile_fancy[1] + microtile_fancy[3] +
-      microtile_fancy[2];
-  utils::Export::GuessByExtension(microtile_fancy, "microtile_fancy.xml");
-  utils::Export::GuessByExtension(inception_test,
-                                  "composed_inception_microstructure.xml");
-
-  // Derive composed geometry
-  auto microstructure_derivative =
-      deformation_function.DerivativeWRTParametricDimension(0)
-          .Compose(microtile)
-          .MultiplyComponentwise(microtile_deriv.ExtractDimension(0));
-  microstructure_derivative.AddComponentwise(
-      deformation_function.DerivativeWRTParametricDimension(1)
-          .Compose(microtile)
-          .MultiplyComponentwise(microtile_deriv.ExtractDimension(1)));
-  utils::Export::GuessByExtension(microstructure_derivative,
-                                  "composed_microstructure_derivative.xml");
+  utils::Export::AsJSON(test_composition, "composed_microstructure");
+  utils::Export::AsMFEM(test_composition, "composed_microstructure");
   return 0;
 }

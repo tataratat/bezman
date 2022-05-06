@@ -266,9 +266,9 @@ auto GetConnectivityForSplineGroup(
   const std::size_t number_of_splines = spline_group.size();
   const std::size_t number_of_element_faces = opposite_faces.size();
 
-  // Retrieve Edge-Vertex Ids in local system
-  constexpr auto edge_vertex_ids =
-      HyperCube<parametric_dimension>::EdgeVertexIndices();
+  // Retrieve SubElementFace-Vertex Ids in local system to start calculating face-mid-point
+  constexpr auto subelement_vertex_ids =
+      HyperCube<parametric_dimension>::SubElementVerticesToFace();
 
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     const auto global_vertex_id =
@@ -277,12 +277,12 @@ auto GetConnectivityForSplineGroup(
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
       face_edges[i_spline * number_of_element_faces + i_face] =
           spline_group[i_spline]
-              .control_points[global_vertex_id[edge_vertex_ids[i_face][0]]];
-      for (std::size_t i_point{1}; i_point < edge_vertex_ids[0].size();
+              .control_points[global_vertex_id[subelement_vertex_ids[i_face][0]]];
+      for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
            i_point++) {
         face_edges[i_spline * number_of_element_faces + i_face] +=
             spline_group[i_spline].control_points
-                [global_vertex_id[edge_vertex_ids[i_face][i_point]]];
+                [global_vertex_id[subelement_vertex_ids[i_face][i_point]]];
       }
     }
   }

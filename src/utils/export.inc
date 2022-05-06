@@ -419,8 +419,10 @@ void Export::AsMFEM(
       algorithms::HyperCube<parametric_dimension>::EdgeVertexIndices();
   constexpr auto opposite_faces =
       algorithms::HyperCube<parametric_dimension>::GetOppositeFaces();
+  constexpr auto subelemenent_vertices =
+      algorithms::HyperCube<parametric_dimension>::SubelementVerticesToFace();
   constexpr std::size_t number_of_element_faces{opposite_faces.size()};
-  constexpr std::size_t number_of_vertices_per_edge{2};
+  constexpr std::size_t number_of_vertices_per_subelement{subelemenent_vertices[0].size()};
   constexpr std::size_t number_of_element_vertices{
       algorithms::IntPower(static_cast<std::size_t>(2), parametric_dimension)};
 
@@ -457,7 +459,7 @@ void Export::AsMFEM(
         // This is a bit inefficient, because some vertices might be touched
         // multiple times
         for (std::size_t i_vertex_in_face{};
-             i_vertex_in_face < number_of_vertices_per_edge;
+             i_vertex_in_face < number_of_vertices_per_subelement;
              i_vertex_in_face++) {
           vertex_id[i_spline][local_edge_vertex_indices_indices
                                   [i_face][i_vertex_in_face]] =
@@ -480,11 +482,11 @@ void Export::AsMFEM(
   // Continue with 2.
   // @todo Replace all the assertions with exceptions
   // Enumerate knot vectors
-  std::vector<std::array<std::size_t, number_of_element_faces>> knot_vector_ids(
+  std::vector<std::array<std::size_t, parametric_dimension>> knot_vector_ids(
       number_of_splines,
       // Fill with array created by lambda function
       []() {
-        std::array<std::size_t, number_of_element_faces> init_{};
+        std::array<std::size_t, parametric_dimension> init_{};
         init_.fill(static_cast<std::size_t>(-1));
         return init_;
       }());
@@ -494,81 +496,59 @@ void Export::AsMFEM(
 
   // Start the loop over all knot_vectors
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
-      // Skip knot vector if assigned
-      if (knot_vector_ids[i_spline][i_face] != static_cast<std::size_t>(-1)) {
+    for (std::size_t i_para_dim{}; i_para_dim < parametric_dimension;
+         i_para_dim++) {
+      // Skip knot vector if already assigned
+      if (knot_vector_ids[i_spline][i_para_dim] !=
+          static_cast<std::size_t>(-1)) {
         continue;
       } else {
-        knot_vector_ids[i_spline][i_face] = n_assigned_knot_vectors;
-        // Initialize Variables
-        std::size_t neighbor_element = i_spline;
-        std::size_t neighbor_face = i_face;
-        // Loop into the direction of the neighboring spline
-        while (connectivity[neighbor_element][neighbor_face] != -1) {
-          neighbor_element = connectivity[neighbor_element][neighbor_face];
-          neighbor_face = opposite_faces[neighbor_face];
-          // If the loop is closed -> stop
-          if (knot_vector_ids[neighbor_element][neighbor_face] ==
-              n_assigned_knot_vectors) {
-            break;
-          }
-          // Check if there might be an orientation error
-          assert(knot_vector_ids[neighbor_element][neighbor_face] ==
-                 static_cast<std::size_t>(-1));
-          // Assign knot vector
-          knot_vector_ids[neighbor_element][neighbor_face] =
-              n_assigned_knot_vectors;
-          // Update neighbor face
-          neighbor_face = opposite_faces[neighbor_face];
-          // If the loop is closed -> stop
-          if (knot_vector_ids[neighbor_element][neighbor_face] ==
-              n_assigned_knot_vectors) {
-            break;
-          }
-          assert(knot_vector_ids[neighbor_element][neighbor_face] ==
-                 static_cast<std::size_t>(-1));
-          knot_vector_ids[neighbor_element][neighbor_face] =
-              n_assigned_knot_vectors;
-        }
-        // Continue the same loop into the other direction
-        neighbor_face = opposite_faces[i_face];
-        neighbor_element = i_spline;
-        // Check if there might be an orientation error
-        assert((knot_vector_ids[neighbor_element][neighbor_face] ==
-                static_cast<std::size_t>(-1)) ||
-               (knot_vector_ids[neighbor_element][neighbor_face] ==
-                n_assigned_knot_vectors));
-        // Assign and loop in the other direction
-        knot_vector_ids[neighbor_element][neighbor_face] =
-            n_assigned_knot_vectors;
+        // Assign knot vector id
+        knot_vector_ids[i_spline][i_para_dim] = n_assigned_knot_vectors;
 
-        while (connectivity[neighbor_element][neighbor_face] != -1) {
-          // Continue to next element if applies
-          neighbor_element = connectivity[neighbor_element][neighbor_face];
-          neighbor_face = opposite_faces[neighbor_face];
-          // If the loop is closed -> stop
-          if (knot_vector_ids[neighbor_element][neighbor_face] ==
-              n_assigned_knot_vectors) {
-            break;
+        // All adjacent elements need to share the same knot_vectors, that
+        // "point" into its direction. As only the dimension they point into are
+        // excluded from this condition, we need to loop in 2 directions for
+        // every remaining dimension, i.e. in 2 directions for a square, in 4
+        // for a cube in 6 for a tesseract, etc.
+        for (std::size_t i_loop_para_dim{};
+             i_loop_para_dim < parametric_dimension; i_loop_para_dim++) {
+          // Skip the current dimension
+          if (i_loop_para_dim == i_para_dim) {
+            continue
+          };
+          for (std::size_t i_direction{}; i_direction < 2; i_direction++) {
+            // Retrieve face, that is normal to the current dimension and follow
+            // current dimension
+            const std::size_t face_to_neighbor =
+                algorithms::HyperCube<parametric_dimension>::
+                    GetFaceIndicesToParametricDimension()[i_loop_para_dim]
+                                                         [i_direction];
+
+            // Initialize Current element ID
+            std::size_t neighbor_element = i_spline;
+            // Start the while Loop along the current direction
+            while (connectivity[neighbor_element][face_to_neighbor] != -1) {
+              // @todo this needs to be deep searched for HighD
+              // Check if the loop is closed and the neighbor is already
+              // assigned the current ID
+              if (knot_vector_ids[neighbor_element][face_to_neighbor] ==
+                  n_assigned_knot_vectors) {
+                break;
+              }
+              // Check if there might be an orientation error
+              assert(knot_vector_ids[neighbor_element][face_to_neighbor] ==
+                     static_cast<std::size_t>(-1));
+              // Assign KnotVector ID
+              knot_vector_ids[neighbor_element][i_para_dim] =
+                  n_assigned_knot_vectors;
+              // Move to next element
+              neighbor_element =
+                  connectivity[neighbor_element][face_to_neighbor];
+            }
           }
-          // Check if there might be an orientation error
-          assert(knot_vector_ids[neighbor_element][neighbor_face] ==
-                 static_cast<std::size_t>(-1));
-          // Assign knot vector
-          knot_vector_ids[neighbor_element][neighbor_face] =
-              n_assigned_knot_vectors;
-          // Update neighbor face
-          neighbor_face = opposite_faces[neighbor_face];
-          // If the loop is closed -> stop
-          if (knot_vector_ids[neighbor_element][neighbor_face] ==
-              n_assigned_knot_vectors) {
-            break;
-          }
-          assert(knot_vector_ids[neighbor_element][neighbor_face] ==
-                 static_cast<std::size_t>(-1));
-          knot_vector_ids[neighbor_element][neighbor_face] =
-              n_assigned_knot_vectors;
         }
+
         // Update counter
         n_assigned_knot_vectors++;
       }
@@ -596,6 +576,7 @@ void Export::AsMFEM(
   }
 
   // Write out boundaries @todo change Face Types based on dimensionality
+  // @todo insert SubElementVerticesToFace here!!
   export_file << "\nboundary\n";
   export_file << number_of_boundaries << "\n";
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
@@ -627,19 +608,20 @@ void Export::AsMFEM(
                      number_of_boundaries
               << "\n";
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    for (std::size_t i_face{};
-         i_face < local_edge_vertex_indices_indices.size(); i_face++) {
-      if (connectivity[i_spline][i_face] < i_spline) {
+    for (std::size_t i_edge{};
+         i_edge < local_edge_vertex_indices_indices.size(); i_edge++) {
+      const auto associated_face_to_edge =
+          if (connectivity[i_spline][i_edge] < i_spline) {
         continue;
       }
-      export_file << knot_vector_ids[i_spline][i_face];
+      export_file << knot_vector_ids[i_spline][i_edge];
       for (std::size_t i_local_vertex_on_face{};
            i_local_vertex_on_face < local_edge_vertex_indices_indices[0].size();
            i_local_vertex_on_face++) {
         export_file
             << " "
             << vertex_id[i_spline][local_edge_vertex_indices_indices
-                                       [i_face][i_local_vertex_on_face]];
+                                       [i_edge][i_local_vertex_on_face]];
       }
       export_file << "\n";
     }

@@ -202,7 +202,7 @@ class Logger {
                  << "]" << GetTimeStamp() << " : " << error_text << "\n";
     }
 #endif
-    // Close file streams in order to save error file
+    // Close file streams in order to save error files
     close();
     // Throw exception
     throw ExceptionType(error_text);

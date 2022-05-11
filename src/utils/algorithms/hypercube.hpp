@@ -131,7 +131,8 @@ class HyperCube {
    */
   static constexpr std::array <
       std::array<std::size_t, beziermanipulation::utils::algorithms::IntPower(
-                                  static_cast<std::size_t>(2), dimension - 1)>
+                                  static_cast<std::size_t>(2), dimension - 1)>,
+                                  dimension*2>
       SubElementVerticesToFace() {
     using ReturnType =
         std::array<std::array<std::size_t,
@@ -158,6 +159,7 @@ class HyperCube {
    * @brief Local Element Vertex indices associated to the edges
    *
    * See Pictures for numbering system in class header
+   * TODO changed this code because of an  compile error
    */
   static constexpr std::array<
       std::array<std::size_t, static_cast<std::size_t>(2)>,
@@ -165,9 +167,8 @@ class HyperCube {
                      : static_cast<std::size_t>(12)>
   EdgeVertexIndices() {
     using ReturnType = std::array<
-        std::array<std::size_t, dimension == 2 ? static_cast<std::size_t>(4)
-                                               : static_cast<std::size_t>(12)>,
-        2 * dimension>;
+        std::array<std::size_t, 2>,  dimension == 2 ? static_cast<std::size_t>(4)
+                                               : static_cast<std::size_t>(12)>;
 
     static_assert(dimension == 2 || dimension == 3, "Not Implemented");
     if constexpr (dimension == 2) {
@@ -187,15 +188,27 @@ class HyperCube {
    * parametric dimension
    *
    * See Pictures for numbering system in class header
+   * TODO Doc
    */
-  static constexpr std::array<std::array<std::size_t, dimension>, 2>
-  GetFaceIndicesToParametricDimension() {
+  static constexpr std::array<std::array<std::size_t, (2*dimension)-2>, dimension>
+  GetNormalFaceIndicesToParametricDimension() {
     static_assert(dimension == 2 || dimension == 3, "Not Implemented");
-    using ReturnType = std::array<std::array<std::size_t, dimension>, 2>;
+    using ReturnType = std::array<std::array<std::size_t, (2*dimension)-2>, 2>;
     if constexpr (dimension == 2) {
-      return ReturnType{1, 3, 0, 2};
+      return ReturnType{
+          // X-direction
+          0, 2,
+          // Y-direction
+          1, 3
+      };
     } else if constexpr (dimension == 3) {
-      return ReturnType{1, 3, 2, 4, 0, 5};
+      return ReturnType{
+            // x-direction
+            2, 4, 0, 5,
+            // y-direction
+            1, 3, 0, 5,
+            // z-direction
+            1, 3, 2, 4};
     }
   }
 };

@@ -271,7 +271,7 @@ auto GetConnectivityForSplineGroup(
       HyperCube<parametric_dimension>::SubElementVerticesToFace();
 
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    const auto global_vertex_id =
+      const auto global_vertex_id =
         HyperCube<parametric_dimension>::VertexIdForDegrees(
             spline_group[i_spline].GetDegrees());
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {

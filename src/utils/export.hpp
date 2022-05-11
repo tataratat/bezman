@@ -4,6 +4,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <map>
 
 #include "bezierManipulation/src/bezier_spline.hpp"
 #include "bezierManipulation/src/bezier_spline_group.hpp"

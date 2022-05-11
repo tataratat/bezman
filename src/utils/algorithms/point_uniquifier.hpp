@@ -54,14 +54,14 @@ auto FindConnectivity(
   // {in c++20 this expression could be constexpr}
   const std::size_t number_of_elements =
       face_center_points.size() / number_of_element_faces;
-  std::vector<std::array<int, number_of_element_faces>> connectivity(
+  std::vector<std::array<std::size_t, number_of_element_faces>> connectivity(
       // Size of vector
       number_of_elements,
       // Lambda function to initialize an array with constant value in size of
       // face-number
       []() {
-        std::array<int, number_of_element_faces> a{};
-        a.fill(-2);
+        std::array<std::size_t, number_of_element_faces> a{};
+        a.fill(static_cast<std::size_t>(-2));
         return a;
       }());
   std::vector<ScalarType> scalar_metric(n_total_points);
@@ -120,7 +120,8 @@ auto FindConnectivity(
       const std::size_t element_face_id_end =
           id_end_point - element_id_end * number_of_element_faces;
       // Check 1. (@todo EXCEPTION)
-      assert(connectivity[element_id_start][element_face_id_start] == -2);
+      assert(connectivity[element_id_start][element_face_id_start] ==
+             static_cast<std::size_t>(-2));
       // Check 2. (@todo EXCEPTION)
       assert(opposite_face_list[element_face_id_start] == element_face_id_end);
       assert(opposite_face_list[element_face_id_end] == element_face_id_start);
@@ -129,8 +130,10 @@ auto FindConnectivity(
       connectivity[element_id_end][element_face_id_end] = element_id_start;
     } else {
       // set Boundary-ID
-      if (connectivity[element_id_start][element_face_id_start] == -2) {
-        connectivity[element_id_start][element_face_id_start] = -1;
+      if (connectivity[element_id_start][element_face_id_start] ==
+          static_cast<std::size_t>(-2)) {
+        connectivity[element_id_start][element_face_id_start] =
+            static_cast<std::size_t>(-1);
       }
     }
   }
@@ -140,8 +143,8 @@ auto FindConnectivity(
   const std::size_t last_element = last_id / number_of_element_faces;
   const std::size_t last_face =
       last_id - last_element * number_of_element_faces;
-  if (connectivity[last_element][last_face] == -2) {
-    connectivity[last_element][last_face] = -1;
+  if (connectivity[last_element][last_face] == static_cast<std::size_t>(-2)) {
+    connectivity[last_element][last_face] = static_cast<std::size_t>(-1);
   }
   return connectivity;
 }

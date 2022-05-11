@@ -372,20 +372,19 @@ void Export::AsMFEM(
   static_assert(parametric_dimension == PhysicalPointType::kSpatialDimension,
                 "Mismatch between parametric and physical dimension");
 
-  // Auxiliary values
+  // -- Auxiliary values --
   const std::size_t number_of_splines{spline_group.size()};
-  constexpr auto local_edge_vertex_indices_indices =
-      algorithms::HyperCube<parametric_dimension>::EdgeVertexIndices();
-  constexpr auto opposite_faces =
-      algorithms::HyperCube<parametric_dimension>::GetOppositeFaces();
   constexpr auto subelement_vertex_ids =
       algorithms::HyperCube<parametric_dimension>::SubElementVerticesToFace();
   constexpr std::size_t number_of_relevant_element_faces{
       2 * parametric_dimension - 2};
-  constexpr std::size_t number_of_vertices_per_subelement{
-      subelement_vertex_ids[0].size()};
+  constexpr std::size_t number_of_vertices_per_subelement{algorithms::IntPower(
+      static_cast<std::size_t>(2), parametric_dimension - 1)};
   constexpr std::size_t number_of_element_vertices{
       algorithms::IntPower(static_cast<std::size_t>(2), parametric_dimension)};
+  constexpr auto faces_orthogonal_to_parametric_dimension =
+      algorithms::HyperCube<
+          parametric_dimension>::GetNormalFaceIndicesToParametricDimension();
 
   // Retrieve Connectivity
   const auto connectivity =
@@ -433,7 +432,7 @@ void Export::AsMFEM(
   std::size_t n_assigned_knot_vectors{};
 
   // index of splines which has to be control if they have neighbors
-  std::vector<std::size_t> splines_to_go;
+  std::vector<std::size_t> splines_to_go{};
 
   // loop over all splines
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
@@ -447,9 +446,8 @@ void Export::AsMFEM(
       // insert index of start spline
       splines_to_go.push_back(i_spline);
 
-      // get faces for the dimension
-      const auto& faces = algorithms::HyperCube<parametric_dimension>::
-          GetNormalFaceIndicesToParametricDimension()[i_dim];
+      // retrieve relevant faces fr propagation
+      const auto& faces = faces_orthogonal_to_parametric_dimension[i_dim];
 
       // Assign knot vector id to current spline
       knot_vector_ids[i_spline][i_dim] = n_assigned_knot_vectors;
@@ -463,7 +461,8 @@ void Export::AsMFEM(
              i_neighbor < number_of_relevant_element_faces; i_neighbor++) {
           const std::size_t& face_to_check = faces[i_neighbor];
           // Check if boundary
-          if (connectivity[current_spline_id][face_to_check] == -1) {
+          if (connectivity[current_spline_id][face_to_check] ==
+              static_cast<std::size_t>(-1)) {
             continue;
           }
           const std::size_t& current_neighbor =
@@ -477,7 +476,8 @@ void Export::AsMFEM(
           }
 
           // 2. Check if neighbor is different knot_vector_id
-          if (knot_vector_ids[current_neighbor][i_dim] != -1) {
+          if (knot_vector_ids[current_neighbor][i_dim] !=
+              static_cast<std::size_t>(-1)) {
             // error
             assert(false);
           }
@@ -548,9 +548,8 @@ void Export::AsMFEM(
 
   // Count boundaries
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    for (std::size_t i_face{};
-         i_face < 2 * parametric_dimension; i_face++) {
-      if (connectivity[i_spline][i_face] == -1) {
+    for (std::size_t i_face{}; i_face < 2 * parametric_dimension; i_face++) {
+      if (connectivity[i_spline][i_face] == static_cast<std::size_t>(-1)) {
         number_of_boundaries++;
       }
     }
@@ -560,14 +559,12 @@ void Export::AsMFEM(
   export_file << "\nboundary\n";
   export_file << number_of_boundaries << "\n";
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    for (std::size_t i_face{};
-         i_face < 2 * parametric_dimension; i_face++) {
-      if (connectivity[i_spline][i_face] == -1) {
+    for (std::size_t i_face{}; i_face < 2 * parametric_dimension; i_face++) {
+      if (connectivity[i_spline][i_face] == static_cast<std::size_t>(-1)) {
         // Type and id
         export_file << 1 << " " << ((parametric_dimension == 2) ? 1 : 3);
         // Output Face
-        const auto& local_face_vertices = algorithms::HyperCube<
-            parametric_dimension>::SubElementVerticesToFace()[i_face];
+        const auto& local_face_vertices = subelement_vertex_ids[i_face];
         for (std::size_t i_local_vertex_on_face{};
              i_local_vertex_on_face < local_face_vertices.size();
              i_local_vertex_on_face++) {

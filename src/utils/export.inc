@@ -533,7 +533,7 @@ void Export::AsMFEM(
 
   // Write Elements : @todo change Element Types based on dimensionality
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    export_file << 1 << " " << 3;
+    export_file << 1 << " " << ((parametric_dimension == 2) ? 3 : 5);
     for (std::size_t i_vertex{}; i_vertex < number_of_element_vertices;
          i_vertex++) {
       const std::size_t& c_vertex =
@@ -549,7 +549,7 @@ void Export::AsMFEM(
   // Count boundaries
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     for (std::size_t i_face{};
-         i_face < local_edge_vertex_indices_indices.size(); i_face++) {
+         i_face < 2 * parametric_dimension; i_face++) {
       if (connectivity[i_spline][i_face] == -1) {
         number_of_boundaries++;
       }
@@ -561,16 +561,15 @@ void Export::AsMFEM(
   export_file << number_of_boundaries << "\n";
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     for (std::size_t i_face{};
-         i_face < local_edge_vertex_indices_indices.size(); i_face++) {
+         i_face < 2 * parametric_dimension; i_face++) {
       if (connectivity[i_spline][i_face] == -1) {
         // Type and id
-        export_file << 1 << " " << 1;
+        export_file << 1 << " " << ((parametric_dimension == 2) ? 1 : 3);
         // Output Face
         const auto& local_face_vertices = algorithms::HyperCube<
             parametric_dimension>::SubElementVerticesToFace()[i_face];
         for (std::size_t i_local_vertex_on_face{};
-             i_local_vertex_on_face <
-             local_edge_vertex_indices_indices[0].size();
+             i_local_vertex_on_face < local_face_vertices.size();
              i_local_vertex_on_face++) {
           export_file << " "
                       << vertex_id[i_spline * number_of_element_vertices +

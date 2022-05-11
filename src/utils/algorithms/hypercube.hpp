@@ -109,10 +109,11 @@ class HyperCube {
           (degrees[0] + 1) * (degrees[1] + 1) - 1,  // 2
           (degrees[0] + 1) * degrees[1],            // 3
           // top: 4 - 5 - 6 - 7
-          degrees[2],                                            // 4
-          degrees[2] + degrees[0],                               // 5
-          degrees[2] + (degrees[0] + 1) * (degrees[1] + 1) - 1,  // 6
-          degrees[2] + (degrees[0] + 1) * degrees[1],            // 7
+          degrees[2] * (degrees[0] + 1) * (degrees[1] + 1),               // 4
+          degrees[2] * (degrees[0] + 1) * (degrees[1] + 1) + degrees[0],  // 5
+          (degrees[2] + 1) * (degrees[0] + 1) * (degrees[1] + 1) - 1,     // 6
+          degrees[2] * (degrees[0] + 1) * (degrees[1] + 1) +
+              (degrees[0] + 1) * degrees[1]  // 7
       };
     }
   }

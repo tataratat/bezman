@@ -249,9 +249,7 @@ auto GetConnectivityForSplineGroup(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group) {
   // Current implementation is only made for bi- and trivariates
-  static_assert((
-                    // parametric_dimension == 3 ||
-                    parametric_dimension == 2),
+  static_assert((parametric_dimension == 3 || parametric_dimension == 2),
                 "High-Dimensional and Line Patches not supported");
 
   // Array that stores opposite faces

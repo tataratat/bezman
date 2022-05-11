@@ -482,7 +482,6 @@ void Export::AsMFEM(
             assert(false);
           }
           knot_vector_ids[current_neighbor][i_dim] = n_assigned_knot_vectors;
-          fprintf(stderr, "\n add element to ToGo : %i\n", current_neighbor);
           splines_to_go.push_back(current_neighbor);
         }
       }

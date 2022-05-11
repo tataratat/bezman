@@ -102,8 +102,7 @@ class HyperCube {
           (degrees[0] + 1) * degrees[1]             // 3
       };
     } else {
-      return std::array<std::array<std::size_t, 4>, dimension * 2>{
-
+      return ReturnType{
           // bottom: 0 - 1 - 2 - 3
           0,                                        // 0
           degrees[0],                               // 1
@@ -173,7 +172,10 @@ class HyperCube {
 
     static_assert(dimension == 2 || dimension == 3, "Not Implemented");
     if constexpr (dimension == 2) {
-      return ReturnType{0, 1, 1, 2, 3, 2, 0, 3};
+      return ReturnType{// x- direction
+                        0, 1, 3, 2,
+                        // y-direction
+                        1, 2, 0, 3};
     } else if constexpr (dimension == 3) {
       return ReturnType{// Edges in x-direction
                         0, 1, 3, 2, 4, 5, 7, 6,
@@ -196,7 +198,7 @@ class HyperCube {
   GetNormalFaceIndicesToParametricDimension() {
     static_assert(dimension == 2 || dimension == 3, "Not Implemented");
     using ReturnType =
-        std::array<std::array<std::size_t, (2 * dimension) - 2>, 2>;
+        std::array<std::array<std::size_t, (2 * dimension) - 2>, dimension>;
     if constexpr (dimension == 2) {
       return ReturnType{// X-direction
                         0, 2,

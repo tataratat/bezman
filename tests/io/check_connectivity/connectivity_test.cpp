@@ -39,8 +39,23 @@ class ConnectivityCheckSuite : public ::testing::Test {
       Point2D{1.5, 0.}, Point2D{2., 0.5}, Point2D{1.5, 1.}, Point2D{1., 0.5}};
 
   // Expected Connectivity
-  std::vector<std::array<int, 4>> expected_connectivity{
-      {-1, 1, -1, -1}, {2, -1, -1, 0}, {-1, -1, 1, -1}};
+  std::vector<std::array<std::size_t, 4>> expected_connectivity{
+      // First element
+      {static_cast<std::size_t>(-1),   // 0
+       1,                              // 1
+       static_cast<std::size_t>(-1),   // 2
+       static_cast<std::size_t>(-1)},  // 3
+      // Second element
+      {2,                             // 0
+       static_cast<std::size_t>(-1),  // 1
+       static_cast<std::size_t>(-1),  // 2
+       0},                            // 3
+      // Third element
+      {static_cast<std::size_t>(-1),  // 0
+       static_cast<std::size_t>(-1),  // 1
+       1,                             // 2
+       static_cast<std::size_t>(-1)}  // 3
+  };
 
   // List of opposite faces
   std::array<std::size_t, 4> opposite_faces{2, 3, 0, 1};

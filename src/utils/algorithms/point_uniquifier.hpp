@@ -54,14 +54,14 @@ auto FindConnectivity(
   // {in c++20 this expression could be constexpr}
   const std::size_t number_of_elements =
       face_center_points.size() / number_of_element_faces;
-  std::vector<std::array<int, number_of_element_faces>> connectivity(
+  std::vector<std::array<std::size_t, number_of_element_faces>> connectivity(
       // Size of vector
       number_of_elements,
       // Lambda function to initialize an array with constant value in size of
       // face-number
       []() {
-        std::array<int, number_of_element_faces> a{};
-        a.fill(-2);
+        std::array<std::size_t, number_of_element_faces> a{};
+        a.fill(static_cast<std::size_t>(-2));
         return a;
       }());
   std::vector<ScalarType> scalar_metric(n_total_points);
@@ -120,7 +120,8 @@ auto FindConnectivity(
       const std::size_t element_face_id_end =
           id_end_point - element_id_end * number_of_element_faces;
       // Check 1. (@todo EXCEPTION)
-      assert(connectivity[element_id_start][element_face_id_start] == -2);
+      assert(connectivity[element_id_start][element_face_id_start] ==
+             static_cast<std::size_t>(-2));
       // Check 2. (@todo EXCEPTION)
       assert(opposite_face_list[element_face_id_start] == element_face_id_end);
       assert(opposite_face_list[element_face_id_end] == element_face_id_start);
@@ -129,8 +130,10 @@ auto FindConnectivity(
       connectivity[element_id_end][element_face_id_end] = element_id_start;
     } else {
       // set Boundary-ID
-      if (connectivity[element_id_start][element_face_id_start] == -2) {
-        connectivity[element_id_start][element_face_id_start] = -1;
+      if (connectivity[element_id_start][element_face_id_start] ==
+          static_cast<std::size_t>(-2)) {
+        connectivity[element_id_start][element_face_id_start] =
+            static_cast<std::size_t>(-1);
       }
     }
   }
@@ -140,8 +143,8 @@ auto FindConnectivity(
   const std::size_t last_element = last_id / number_of_element_faces;
   const std::size_t last_face =
       last_id - last_element * number_of_element_faces;
-  if (connectivity[last_element][last_face] == -2) {
-    connectivity[last_element][last_face] = -1;
+  if (connectivity[last_element][last_face] == static_cast<std::size_t>(-2)) {
+    connectivity[last_element][last_face] = static_cast<std::size_t>(-1);
   }
   return connectivity;
 }
@@ -198,7 +201,7 @@ std::vector<std::size_t> IndexUniquePointList(
        lower_limit++) {
     // Point already processed
     if (unique_indices[metric_order_indices[lower_limit]] !=
-        static_cast < std::size_t>(-1)) {
+        static_cast<std::size_t>(-1)) {
       continue;
     }
 
@@ -217,7 +220,7 @@ std::vector<std::size_t> IndexUniquePointList(
               .SquaredEuclidianNorm() < tolerance_squared;
       if (found_duplicate) {
         if (unique_indices[metric_order_indices[upper_limit]] !=
-            static_cast < std::size_t>(-1)) {
+            static_cast<std::size_t>(-1)) {
           assert(true);  // Use logger here
         }
         unique_indices[metric_order_indices[upper_limit]] =
@@ -230,7 +233,8 @@ std::vector<std::size_t> IndexUniquePointList(
 
   // Special case
   const auto& last_index = metric_order_indices.size() - 1;
-  if (unique_indices[metric_order_indices[last_index]] == static_cast<std::size_t>(-1)) {
+  if (unique_indices[metric_order_indices[last_index]] ==
+      static_cast<std::size_t>(-1)) {
     unique_indices[metric_order_indices[last_index]] = number_of_new_points;
   }
   return unique_indices;
@@ -248,9 +252,7 @@ auto GetConnectivityForSplineGroup(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group) {
   // Current implementation is only made for bi- and trivariates
-  static_assert((
-                    // parametric_dimension == 3 ||
-                    parametric_dimension == 2),
+  static_assert((parametric_dimension == 3 || parametric_dimension == 2),
                 "High-Dimensional and Line Patches not supported");
 
   // Array that stores opposite faces
@@ -266,9 +268,10 @@ auto GetConnectivityForSplineGroup(
   const std::size_t number_of_splines = spline_group.size();
   const std::size_t number_of_element_faces = opposite_faces.size();
 
-  // Retrieve Edge-Vertex Ids in local system
-  constexpr auto edge_vertex_ids =
-      HyperCube<parametric_dimension>::EdgeVertexIndices();
+  // Retrieve SubElementFace-Vertex Ids in local system to start calculating
+  // face-mid-point
+  constexpr auto subelement_vertex_ids =
+      HyperCube<parametric_dimension>::SubElementVerticesToFace();
 
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     const auto global_vertex_id =
@@ -276,13 +279,13 @@ auto GetConnectivityForSplineGroup(
             spline_group[i_spline].GetDegrees());
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
       face_edges[i_spline * number_of_element_faces + i_face] =
-          spline_group[i_spline]
-              .control_points[global_vertex_id[edge_vertex_ids[i_face][0]]];
-      for (std::size_t i_point{1}; i_point < edge_vertex_ids[0].size();
+          spline_group[i_spline].control_points
+              [global_vertex_id[subelement_vertex_ids[i_face][0]]];
+      for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
            i_point++) {
         face_edges[i_spline * number_of_element_faces + i_face] +=
             spline_group[i_spline].control_points
-                [global_vertex_id[edge_vertex_ids[i_face][i_point]]];
+                [global_vertex_id[subelement_vertex_ids[i_face][i_point]]];
       }
     }
   }

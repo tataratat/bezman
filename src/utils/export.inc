@@ -467,6 +467,7 @@ void Export::AsMFEM(
           // Check if boundary, if true --> Loop is closed
           if (connectivity[current_spline_id][face_to_check] ==
               static_cast<std::size_t>(-1)) {
+              number_of_boundaries++;
             continue;
           }
           const std::size_t& current_neighbor =
@@ -559,16 +560,6 @@ void Export::AsMFEM(
           (c_vertex > maximum_vertex_id) ? c_vertex : maximum_vertex_id;
     }
     export_file << "\n";
-  }
-
-  // Count boundaries to get the number of boundaries, is needed in the boundary
-  // segment
-  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    for (std::size_t i_face{}; i_face < 2 * parametric_dimension; i_face++) {
-      if (connectivity[i_spline][i_face] == static_cast<std::size_t>(-1)) {
-        number_of_boundaries++;
-      }
-    }
   }
 
   // Write out boundaries

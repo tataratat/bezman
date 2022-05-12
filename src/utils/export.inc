@@ -446,21 +446,25 @@ void Export::AsMFEM(
       // insert index of start spline
       splines_to_go.push_back(i_spline);
 
-      // retrieve relevant faces fr propagation
+      // retrieve relevant faces for propagation
       const auto& faces = faces_orthogonal_to_parametric_dimension[i_dim];
 
       // Assign knot vector id to current spline
       knot_vector_ids[i_spline][i_dim] = n_assigned_knot_vectors;
 
-      // Add _spline to splines to go
+      // run through all splines until the vector splines_to_go is empty
       while (!splines_to_go.empty()) {
+        // get last spline_id of the vector
         const std::size_t current_spline_id = splines_to_go.back();
+        //delete the set current_spline_id from the vector
         splines_to_go.pop_back();
-        // run through all neigbors
+
+        // run through all neighbors
         for (std::size_t i_neighbor{};
              i_neighbor < number_of_relevant_element_faces; i_neighbor++) {
+
           const std::size_t& face_to_check = faces[i_neighbor];
-          // Check if boundary
+          // Check if boundary, if true --> Loop is closed
           if (connectivity[current_spline_id][face_to_check] ==
               static_cast<std::size_t>(-1)) {
             continue;
@@ -475,13 +479,17 @@ void Export::AsMFEM(
             continue;
           }
 
-          // 2. Check if neighbor is different knot_vector_id
+          // Check if neighbor is different knot_vector_id, if true something
+          // went wrong --> error
           if (knot_vector_ids[current_neighbor][i_dim] !=
               static_cast<std::size_t>(-1)) {
             // error
             assert(false);
           }
+
+          // set new knot vector
           knot_vector_ids[current_neighbor][i_dim] = n_assigned_knot_vectors;
+          // Add neighbor spline to splines_to_go
           splines_to_go.push_back(current_neighbor);
         }
       }
@@ -491,7 +499,7 @@ void Export::AsMFEM(
   }
 
   // map for the edges -> key is the edge with the vertices | value is the
-  // knotvector id
+  // knot vector id
   std::map<std::pair<std::size_t, std::size_t>, std::size_t>
       edge_uniquify_map{};
 
@@ -499,10 +507,10 @@ void Export::AsMFEM(
       algorithms::HyperCube<parametric_dimension>::EdgeVertexIndices();
   constexpr std::size_t number_of_edges_per_element =
       local_face_vertex_index.size();
+
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     for (std::size_t i_edge{}; i_edge < number_of_edges_per_element; i_edge++) {
-      // Edges are ordered by dimension using integer division we get the
-      // relevant dimension
+      // Edges are ordered by dimension using integer division
       std::size_t i_dim{i_edge / (parametric_dimension == 2 ? 2 : 4)};
       // Add element to edge
       edge_uniquify_map[
@@ -514,6 +522,7 @@ void Export::AsMFEM(
               // Second Vertex
               vertex_id[i_spline * number_of_element_vertices +
                         local_face_vertex_index[i_edge][1]])] =
+              // set the value
           knot_vector_ids[i_spline][i_dim];
     }
   }
@@ -528,25 +537,32 @@ void Export::AsMFEM(
   export_file << "\nelements\n";
   export_file << number_of_splines << "\n";
 
-  // Maximum vertex_id for vertex_ouput
+  // Maximum vertex_id for vertex_output
   std::size_t maximum_vertex_id{0};
 
-  // Write Elements : @todo change Element Types based on dimensionality
+  // Write Elements
+  // structure of line:  <element attribute><geometric type><vertex 0>...
+  // <vertex m>
+  // run through all splines
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    // write the first two entries of the line:
+    // geometric type: 3 = square | 5 = cube
     export_file << 1 << " " << ((parametric_dimension == 2) ? 3 : 5);
+    // run through all vertex inside the current line
     for (std::size_t i_vertex{}; i_vertex < number_of_element_vertices;
          i_vertex++) {
       const std::size_t& c_vertex =
           vertex_id[i_spline * number_of_element_vertices + i_vertex];
       export_file << " " << c_vertex;
-      // Update maximum vertex_id
+      // Update maximum vertex_id, this is needed inside the vertices segment
       maximum_vertex_id =
           (c_vertex > maximum_vertex_id) ? c_vertex : maximum_vertex_id;
     }
     export_file << "\n";
   }
 
-  // Count boundaries
+  // Count boundaries to get the number of boundaries, is needed in the boundary
+  // segment
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     for (std::size_t i_face{}; i_face < 2 * parametric_dimension; i_face++) {
       if (connectivity[i_spline][i_face] == static_cast<std::size_t>(-1)) {
@@ -555,15 +571,19 @@ void Export::AsMFEM(
     }
   }
 
-  // Write out boundaries @todo change Face Types based on dimensionality
+  // Write out boundaries
+  // structure of line:  <boundary id><boundary element type><vertex 0>...
+  // <vertex m>
   export_file << "\nboundary\n";
+  // write the number of boundaries
   export_file << number_of_boundaries << "\n";
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     for (std::size_t i_face{}; i_face < 2 * parametric_dimension; i_face++) {
       if (connectivity[i_spline][i_face] == static_cast<std::size_t>(-1)) {
-        // Type and id
+        // write the first two entries of the line:
+        // geometric type: 1 = line | 3 = square
         export_file << 1 << " " << ((parametric_dimension == 2) ? 1 : 3);
-        // Output Face
+        // write the vertices
         const auto& local_face_vertices = subelement_vertex_ids[i_face];
         for (std::size_t i_local_vertex_on_face{};
              i_local_vertex_on_face < local_face_vertices.size();
@@ -578,10 +598,14 @@ void Export::AsMFEM(
   }
 
   // Export Edges (Corner line segments)
+  // structure of line:  <knot vector id><vertex start><vertex end>
   export_file << "\n\nedges\n";
+  // get the number of edges from the map
   const std::size_t n_edges = edge_uniquify_map.size();
+  // write the number of edges
   export_file << n_edges << "\n";
   for (const auto& [edge_vertices, i_knot_id] : edge_uniquify_map) {
+    // write edges
     export_file << i_knot_id << " " << edge_vertices.first << " "
                 << edge_vertices.second << "\n";
   }
@@ -589,6 +613,7 @@ void Export::AsMFEM(
 
   // Export Number of Vertices
   export_file << "\n\nvertices\n";
+  // write the number of vertices
   export_file << maximum_vertex_id + 1 << "\n";
 
   using BezierSplineType =
@@ -596,11 +621,15 @@ void Export::AsMFEM(
 
   // Export all Splines as patches and their control points
   export_file << "\n\npatches\n";
+  // run through all splines/patches and write the knot vector- and control
+  // point segments
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     export_file << "\nknotvectors"
                 << "\n";
+    // write the number of knot vectors
     export_file << BezierSplineType::kParametricDimensions << "\n";
 
+    // structure of line <degree><number of control points><xi 0>...<xi m>
     // copy code from format2XMLfile  ;)
     for (std::size_t i_par_dim{};
          i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
@@ -625,7 +654,8 @@ void Export::AsMFEM(
                 << "\n";
     export_file << BezierSplineType::kParametricDimensions << "\n";
 
-    // controlpoints_cartesian
+    // write the control point segment
+    // structure of line <x><y>(<z>)<weight>
     export_file << "\n\ncontrolpoints_cartesian\n";
     for (std::size_t i_point{};
          i_point < spline_group[i_spline].NumberOfControlPoints; i_point++) {

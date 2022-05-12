@@ -192,7 +192,9 @@ class HyperCube {
    * parametric dimension
    *
    * See Pictures for numbering system in class header
-   * TODO Doc
+   *
+   * @return A two dimensional array containing the indices of the faces which
+   * are normal to the i-th parametric dimension
    */
   static constexpr std::array<std::array<std::size_t, (2 * dimension) - 2>,
                               dimension>

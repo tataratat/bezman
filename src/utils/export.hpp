@@ -23,6 +23,7 @@ namespace beziermanipulation::utils {
  * Currently supported:
  *  *.xml -> standard CATS export file (FEAFA, XNS)
  *  *.itd -> IRIT export file extension
+ *  *.mesh -> MFEM/GLVis export file
  */
 class Export {
  private:

@@ -46,7 +46,7 @@ class Logger {
    *
    * Returns a singleton reference to the logger instance.
    */
-  static Logger& GetLogger() {
+  static Logger& Get() {
     static Logger singleton_instance;
     singleton_instance.init();
     return singleton_instance;
@@ -267,7 +267,7 @@ class Logger {
 #endif
   }
 
-  /// Output Level
+  /// Output Level 39 {: user_info, error, warning with timestamps}
   unsigned int outputlevel_{39};
 
   /**
@@ -314,8 +314,8 @@ class Logger {
 
   // Prohibit implementation of Loggers constructors by making them private
   Logger() {}
-  Logger(Logger const&);          // Don't Implement.
-  void operator=(Logger const&);  // Don't implement
+  Logger(Logger const&);
+  void operator=(Logger const&);
 };
 }  // namespace beziermanipulation::utils
 #endif  // SRC_UTILS_LOGGER_HPP

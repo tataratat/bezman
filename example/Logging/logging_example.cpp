@@ -3,7 +3,7 @@
 
 int main() {
   // Get the logger
-  auto& logger = beziermanipulation::utils::Logger::GetLogger();
+  auto& logger = beziermanipulation::utils::Logger::Get();
 
   // Shorter version for the facilitated access
   using LoggerOutputOptions = beziermanipulation::utils::Logger::OutputLevel;

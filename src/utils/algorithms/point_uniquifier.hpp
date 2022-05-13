@@ -51,7 +51,6 @@ auto FindConnectivity(
 
   // Init connectivity and metric value
   // (-1 : boundary, -2 : untouched)
-  // {in c++20 this expression could be constexpr}
   const std::size_t number_of_elements =
       face_center_points.size() / number_of_element_faces;
   std::vector<std::array<std::size_t, number_of_element_faces>> connectivity(
@@ -64,11 +63,12 @@ auto FindConnectivity(
         a.fill(static_cast<std::size_t>(-2));
         return a;
       }());
-  std::vector<ScalarType> scalar_metric(n_total_points);
+  std::vector<ScalarType> scalar_metric{};
+  scalar_metric.reserve(n_total_points);
 
   // Check Metric Dimension and Vector Size
   for (unsigned int i{}; i < n_total_points; i++) {
-    scalar_metric[i] = normed_orientation_metric * face_center_points[i];
+    scalar_metric.push_back(normed_orientation_metric * face_center_points[i]);
   }
 
   // Sort Metric Vector
@@ -185,11 +185,12 @@ std::vector<std::size_t> IndexUniquePointList(
       static_cast<std::size_t>(-1));
 
   // Initialize Metric
-  std::vector<ScalarType> scalar_metric(n_total_points);
+  std::vector<ScalarType> scalar_metric{};
+  scalar_metric.reserve(n_total_points);
 
   // Check Metric Dimension and Vector Size
   for (unsigned int i{}; i < n_total_points; i++) {
-    scalar_metric[i] = normed_orientation_metric * original_point_list[i];
+    scalar_metric.push_back(normed_orientation_metric * original_point_list[i]);
   }
 
   // Sort Metric Vector

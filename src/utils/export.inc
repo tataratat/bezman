@@ -206,12 +206,7 @@ void Export::GuessByExtension(
     AsJSON(spline_group, filename);
   } else if (extension_str == "mesh") {
     // Export as MFEM
-    if constexpr (parametric_dimension == 2 &&
-                  PhysicalPointType::kSpatialDimension == 2) {
-      AsMFEM(spline_group, filename);
-    } else {
-      assert(false);
-    }
+    AsMFEM(spline_group, filename);
   } else {
     throw std::invalid_argument("File Extension not supported");
   }

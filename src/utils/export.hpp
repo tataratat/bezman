@@ -140,14 +140,14 @@ class Export {
                               ScalarType> &spline_group,
       const std::string &filename, const bool base64encoding = true);
 
-  /// Export Single Spline as custom MFEM
+  /// Export Single Spline MFEM multipatch format
   template <std::size_t parametric_dimension, typename PhysicalPointType,
             typename ScalarType>
   static void AsMFEM(const BezierSpline<parametric_dimension, PhysicalPointType,
                                         ScalarType> &spline,
                      const std::string &filename);
 
-  /// Export Group as  custom MFEM
+  /// Export Spline-Group in MFEM multipatch format
   template <std::size_t parametric_dimension, typename PhysicalPointType,
             typename ScalarType>
   static void AsMFEM(

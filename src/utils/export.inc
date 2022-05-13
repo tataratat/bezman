@@ -366,6 +366,10 @@ void Export::AsMFEM(
   // MFEM format currently restricted to 2D2D and 3D3D
   static_assert(parametric_dimension == PhysicalPointType::kSpatialDimension,
                 "Mismatch between parametric and physical dimension");
+  //  "MFEM export limited to 2D and 3D meshes"
+  // @todo Exception
+  assert(parametric_dimension == static_cast<std::size_t>(2) ||
+         parametric_dimension == static_cast<std::size_t>(3));
 
   // -- Auxiliary values --
   const std::size_t number_of_splines{spline_group.size()};
@@ -451,18 +455,17 @@ void Export::AsMFEM(
       while (!splines_to_go.empty()) {
         // get last spline_id of the vector
         const std::size_t current_spline_id = splines_to_go.back();
-        //delete the set current_spline_id from the vector
+        // delete the set current_spline_id from the vector
         splines_to_go.pop_back();
 
         // run through all neighbors
         for (std::size_t i_neighbor{};
              i_neighbor < number_of_relevant_element_faces; i_neighbor++) {
-
           const std::size_t& face_to_check = faces[i_neighbor];
           // Check if boundary, if true --> Loop is closed
           if (connectivity[current_spline_id][face_to_check] ==
               static_cast<std::size_t>(-1)) {
-              number_of_boundaries++;
+            number_of_boundaries++;
             continue;
           }
           const std::size_t& current_neighbor =
@@ -518,7 +521,7 @@ void Export::AsMFEM(
               // Second Vertex
               vertex_id[i_spline * number_of_element_vertices +
                         local_face_vertex_index[i_edge][1]])] =
-              // set the value
+          // set the value
           knot_vector_ids[i_spline][i_dim];
     }
   }

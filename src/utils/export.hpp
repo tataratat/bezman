@@ -24,6 +24,8 @@ namespace beziermanipulation::utils {
  *  *.xml -> standard CATS export file (FEAFA, XNS)
  *  *.itd -> IRIT export file extension
  *  *.mesh -> MFEM/GLVis export file
+ *  *.json -> Python readable json format (using gustaf Keywords). Also supports
+ *            base64 encoding for exact export of the control points
  */
 class Export {
  private:
@@ -61,8 +63,8 @@ class Export {
           &spline,
       std::ofstream &export_file);
 
-  /*
-   * Formats spline in custom json format
+  /**
+   * @brief  Formats spline in custom json format
    *
    * Actual implementation of the spline Export to be called for every spline in
    * a group Pipes everything directly into a file

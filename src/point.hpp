@@ -2,6 +2,7 @@
 #define SRC_POINT_HPP
 
 #include <array>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -22,11 +23,14 @@ namespace beziermanipulation {
  * @tparam BaseType           Scalar Type describing the coordinates (to impose
  * CD-Types easier)
  */
-template <unsigned int spatial_dimension, typename BaseType = double>
+template <std::size_t spatial_dimension, typename BaseType = double>
 class Point : public std::array<BaseType, spatial_dimension> {
  public:
   /// Provide data to external users
   constexpr static unsigned int kSpatialDimension = spatial_dimension;
+
+  /// Provide Type for external use
+  using ScalarType = BaseType;
 
   /// Output precision
   int output_precision{5};
@@ -110,6 +114,20 @@ class Point : public std::array<BaseType, spatial_dimension> {
       result += (*this)[i] * point[i];
     }
     return result;
+  }
+
+  /// Calculate norm
+  BaseType SquaredEuclidianNorm() const {
+    BaseType norm{};
+    for (unsigned int i{}; i < spatial_dimension; i++) {
+      norm += (*this)[i] * (*this)[i];
+    }
+    return norm;
+  }
+
+  /// Calculate norm
+  BaseType EuclidianNorm() const {
+    return std::sqrt((*this).SquaredEuclidianNorm());
   }
 
   /// Facilitate User Output

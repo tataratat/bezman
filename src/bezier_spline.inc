@@ -35,8 +35,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   // Some constant indices and degrees
   const int depth = sizeof...(indices);
   const int k = ctpsIndex[depth];
-  const int m = P_spline.degrees[depth];
-  const int n = Q_spline.degrees[depth];
+  const int m = P_spline.GetDegrees()[depth];
+  const int n = Q_spline.GetDegrees()[depth];
 
   // Loop over current parametric domain
   for (int i{std::max(0, k - n)}; i <= std::min(k, m); i++) {
@@ -264,12 +264,89 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr PhysicalPointType BezierSpline<
+    parametric_dimension, PhysicalPointType,
+    ScalarType>::ForwardEvaluate(const PointTypeParametric_& par_coords) const {
+  /*
+   * Here we avoid Point operations and try to precompute as many values as
+   * possible, this greatly increases the complexity of the necessary code.
+   *
+   * They are all stored into an array to store them on the stack and avoid
+   * allocation
+   */
+  std::array<std::array<ScalarType, MAX_BINOMIAL_DEGREE + 1>,
+             parametric_dimension>
+      factors;
+
+  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
+    ScalarType_ cfactor = static_cast<ScalarType>(1.);
+    const ScalarType_ t_value = par_coords[par_dim];
+    const ScalarType_ inv_t_value = 1. - par_coords[par_dim];
+    const IndexingType c_degree = degrees[par_dim];
+    // Loop over dimensionwise ctps
+    for (IndexingType i_ctps{0}; i_ctps < c_degree + 1; i_ctps++) {
+      factors[par_dim][i_ctps] =
+          static_cast<ScalarType>(
+              utils::FastBinomialCoefficient::choose(c_degree, i_ctps)) *
+          cfactor;
+      cfactor *= t_value;
+    }
+    // Backwards assignment
+    cfactor = static_cast<ScalarType>(1.);
+    for (IndexingType i_ctps{0}; i_ctps < c_degree + 1; i_ctps++) {
+      factors[par_dim][c_degree - i_ctps] *= cfactor;
+      cfactor *= inv_t_value;
+    }
+  }
+
+  /*
+   * Now that all values have been precomputed we have to sum up the individual
+   * contributions using (compile-time) recursion
+   */
+  PointTypePhysical_ evaluation_point{};
+
+  return AddUpContributionsToControlPointVector_(evaluation_point, factors,
+                                                 static_cast<ScalarType>(1.));
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename... Indices>
+constexpr PhysicalPointType
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    AddUpContributionsToControlPointVector_(
+        PhysicalPointType& evaluation_point,
+        const std::array<std::array<ScalarType, MAX_BINOMIAL_DEGREE + 1>,
+                         parametric_dimension>& factors,
+        const ScalarType& factor_product, const Indices&... indices) const {
+  // Check that all are indices
+
+  // Loop over current parametric dimensions
+  const IndexingType c_par_dim = sizeof...(Indices);
+  const IndexingType i_ctps_per_par_dim = degrees[c_par_dim] + 1;
+
+  for (IndexingType i_ctps{}; i_ctps < i_ctps_per_par_dim; i_ctps++) {
+    if constexpr (sizeof...(indices) + 1 == parametric_dimension) {
+      evaluation_point += factor_product * factors[c_par_dim][i_ctps] *
+                          ControlPoint(indices..., i_ctps);
+    } else {
+      AddUpContributionsToControlPointVector_(
+          evaluation_point, factors,
+          factors[c_par_dim][i_ctps] * factor_product, indices..., i_ctps);
+    }
+  }
+
+  return evaluation_point;
+};
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 constexpr bool
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator==(
     const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
         rhs) const {
   // Check if degrees fit and if control_points are the same
-  if (rhs.degrees == degrees) {
+  if (rhs.GetDegrees() == degrees) {
     return rhs.control_points == control_points;
   } else {
     return false;
@@ -372,13 +449,13 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
   bool rhs_needs_copy = false;
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
     rhs_needs_copy =
-        rhs_needs_copy || (degrees[par_dim] > rhs.degrees[par_dim]);
+        rhs_needs_copy || (degrees[par_dim] > rhs.GetDegrees()[par_dim]);
   }
 
   // Increase the order of the copied spline to be greater or equal to the
   // RHSs order
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    while (rhs.degrees[par_dim] > return_spline.degrees[par_dim]) {
+    while (rhs.GetDegrees()[par_dim] > return_spline.GetDegrees()[par_dim]) {
       return_spline.OrderElevateAlongParametricDimension(par_dim);
     }
   }
@@ -402,13 +479,13 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+=(
   // Increase the order of (*this) spline to be greater or equal to the
   // RHSs order
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    while (rhs.degrees[par_dim] > degrees[par_dim]) {
+    while (rhs.GetDegrees()[par_dim] > degrees[par_dim]) {
       OrderElevateAlongParametricDimension(par_dim);
     }
   }
   // Do the same thing to the rhs
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    while (rhs.degrees[par_dim] < degrees[par_dim]) {
+    while (rhs.GetDegrees()[par_dim] < degrees[par_dim]) {
       rhs.OrderElevateAlongParametricDimension(par_dim);
     }
   }
@@ -424,13 +501,18 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::ExtractDimension(unsigned int dimension) const {
-  assert(dimension < PointTypePhysical_::kSpatialDimension);
-  BezierSpline<parametric_dimension, ScalarType, ScalarType> extracted_spline(
-      degrees);
-  for (std::size_t i{}; i < NumberOfControlPoints; i++) {
-    extracted_spline.control_points[i] = control_points[i][dimension];
+  if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+    assert(dimension == 0ul);
+    return (*this);
+  } else {
+    assert(dimension < PointTypePhysical_::kSpatialDimension);
+    BezierSpline<parametric_dimension, ScalarType, ScalarType> extracted_spline(
+        degrees);
+    for (std::size_t i{}; i < NumberOfControlPoints; i++) {
+      extracted_spline.control_points[i] = control_points[i][dimension];
+    }
+    return extracted_spline;
   }
-  return extracted_spline;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -553,7 +635,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator*(
   std::array<IndexingType, parametric_dimension> product_degrees;
   for (IndexingType param_dim{}; param_dim < parametric_dimension;
        param_dim++) {
-    product_degrees[param_dim] = degrees[param_dim] + rhs.degrees[param_dim];
+    product_degrees[param_dim] =
+        degrees[param_dim] + rhs.GetDegrees()[param_dim];
   }
 
   // Initialize the return type
@@ -589,7 +672,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
           inner_function.FitsIntoUnitCube()));
   // New degrees
   std::array<IndexingType, parametric_dimension_inner_spline> new_degrees{
-      inner_function.degrees};
+      inner_function.GetDegrees()};
   for (IndexingType i{}; i < parametric_dimension_inner_spline; i++)
     new_degrees[i] *= sum_of_degrees_outer_spline;
 
@@ -597,9 +680,13 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
                ScalarReturnT>
       composition{new_degrees};
 
-  // Check Dimensions
-  static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
-                "Dimension mismatch");
+  // Check Dimensions (Scalar Value splines to be treaded as kSpDim = 1)
+  if constexpr (std::is_arithmetic_v<PointTypeRHS>) {
+    static_assert(parametric_dimension == 1, "Dimension mismatch");
+  } else {
+    static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
+                  "Dimension mismatch");
+  }
 
   // Extraction and Precomputation
   /*
@@ -716,7 +803,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     // Check if the bernstein_basis_tensor_product has the degrees (and number
     // of control_points) as expected
     assert(("Degree mismatch",
-            new_degrees == bernstein_basis_tensor_product.degrees));
+            new_degrees == bernstein_basis_tensor_product.GetDegrees()));
 
     // Now that all factors have been precomputed we can determine the
     // control-points of the resulting spline

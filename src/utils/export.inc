@@ -32,7 +32,7 @@ void Export::format2IRITfile(
   // Write different degrees
   for (std::size_t i{}; i < parametric_dimension; i++) {
     // IRIT expexts order not degrees
-    export_file << spline.degrees[i] + 1 << " ";
+    export_file << spline.GetDegrees()[i] + 1 << " ";
   }
 
   // Point Type
@@ -47,6 +47,47 @@ void Export::format2IRITfile(
 
   // Write Footer
   export_file << indentation << indentation << "]";
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::format2JSONfile(
+    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
+        spline,
+    std::ofstream& export_file, const bool base64encoding) {
+  // Increase user readability
+  const std::string indentation{"      "};
+
+  // Write Dimensionality
+  export_file << indentation
+              << "\"dim\" : " << PhysicalPointType::kSpatialDimension << ",\n";
+
+  // Write Parametric Dimensionality
+  export_file << indentation << "\"para_dim\" : " << parametric_dimension
+              << ",\n";
+
+  // Write degrees
+  export_file << indentation << "\"degrees\" : [" << spline.GetDegrees()[0];
+  for (std::size_t i{1}; i < parametric_dimension; i++) {
+    // IRIT expexts order not degrees
+    export_file << ", " << spline.GetDegrees()[i];
+  }
+  export_file << "],\n";
+
+  // Write All Control Points
+  if (base64encoding) {
+    export_file << indentation << "\"control_points\" : \""
+                << utils::Base64::Encode(spline.control_points) << "\"\n";
+  } else {
+    export_file << indentation << "\"control_points\" : [\n"
+                << indentation << "  " << spline.control_points[0];
+    for (std::size_t i_point{1}; i_point < spline.NumberOfControlPoints;
+         i_point++) {
+      export_file << ",\n"
+                  << indentation << "  " << spline.control_points[i_point];
+    }
+    export_file << "\n" << indentation << "]\n";
+  }
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -102,7 +143,7 @@ void Export::format2XMLfile(
   export_file << indentation << "<deg>\n" << indentation << indentation;
   for (std::size_t i_par_dim{};
        i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
-    export_file << spline.degrees[i_par_dim]
+    export_file << spline.GetDegrees()[i_par_dim]
                 << indentation;  // Add \n if required
   }
   export_file << "\n" << indentation << "</deg>\n";
@@ -114,10 +155,11 @@ void Export::format2XMLfile(
     export_file << indentation << indentation << "<kntVec>\n"
                 << indentation << indentation;
     // Write All Control Points
-    for (std::size_t i_point{0}; i_point < 2 * spline.degrees[i_par_dim] + 2;
-         i_point++) {
+    for (std::size_t i_point{0};
+         i_point < 2 * spline.GetDegrees()[i_par_dim] + 2; i_point++) {
       export_file << indentation
-                  << (i_point < (spline.degrees[i_par_dim] + 1) ? "0." : "1.");
+                  << (i_point < (spline.GetDegrees()[i_par_dim] + 1) ? "0."
+                                                                     : "1.");
     }
     export_file << "\n" << indentation << indentation << "</kntVec>\n";
   }
@@ -127,9 +169,23 @@ void Export::format2XMLfile(
   export_file << indentation << "</SplineEntry>\n";
 }
 
-template <typename ExportType>
-void Export::GuessByExtension(const ExportType& export_object,
-                              const std::string& filename) {
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::GuessByExtension(
+    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
+        spline,
+    const std::string& filename) {
+  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+      spline_group{spline};
+  GuessByExtension(spline_group, filename);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::GuessByExtension(
+    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                            ScalarType>& spline_group,
+    const std::string& filename) {
   // In case of a absolute path strip filename
   std::size_t last_found_id = filename.find_last_of("/\\");
   const std::string file_without_path = filename.substr(last_found_id + 1);
@@ -141,10 +197,16 @@ void Export::GuessByExtension(const ExportType& export_object,
 
   if (extension_str == "itd") {
     // Export as IRIT
-    AsIRIT(export_object, filename);
+    AsIRIT(spline_group, filename);
   } else if (extension_str == "xml") {
     // Export as XML
-    AsXML(export_object, filename);
+    AsXML(spline_group, filename);
+  } else if (extension_str == "json") {
+    // Export as custom JSON
+    AsJSON(spline_group, filename);
+  } else if (extension_str == "mesh") {
+    // Export as MFEM
+    AsMFEM(spline_group, filename);
   } else {
     throw std::invalid_argument("File Extension not supported");
   }
@@ -225,6 +287,380 @@ void Export::AsXML(
 
   // Write Footer
   export_file << "</SplineList>\n";
+  export_file.close();
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::AsJSON(const BezierSpline<parametric_dimension, PhysicalPointType,
+                                       ScalarType>& spline,
+                    const std::string& filename, const bool base64encoding) {
+  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+      spline_group{spline};
+  AsJSON(spline_group, filename, base64encoding);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::AsJSON(
+    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                            ScalarType>& spline_group,
+    const std::string& filename, const bool base64encoding) {
+  // Create File Stream
+  std::ofstream export_file;
+  export_file.open(ensureFileExtension(filename, "json"));
+
+  // Write Header
+  export_file << "{\n  \"Name\" : \"BezierSplineGroup\",\n";
+
+  // Number of Splines
+  export_file << "  \"NumberOfSplines\" : " << spline_group.size() << ",\n";
+
+  // Encoding
+  export_file << "  \"Base64Encoding\" : " << base64encoding << ",\n";
+
+  // Start Spline Export
+  export_file << "  \"SplineList\" : [\n";
+
+  // Write all Splines from Group into new file
+  for (std::size_t i{0}; i < spline_group.size(); i++) {
+    // ID and Type are set here
+    export_file
+        << "    {\n      \"SplineType\" : \"Bezier\",\n      \"SplineID\" : "
+        << i << ",\n";
+    // Export individual splines seperately
+    format2JSONfile(spline_group[i], export_file, base64encoding);
+    export_file << "    }";
+    if (i < spline_group.size() - 1) {
+      export_file << ",\n";
+    } else {
+      export_file << "\n";
+    }
+  }
+
+  // Write Footer
+  export_file << "  ]\n}";
+  export_file.close();
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::AsMFEM(const BezierSpline<parametric_dimension, PhysicalPointType,
+                                       ScalarType>& spline,
+                    const std::string& filename) {
+  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+      spline_group{spline};
+  AsMFEM(spline_group, filename);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+void Export::AsMFEM(
+    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
+                            ScalarType>& spline_group,
+    const std::string& filename) {
+  // Create File Stream
+  std::ofstream export_file;
+  export_file.open(ensureFileExtension(filename, "mesh"));
+
+  // MFEM format currently restricted to 2D2D and 3D3D
+  static_assert(parametric_dimension == PhysicalPointType::kSpatialDimension,
+                "Mismatch between parametric and physical dimension");
+  //  "MFEM export limited to 2D and 3D meshes"
+  // @todo Exception
+  assert(parametric_dimension == static_cast<std::size_t>(2) ||
+         parametric_dimension == static_cast<std::size_t>(3));
+
+  // -- Auxiliary values --
+  const std::size_t number_of_splines{spline_group.size()};
+  constexpr auto subelement_vertex_ids =
+      algorithms::HyperCube<parametric_dimension>::SubElementVerticesToFace();
+  constexpr std::size_t number_of_relevant_element_faces{
+      2 * parametric_dimension - 2};
+  constexpr std::size_t number_of_vertices_per_subelement{algorithms::IntPower(
+      static_cast<std::size_t>(2), parametric_dimension - 1)};
+  constexpr std::size_t number_of_element_vertices{
+      algorithms::IntPower(static_cast<std::size_t>(2), parametric_dimension)};
+  constexpr auto faces_orthogonal_to_parametric_dimension =
+      algorithms::HyperCube<
+          parametric_dimension>::GetNormalFaceIndicesToParametricDimension();
+
+  // Retrieve Connectivity
+  const auto connectivity =
+      beziermanipulation::utils::algorithms::GetConnectivityForSplineGroup(
+          spline_group);
+  // @todo throw exception
+  assert(connectivity.size() > 0);
+
+  // Initialize counters
+  std::size_t number_of_boundaries{};
+
+  // Initialize Vertices to identify their vertex ids
+  std::vector<PhysicalPointType> corner_vertices;
+  corner_vertices.reserve(number_of_splines * number_of_element_vertices);
+
+  // Retrieve all vertices
+  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    const auto global_vertex_id =
+        algorithms::HyperCube<parametric_dimension>::VertexIdForDegrees(
+            spline_group[i_spline].GetDegrees());
+    for (std::size_t i_point{}; i_point < number_of_element_vertices;
+         i_point++) {
+      corner_vertices.push_back(
+          spline_group[i_spline].control_points[global_vertex_id[i_point]]);
+    }
+  }
+  // Retrieve Vertex enumeration
+  const auto vertex_id = algorithms::IndexUniquePointList(
+      corner_vertices,
+      spline_group.MaximumCorner() - spline_group.MinimumCorner());
+
+  // Continue with 2.
+  // @todo Replace all the assertions with exceptions
+  // Enumerate knot vectors
+  std::vector<std::array<std::size_t, parametric_dimension>> knot_vector_ids(
+      number_of_splines,
+      // Fill with array created by lambda function
+      []() {
+        std::array<std::size_t, parametric_dimension> init_{};
+        init_.fill(static_cast<std::size_t>(-1));
+        return init_;
+      }());
+
+  // Initialize knot_vector_counter
+  std::size_t n_assigned_knot_vectors{};
+
+  // index of splines which has to be control if they have neighbors
+  std::vector<std::size_t> splines_to_go{};
+
+  // loop over all splines
+  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    // loop over all dimensions
+    for (std::size_t i_dim{}; i_dim < parametric_dimension; i_dim++) {
+      // check if spline has already a knot vector id
+      if (knot_vector_ids[i_spline][i_dim] != static_cast<size_t>(-1)) {
+        continue;
+      }
+
+      // insert index of start spline
+      splines_to_go.push_back(i_spline);
+
+      // retrieve relevant faces for propagation
+      const auto& faces = faces_orthogonal_to_parametric_dimension[i_dim];
+
+      // Assign knot vector id to current spline
+      knot_vector_ids[i_spline][i_dim] = n_assigned_knot_vectors;
+
+      // run through all splines until the vector splines_to_go is empty
+      while (!splines_to_go.empty()) {
+        // get last spline_id of the vector
+        const std::size_t current_spline_id = splines_to_go.back();
+        // delete the set current_spline_id from the vector
+        splines_to_go.pop_back();
+
+        // run through all neighbors
+        for (std::size_t i_neighbor{};
+             i_neighbor < number_of_relevant_element_faces; i_neighbor++) {
+          const std::size_t& face_to_check = faces[i_neighbor];
+          // Check if boundary, if true --> Loop is closed
+          if (connectivity[current_spline_id][face_to_check] ==
+              static_cast<std::size_t>(-1)) {
+            number_of_boundaries++;
+            continue;
+          }
+          const std::size_t& current_neighbor =
+              connectivity[current_spline_id][face_to_check];
+
+          // if neighbor spline has the same  knot vector id as the
+          // current spline continue --> Loop is closed
+          if (knot_vector_ids[current_neighbor][i_dim] ==
+              n_assigned_knot_vectors) {
+            continue;
+          }
+
+          // Check if neighbor is different knot_vector_id, if true something
+          // went wrong --> error
+          if (knot_vector_ids[current_neighbor][i_dim] !=
+              static_cast<std::size_t>(-1)) {
+            // error
+            assert(false);
+          }
+
+          // set new knot vector
+          knot_vector_ids[current_neighbor][i_dim] = n_assigned_knot_vectors;
+          // Add neighbor spline to splines_to_go
+          splines_to_go.push_back(current_neighbor);
+        }
+      }
+
+      n_assigned_knot_vectors++;
+    }
+  }
+
+  // map for the edges -> key is the edge with the vertices | value is the
+  // knot vector id
+  std::map<std::pair<std::size_t, std::size_t>, std::size_t>
+      edge_uniquify_map{};
+
+  constexpr auto local_face_vertex_index =
+      algorithms::HyperCube<parametric_dimension>::EdgeVertexIndices();
+  constexpr std::size_t number_of_edges_per_element =
+      local_face_vertex_index.size();
+
+  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    for (std::size_t i_edge{}; i_edge < number_of_edges_per_element; i_edge++) {
+      // Edges are ordered by dimension using integer division
+      std::size_t i_dim{i_edge / (parametric_dimension == 2 ? 2 : 4)};
+      // Add element to edge
+      edge_uniquify_map[
+          // Create Pair of vertex ids as key
+          std::make_pair(
+              // First Vertex
+              vertex_id[i_spline * number_of_element_vertices +
+                        local_face_vertex_index[i_edge][0]],
+              // Second Vertex
+              vertex_id[i_spline * number_of_element_vertices +
+                        local_face_vertex_index[i_edge][1]])] =
+          // set the value
+          knot_vector_ids[i_spline][i_dim];
+    }
+  }
+
+  // Write Header
+  export_file << "MFEM NURBS mesh v1.0\n";
+
+  // Write dimension
+  export_file << "\ndimension \n" << parametric_dimension << "\n";
+
+  // Write segment element
+  export_file << "\nelements\n";
+  export_file << number_of_splines << "\n";
+
+  // Maximum vertex_id for vertex_output
+  std::size_t maximum_vertex_id{0};
+
+  // Write Elements
+  // structure of line:  <element attribute><geometric type><vertex 0>...
+  // <vertex m>
+  // run through all splines
+  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    // write the first two entries of the line:
+    // geometric type: 3 = square | 5 = cube
+    export_file << 1 << " " << ((parametric_dimension == 2) ? 3 : 5);
+    // run through all vertex inside the current line
+    for (std::size_t i_vertex{}; i_vertex < number_of_element_vertices;
+         i_vertex++) {
+      const std::size_t& c_vertex =
+          vertex_id[i_spline * number_of_element_vertices + i_vertex];
+      export_file << " " << c_vertex;
+      // Update maximum vertex_id, this is needed inside the vertices segment
+      maximum_vertex_id =
+          (c_vertex > maximum_vertex_id) ? c_vertex : maximum_vertex_id;
+    }
+    export_file << "\n";
+  }
+
+  // Write out boundaries
+  // structure of line:  <boundary id><boundary element type><vertex 0>...
+  // <vertex m>
+  export_file << "\nboundary\n";
+  // write the number of boundaries
+  export_file << number_of_boundaries << "\n";
+  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    for (std::size_t i_face{}; i_face < 2 * parametric_dimension; i_face++) {
+      if (connectivity[i_spline][i_face] == static_cast<std::size_t>(-1)) {
+        // write the first two entries of the line:
+        // geometric type: 1 = line | 3 = square
+        export_file << 1 << " " << ((parametric_dimension == 2) ? 1 : 3);
+        // write the vertices
+        const auto& local_face_vertices = subelement_vertex_ids[i_face];
+        for (std::size_t i_local_vertex_on_face{};
+             i_local_vertex_on_face < local_face_vertices.size();
+             i_local_vertex_on_face++) {
+          export_file << " "
+                      << vertex_id[i_spline * number_of_element_vertices +
+                                   local_face_vertices[i_local_vertex_on_face]];
+        }
+        export_file << "\n";
+      }
+    }
+  }
+
+  // Export Edges (Corner line segments)
+  // structure of line:  <knot vector id><vertex start><vertex end>
+  export_file << "\n\nedges\n";
+  // get the number of edges from the map
+  const std::size_t n_edges = edge_uniquify_map.size();
+  // write the number of edges
+  export_file << n_edges << "\n";
+  for (const auto& [edge_vertices, i_knot_id] : edge_uniquify_map) {
+    // write edges
+    export_file << i_knot_id << " " << edge_vertices.first << " "
+                << edge_vertices.second << "\n";
+  }
+  export_file << "\n";
+
+  // Export Number of Vertices
+  export_file << "\n\nvertices\n";
+  // write the number of vertices
+  export_file << maximum_vertex_id + 1 << "\n";
+
+  using BezierSplineType =
+      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>;
+
+  // Export all Splines as patches and their control points
+  export_file << "\n\npatches\n";
+  // run through all splines/patches and write the knot vector- and control
+  // point segments
+  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
+    export_file << "\nknotvectors"
+                << "\n";
+    // write the number of knot vectors
+    export_file << BezierSplineType::kParametricDimensions << "\n";
+
+    // structure of line <degree><number of control points><xi 0>...<xi m>
+    // copy code from format2XMLfile  ;)
+    for (std::size_t i_par_dim{};
+         i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
+      // Write All Control Points
+      export_file << spline_group[i_spline].GetDegrees()[i_par_dim]
+                  << " "
+                  // Number of control points in parametric dimension
+                  << spline_group[i_spline].GetDegrees()[i_par_dim] + 1 << " ";
+      for (std::size_t i_point{};
+           i_point < 2 * spline_group[i_spline].GetDegrees()[i_par_dim] + 2;
+           i_point++) {
+        export_file
+            << (i_point < (spline_group[i_spline].GetDegrees()[i_par_dim] + 1)
+                    ? "0.0 "
+                    : "1.0 ");
+      }
+      export_file << "\n";
+    }
+
+    // write physical dimension
+    export_file << "\ndimension"
+                << "\n";
+    export_file << BezierSplineType::kParametricDimensions << "\n";
+
+    // write the control point segment
+    // structure of line <x><y>(<z>)<weight>
+    export_file << "\n\ncontrolpoints_cartesian\n";
+    for (std::size_t i_point{};
+         i_point < spline_group[i_spline].NumberOfControlPoints; i_point++) {
+      for (std::size_t i_dim{}; i_dim < PhysicalPointType ::kSpatialDimension;
+           i_dim++) {
+        export_file << spline_group[i_spline].control_points[i_point][i_dim]
+                    << " ";
+      }
+      // add weights (polynomial splines are always unweighted)
+      export_file << 1. << "\n";
+    }
+
+    export_file << "\n";
+  }
+
+  // Write Footer
   export_file.close();
 }
 

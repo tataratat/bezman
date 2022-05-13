@@ -273,90 +273,101 @@ class MicrotileExample {
     std::array<std::size_t, 2> connector_degrees{1, 2};
 
     std::vector<PointADT2D> ctps_connector;
-    std::vector<PointADT2D> ctps_base;
+    std::vector<PointADT2D> ctps_base, ctps_base_lhs, ctps_base_rhs;
 
     // Provide Control Point Vectors for every possible case except for the
     // edges, assuming that only one edge is closed at a time
     switch (closing_face) {
-      case ClosingFace::X_MIN:
+      case ClosingFace::Y_MIN:
         ctps_connector = std::vector<PointADT2D>{
-            PointADT2D{ADT(0., number_of_derivatives), thickness_left},
-            PointADT2D{ADT(1., number_of_derivatives), thickness_right},
-            PointADT2D{0.5 * (1. - thickness_up), 0.5 * (thickness_left + 1)},
-            PointADT2D{0.5 * (1. + thickness_up), 0.5 * (thickness_right + 1)},
+            PointADT2D{ADT(0.05, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)},
+            PointADT2D{ADT(0.95, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)},
+            PointADT2D{0.5 * (1. - thickness_up),
+                       ADT(0.75, number_of_derivatives)},
+            PointADT2D{0.5 * (1. + thickness_up),
+                       ADT(0.75, number_of_derivatives)},
             PointADT2D{0.5 * (1. - thickness_up),
                        ADT(1., number_of_derivatives)},
             PointADT2D{0.5 * (1. + thickness_up),
                        ADT(1., number_of_derivatives)}};
 
         ctps_base = std::vector<PointADT2D>{
-            PointADT2D{ADT(0., number_of_derivatives),
+            PointADT2D{ADT(0.05, number_of_derivatives),
                        ADT(.0, number_of_derivatives)},
-            PointADT2D{ADT(1., number_of_derivatives),
+            PointADT2D{ADT(0.95, number_of_derivatives),
                        ADT(.0, number_of_derivatives)},
-            PointADT2D{ADT(0., number_of_derivatives), thickness_left},
-            PointADT2D{ADT(1., number_of_derivatives), thickness_right}};
-        break;
-      case ClosingFace::X_MAX:
-        ctps_connector = std::vector<PointADT2D>{
-            PointADT2D{ADT(1., number_of_derivatives), 1. - thickness_right},
-            PointADT2D{ADT(0., number_of_derivatives), 1. - thickness_left},
-            PointADT2D{0.5 * (1. + thickness_low), 0.5 * (1. - thickness_left)},
-            PointADT2D{0.5 * (1. - thickness_low),
-                       0.5 * (1. - thickness_right)},
-            PointADT2D{0.5 * (1. + thickness_low),
-                       ADT(0., number_of_derivatives)},
-            PointADT2D{0.5 * (1. - thickness_low),
-                       ADT(0., number_of_derivatives)}};
+            PointADT2D{ADT(0.05, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)},
+            PointADT2D{ADT(0.95, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)}};
 
-        ctps_base = std::vector<PointADT2D>{
+        ctps_base_lhs = std::vector<PointADT2D>{
+            PointADT2D{ADT(0.0, number_of_derivatives),
+                       ADT(.0, number_of_derivatives)},
+            PointADT2D{ADT(0.05, number_of_derivatives),
+                       ADT(.0, number_of_derivatives)},
+            PointADT2D{ADT(0.0, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)},
+            PointADT2D{ADT(0.05, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)}};
+
+        ctps_base_rhs = std::vector<PointADT2D>{
+            PointADT2D{ADT(0.95, number_of_derivatives),
+                       ADT(.0, number_of_derivatives)},
             PointADT2D{ADT(1., number_of_derivatives),
-                       ADT(1., number_of_derivatives)},
-            PointADT2D{ADT(0., number_of_derivatives),
-                       ADT(1., number_of_derivatives)},
-            PointADT2D{ADT(1., number_of_derivatives), 1. - thickness_right},
-            PointADT2D{ADT(0., number_of_derivatives), 1. - thickness_left}};
+                       ADT(.0, number_of_derivatives)},
+            PointADT2D{ADT(0.95, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)},
+            PointADT2D{ADT(1., number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)}};
         break;
       case ClosingFace::Y_MAX:
         ctps_connector = std::vector<PointADT2D>{
-            PointADT2D{1. - thickness_low, ADT(0., number_of_derivatives)},
-            PointADT2D{1. - thickness_up, ADT(1., number_of_derivatives)},
-            PointADT2D{0.5 * (1. - thickness_low), 0.5 * (1. - thickness_left)},
-            PointADT2D{0.5 * (1. - thickness_up), 0.5 * (1. + thickness_left)},
-            PointADT2D{ADT(0., number_of_derivatives),
-                       0.5 * (1. - thickness_left)},
-            PointADT2D{ADT(0., number_of_derivatives),
-                       0.5 * (1. + thickness_left)}};
-
-        ctps_base = std::vector<PointADT2D>{
-            PointADT2D{ADT(1., number_of_derivatives),
+            PointADT2D{0.5 * (1. - thickness_low),
                        ADT(0., number_of_derivatives)},
-            PointADT2D{ADT(1., number_of_derivatives),
-                       ADT(1., number_of_derivatives)},
-            PointADT2D{1. - thickness_low, ADT(0., number_of_derivatives)},
-            PointADT2D{1. - thickness_up, ADT(1., number_of_derivatives)}};
-        break;
-      case ClosingFace::Y_MIN:
-        ctps_connector = std::vector<PointADT2D>{
-            PointADT2D{thickness_up, ADT(1., number_of_derivatives)},
-            PointADT2D{thickness_low, ADT(0., number_of_derivatives)},
-            PointADT2D{.5 * (thickness_up + 1.), .5 * (1. + thickness_right)},
-            PointADT2D{.5 * (1. + thickness_low), .5 * (1. - thickness_right)},
-            PointADT2D{ADT(1., number_of_derivatives),
-                       .5 * (1. + thickness_right)},
-            PointADT2D{ADT(1., number_of_derivatives),
-                       .5 * (1. - thickness_right)},
-        };
-
-        ctps_base = std::vector<PointADT2D>{
-            PointADT2D{ADT(0., number_of_derivatives),
-                       ADT(1., number_of_derivatives)},
-            PointADT2D{ADT(0., number_of_derivatives),
+            PointADT2D{0.5 * (1. + thickness_low),
                        ADT(0., number_of_derivatives)},
-            PointADT2D{thickness_up, ADT(1., number_of_derivatives)},
-            PointADT2D{thickness_low, ADT(0., number_of_derivatives)}};
-        break;
+            PointADT2D{0.5 * (1. - thickness_low),
+                       ADT(0.25, number_of_derivatives)},
+            PointADT2D{0.5 * (1. + thickness_low),
+                       ADT(0.25, number_of_derivatives)},
+            PointADT2D{ADT(0.05, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)},
+            PointADT2D{ADT(0.95, number_of_derivatives),
+                       ADT(0.5, number_of_derivatives)}};
 
+        ctps_base =
+            std::vector<PointADT2D>{PointADT2D{ADT(0.05, number_of_derivatives),
+                                               ADT(0.5, number_of_derivatives)},
+                                    PointADT2D{ADT(0.95, number_of_derivatives),
+                                               ADT(0.5, number_of_derivatives)},
+                                    PointADT2D{ADT(0.05, number_of_derivatives),
+                                               ADT(1., number_of_derivatives)},
+                                    PointADT2D{ADT(0.95, number_of_derivatives),
+                                               ADT(1., number_of_derivatives)}};
+
+        ctps_base_lhs =
+            std::vector<PointADT2D>{PointADT2D{ADT(0., number_of_derivatives),
+                                               ADT(0.5, number_of_derivatives)},
+                                    PointADT2D{ADT(0.05, number_of_derivatives),
+                                               ADT(0.5, number_of_derivatives)},
+                                    PointADT2D{ADT(0., number_of_derivatives),
+                                               ADT(1., number_of_derivatives)},
+                                    PointADT2D{ADT(0.05, number_of_derivatives),
+                                               ADT(1., number_of_derivatives)}};
+
+        ctps_base_rhs =
+            std::vector<PointADT2D>{PointADT2D{ADT(0.95, number_of_derivatives),
+                                               ADT(0.5, number_of_derivatives)},
+                                    PointADT2D{ADT(1., number_of_derivatives),
+                                               ADT(0.5, number_of_derivatives)},
+                                    PointADT2D{ADT(0.95, number_of_derivatives),
+                                               ADT(1., number_of_derivatives)},
+                                    PointADT2D{ADT(1., number_of_derivatives),
+                                               ADT(1., number_of_derivatives)}};
+        break;
       default:
         assert(("Unknown Case", false));
     }
@@ -366,14 +377,20 @@ class MicrotileExample {
     // Construct the Microtile as first component of the group
     return_value_group[0] = BezierGroup{
         Bezier{connector_degrees, ExtractValuesFromPointCloud(ctps_connector)},
-        Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base)}};
+        Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base)},
+        Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base_lhs)},
+        Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base_rhs)}};
 
     for (std::size_t i_deriv{}; i_deriv < number_of_derivatives; i_deriv++) {
       return_value_group[i_deriv + 1ul] = BezierGroup{
           Bezier{connector_degrees,
                  ExtractDerivativeFromPointCloud(ctps_connector, i_deriv)},
           Bezier{base_degrees,
-                 ExtractDerivativeFromPointCloud(ctps_base, i_deriv)}};
+                 ExtractDerivativeFromPointCloud(ctps_base, i_deriv)},
+          Bezier{base_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_base_lhs, i_deriv)},
+          Bezier{base_degrees,
+                 ExtractDerivativeFromPointCloud(ctps_base_rhs, i_deriv)}};
     }
 
     return return_value_group;
@@ -394,7 +411,8 @@ class DeformationFunctionExample {
 
  public:
   // Quarter Circle Dimensions
-  static constexpr const double innerR{1.}, outerR{2.}, arc_degrees{PI * 0.25};
+//  static constexpr const double innerR{8.}, outerR{20.}, arc_degrees{2 * PI};
+  static constexpr const double innerR{8.}, outerR{20.}, arc_degrees{0.5 * PI};
 
   /// Number of segments in each parametric dimension
   static constexpr const int kNumberOfXSegments{5};
@@ -447,9 +465,8 @@ class DeformationFunctionExample {
                   middlesin * excentricity_of_middle_points * innerR},
           Point2D{endcos * innerR, endsin * innerR}};
       // Define and split up circle segment
-      const auto CircleWedge = Bezier{degrees, ctps}
-                                   .OrderElevateAlongParametricDimension(1)
-                                   .SplitAtPosition(y_knot_lines, 1);
+      const auto CircleWedge =
+          Bezier{degrees, ctps}.SplitAtPosition(y_knot_lines, 1);
       // Assign splines to Splinegroup
       for (int i_y_segment{}; i_y_segment < kNumberOfYSegments; i_y_segment++) {
         ringsegments[i_x_segment + kNumberOfXSegments * i_y_segment] =
@@ -475,12 +492,12 @@ class ValueFieldExample {
 
   // Some super parameters
   const std::array<ADT, kNumberOfSuperParameters> kSuperControlPoints{
-      ADT(0.1, kNumberOfSuperParameters, 0),
-      ADT(0.2, kNumberOfSuperParameters, 1),
-      ADT(0.1, kNumberOfSuperParameters, 2),
-      ADT(0.1, kNumberOfSuperParameters, 3),
-      ADT(0.1, kNumberOfSuperParameters, 4),
-      ADT(0.3, kNumberOfSuperParameters, 5)};
+      ADT(0.3, kNumberOfSuperParameters, 0),
+      ADT(0.4, kNumberOfSuperParameters, 1),
+      ADT(0.3, kNumberOfSuperParameters, 2),
+      ADT(0.25, kNumberOfSuperParameters, 3),
+      ADT(0.25, kNumberOfSuperParameters, 4),
+      ADT(0.25, kNumberOfSuperParameters, 5)};
 
   /**
    * @brief Evaluate the Value field function
@@ -585,7 +602,7 @@ class ParametrizedComposition {
                 Microtile::kClosingTileEvaluationPoints);
             // Evaluate microtile based on the generator provided by Microtile
             microtile_vector = Microtile::GenerateMicrostructureClosingTile(
-                Microtile::ClosingFace::X_MIN,
+                Microtile::ClosingFace::Y_MIN,
                 value_field.Evaluate(transformed_points));
           } else if (i_def_y ==
                      DeformationFunction::kSegmentsPerParametricDimension[1] -
@@ -596,7 +613,7 @@ class ParametrizedComposition {
                 Microtile::kClosingTileEvaluationPoints);
             // Evaluate microtile based on the generator provided by Microtile
             microtile_vector = Microtile::GenerateMicrostructureClosingTile(
-                Microtile::ClosingFace::X_MAX,
+                Microtile::ClosingFace::Y_MAX,
                 value_field.Evaluate(transformed_points));
           } else {
             // If no closing tile is defined, then we set normal tiles in the
@@ -672,13 +689,27 @@ int main() {
       micro_structure_generator.ComposeMicrostructureAndDerivatives();
 
   utils::Export::GuessByExtension(test_composition[0],
-                                  "composed_microstructure.xml");
-  for (std::size_t i_deriv{};
-       i_deriv < ValueFieldExample::kNumberOfSuperParameters; i_deriv++) {
-    utils::Export::GuessByExtension(test_composition[i_deriv + 1],
-                                    std::string("composed_microstructure_") +
-                                        std::to_string(i_deriv) +
-                                        std::string(".xml"));
-  }
+                                  "composed_microstructure.json");
+  utils::Export::GuessByExtension(test_composition[0],
+                                  "composed_microstructure.mesh");
+  ///   const auto microstructure =
+  ///   MicrotileExample::GenerateMicrostructureDerivatives(
+  ///       std::array<ADT,4> {
+  ///         ADT(0.1,1,0),
+  ///         ADT(0.1,1,0),
+  ///         ADT(0.1,1,0),
+  ///         ADT(0.1,1,0)}
+  ///       );
+  ///
+  ///   utils::Export::GuessByExtension(microstructure[0], "microtile.json");
+  ///
+  ///   for (std::size_t i_deriv{};
+  ///        i_deriv < ValueFieldExample::kNumberOfSuperParameters; i_deriv++) {
+  ///     utils::Export::GuessByExtension(test_composition[i_deriv + 1],
+  ///                                     std::string("composed_microstructure_")
+  ///                                     +
+  ///                                         std::to_string(i_deriv) +
+  ///                                         std::string(".json"));
+  ///   }
   return 0;
 }

@@ -10,106 +10,43 @@ using Point2D = Point<2, double>;
 using BezierGroup = BezierSplineGroup<2, Point2D, double>;
 using Bezier = BezierSpline<2, Point2D, double>;
 
-BezierGroup SimpleCrossTile() {
-  // Degrees
+/**
+ * @brief Creates a simple linear crosstile with constant thickness
+ */
+BezierGroup SimpleCrossTile(const double thickness) {
   std::array<std::size_t, 2> degrees{1, 1};
-  std::array<std::size_t, 2> second_order_degrees{1, 2};
-
-  // Auxiliary values
-  const double one_third = 1. / 3.;
-
-  // CTPS
   std::vector<Point2D> ctps_center{
-      Point2D{one_third, 0.25}, Point2D{2. * one_third, 0.25},
-      Point2D{one_third, 0.5}, Point2D{2. * one_third, 0.5}};
-
+      Point2D{0.5 - 0.5 * thickness, 0.5 - 0.5 * thickness},
+      Point2D{0.5 + 0.5 * thickness, 0.5 - 0.5 * thickness},
+      Point2D{0.5 - 0.5 * thickness, 0.5 + 0.5 * thickness},
+      Point2D{0.5 + 0.5 * thickness, 0.5 + 0.5 * thickness}};
   std::vector<Point2D> ctps_left{
-      Point2D{one_third, 0.25}, Point2D{one_third, 0.5}, Point2D{0., 0.25},
-      Point2D{0., 0.5},         Point2D{0., 0.0},       Point2D{0., 1.}};
-
-  std::vector<Point2D> ctps_right{Point2D{2. * one_third, 0.5},
-                                  Point2D{2. * one_third, 0.25},
-                                  Point2D{1., 0.5},
-                                  Point2D{1., 0.25},
-                                  Point2D{1., 1.},
-                                  Point2D{1., 0.0}};
-
-  std::vector<Point2D> ctps_down{Point2D{2. * one_third, 0.25},
-                                 Point2D{one_third, 0.25}, Point2D{1.0, 0.0},
-                                 Point2D{0.0, 0.0}};
-
+      Point2D{0., 0.5 - 0.5 * thickness},
+      Point2D{0.5 - 0.5 * thickness, 0.5 - 0.5 * thickness},
+      Point2D{0., 0.5 + 0.5 * thickness},
+      Point2D{0.5 - 0.5 * thickness, 0.5 + 0.5 * thickness}};
+  std::vector<Point2D> ctps_right{
+      Point2D{0.5 + 0.5 * thickness, 0.5 - 0.5 * thickness},
+      Point2D{1., 0.5 - 0.5 * thickness},
+      Point2D{0.5 + 0.5 * thickness, 0.5 + 0.5 * thickness},
+      Point2D{1., 0.5 + 0.5 * thickness}};
+  std::vector<Point2D> ctps_down{
+      Point2D{0.5 - 0.5 * thickness, 0.}, Point2D{0.5 + 0.5 * thickness, 0.},
+      Point2D{0.5 - 0.5 * thickness, 0.5 - 0.5 * thickness},
+      Point2D{0.5 + 0.5 * thickness, 0.5 - 0.5 * thickness}};
   std::vector<Point2D> ctps_up{
-      Point2D{one_third, 0.5}, Point2D{2. * one_third, 0.5},
-      Point2D{0., 0.85},       Point2D{1., 0.85},
-      Point2D{0., 1.},         Point2D{1., 1.}};
+      Point2D{0.5 - 0.5 * thickness, 0.5 + 0.5 * thickness},
+      Point2D{0.5 + 0.5 * thickness, 0.5 + 0.5 * thickness},
+      Point2D{0.5 - 0.5 * thickness, 1.}, Point2D{0.5 + 0.5 * thickness, 1.}};
 
-  return BezierGroup{
-      Bezier{degrees, ctps_center}, Bezier{second_order_degrees, ctps_left},
-      Bezier{second_order_degrees, ctps_right}, Bezier{degrees, ctps_down},
-      Bezier{second_order_degrees, ctps_up}};
-}
-BezierGroup SimpleCrossTile(const double thickness, const bool deriv = false) {
-  std::array<std::size_t, 2> degrees{1, 1};
-  if (!deriv) {
-    std::vector<Point2D> ctps_center{
-        Point2D{0.5 - 0.5 * thickness, 0.5 - 0.5 * thickness},
-        Point2D{0.5 + 0.5 * thickness, 0.5 - 0.5 * thickness},
-        Point2D{0.5 - 0.5 * thickness, 0.5 + 0.5 * thickness},
-        Point2D{0.5 + 0.5 * thickness, 0.5 + 0.5 * thickness}};
-    std::vector<Point2D> ctps_left{
-        Point2D{0., 0.5 - 0.5 * thickness},
-        Point2D{0.5 - 0.5 * thickness, 0.5 - 0.5 * thickness},
-        Point2D{0., 0.5 + 0.5 * thickness},
-        Point2D{0.5 - 0.5 * thickness, 0.5 + 0.5 * thickness}};
-    std::vector<Point2D> ctps_right{
-        Point2D{0.5 + 0.5 * thickness, 0.5 - 0.5 * thickness},
-        Point2D{1., 0.5 - 0.5 * thickness},
-        Point2D{0.5 + 0.5 * thickness, 0.5 + 0.5 * thickness},
-        Point2D{1., 0.5 + 0.5 * thickness}};
-    std::vector<Point2D> ctps_down{
-        Point2D{0.5 - 0.5 * thickness, 0.}, Point2D{0.5 + 0.5 * thickness, 0.},
-        Point2D{0.5 - 0.5 * thickness, 0.5 - 0.5 * thickness},
-        Point2D{0.5 + 0.5 * thickness, 0.5 - 0.5 * thickness}};
-    std::vector<Point2D> ctps_up{
-        Point2D{0.5 - 0.5 * thickness, 0.5 + 0.5 * thickness},
-        Point2D{0.5 + 0.5 * thickness, 0.5 + 0.5 * thickness},
-        Point2D{0.5 - 0.5 * thickness, 1.}, Point2D{0.5 + 0.5 * thickness, 1.}};
-
-    return BezierGroup{Bezier{degrees, ctps_center}, Bezier{degrees, ctps_left},
-                       Bezier{degrees, ctps_right}, Bezier{degrees, ctps_down},
-                       Bezier{degrees, ctps_up}};
-  } else {
-    std::vector<Point2D> ctps_center_deriv{
-        Point2D{-0.5, -0.5}, Point2D{0.5, -0.5}, Point2D{-0.5, 0.5},
-        Point2D{0.5, 0.5}};
-    std::vector<Point2D> ctps_left_deriv{Point2D{0., -0.5}, Point2D{-0.5, -0.5},
-                                         Point2D{0., 0.5}, Point2D{-0.5, 0.5}};
-    std::vector<Point2D> ctps_right_deriv{Point2D{0.5, -0.5}, Point2D{0., -0.5},
-                                          Point2D{0.5, 0.5}, Point2D{0., 0.5}};
-    std::vector<Point2D> ctps_down_deriv{Point2D{-0.5, 0.}, Point2D{0.5, 0.},
-                                         Point2D{-0.5, -0.5},
-                                         Point2D{0.5, -0.5}};
-    std::vector<Point2D> ctps_up_deriv{Point2D{-0.5, 0.5}, Point2D{0.5, 0.5},
-                                       Point2D{-0.5, 0.}, Point2D{0.5, 0.}};
-
-    return BezierGroup{
-        Bezier{degrees, ctps_center_deriv}, Bezier{degrees, ctps_left_deriv},
-        Bezier{degrees, ctps_right_deriv}, Bezier{degrees, ctps_down_deriv},
-        Bezier{degrees, ctps_up_deriv}};
-  }
+  return BezierGroup{Bezier{degrees, ctps_center}, Bezier{degrees, ctps_left},
+                     Bezier{degrees, ctps_right}, Bezier{degrees, ctps_down},
+                     Bezier{degrees, ctps_up}};
 }
 
-BezierGroup BulkSquare() {
-  // Create Crosstile Group
-  std::vector<Point2D> ctps_deformation_function_bulk{
-      Point2D{1., 0.},   Point2D{1.5, -0.2}, Point2D{2., 0.},
-      Point2D{0.8, 0.5}, Point2D{1.5, 0.5},  Point2D{2.2, 0.5},
-      Point2D{1., 1.},   Point2D{1.5, 1.2},  Point2D{2., 1.}};
-  std::array<std::size_t, 2> deformation_function_degrees{2, 2};
-  return BezierGroup{
-      Bezier{deformation_function_degrees, ctps_deformation_function_bulk}};
-}
-
+/**
+ * @brief Creates a segmented ring to be filled with tiles
+ */
 BezierGroup CircleGroup(const double innerR, const double outerR,
                         const int segments, const double arc_degrees) {
   ///
@@ -134,61 +71,34 @@ BezierGroup CircleGroup(const double innerR, const double outerR,
                                       middlesin * outdor_fact * innerR},
                               Point2D{endcos * innerR, endsin * innerR}};
 
-    ringsegments[i_segment] =
-        Bezier{degrees, ctps}.OrderElevateAlongParametricDimension(1);
+    ringsegments[i_segment] = Bezier{degrees, ctps};
   }
   return ringsegments;
 }
 
 int main() {
-  const int n_segments = 10;
+  // Parameters for the outer function
+  const int n_segments = 20;
+  const double innerRadius{1.}, outerRadius{2.};
+  const double arc_segment{2 * std::acos(-1)};
+
+  // Microtile Thickness
   const double thickness = 0.3;
+
   // Inner function
   auto microtile = SimpleCrossTile(thickness);
-  auto microtile_deriv = SimpleCrossTile(thickness, true);
-
-  for (int i{1}; i < n_segments; i++) {
-    microtile_deriv += SimpleCrossTile(thickness, true);
-  }
 
   // Outer Function
   auto deformation_function =
-      CircleGroup(1., 2., n_segments, 2 * std::acos(-1));
-  //   auto deformation_function = BulkSquare();
+      CircleGroup(innerRadius, outerRadius, n_segments, arc_segment);
 
   // Compose composition
   const auto test_composition = deformation_function.Compose(microtile);
 
-  utils::Export::GuessByExtension(test_composition,
-                                  "composed_microstructure.xml");
-  utils::Export::GuessByExtension(deformation_function,
-                                  "deformation_function.xml");
-  utils::Export::GuessByExtension(microtile, "microtile.xml");
-  utils::Export::GuessByExtension(SimpleCrossTile(thickness, true),
-                                  "microtileDeriv.xml");
-
-  // Layer approach
-  const auto microtile_fancy = SimpleCrossTile();
-  const auto inception_test =
-      microtile_fancy[4].Compose(microtile_fancy[4].Compose(microtile_fancy) +
-                                 microtile_fancy[0] + microtile_fancy[1] +
-                                 microtile_fancy[3] + microtile_fancy[2]) 
-      +microtile_fancy[0] + microtile_fancy[1] + microtile_fancy[3] +
-      microtile_fancy[2];
-  utils::Export::GuessByExtension(microtile_fancy, "microtile_fancy.xml");
-  utils::Export::GuessByExtension(inception_test,
-                                  "composed_inception_microstructure.xml");
-
-  // Derive composed geometry
-  auto microstructure_derivative =
-      deformation_function.DerivativeWRTParametricDimension(0)
-          .Compose(microtile)
-          .MultiplyComponentwise(microtile_deriv.ExtractDimension(0));
-  microstructure_derivative.AddComponentwise(
-      deformation_function.DerivativeWRTParametricDimension(1)
-          .Compose(microtile)
-          .MultiplyComponentwise(microtile_deriv.ExtractDimension(1)));
-  utils::Export::GuessByExtension(microstructure_derivative,
-                                  "composed_microstructure_derivative.xml");
+  // Export the composed structure in different Formats for testing
+  utils::Export::AsJSON(test_composition, "composed_microstructure");
+  utils::Export::AsMFEM(test_composition, "composed_microstructure");
+  utils::Export::AsIRIT(test_composition, "composed_microstructure");
+  utils::Export::AsXML(test_composition, "composed_microstructure");
   return 0;
 }

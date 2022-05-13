@@ -2,8 +2,10 @@
 
 #include <array>
 
-#define MAX_BINOMIAL_DEGREE 62u // Required for second test set
+#define MAX_BINOMIAL_DEGREE 62u  // Required for second test set
 #include "bezierManipulation/src/bezier_spline.hpp"
+#include "bezierManipulation/src/point.hpp"
+#include "bezierManipulation/src/utils/type_traits/is_point.hpp"
 
 using namespace beziermanipulation;
 
@@ -29,7 +31,7 @@ class BezierTestingSuite : public ::testing::Test {
 /*
  * Demonstrate some basic vector arithmetic
  */
-TEST_F(BezierTestingSuite, Composition) {
+TEST_F(BezierTestingSuite, PointTests) {
   // Expect equality.
   EXPECT_EQ(point1, point2 + point3);
   EXPECT_EQ(point1 - point2, point3);
@@ -38,4 +40,9 @@ TEST_F(BezierTestingSuite, Composition) {
   EXPECT_EQ(-point1, point4);
 }
 
-}  // namespace beziermanipulation::tests::composition_test
+TEST_F(BezierTestingSuite, PointCreationTests) {
+  EXPECT_TRUE((utils::type_traits::isPoint_v<Point<3, double>>));
+  EXPECT_FALSE((utils::type_traits::isPoint_v<BezierSpline<2,Point<3, double>, double>>));
+}
+
+}  // namespace beziermanipulation::tests::point_test

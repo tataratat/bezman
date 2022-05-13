@@ -1,8 +1,20 @@
 from optparse import OptionParser, OptionGroup
-import gustav as gus
+import gustaf as gus
 import vedo
 import splinepy as sp
+import json
 import numpy as np
+
+def import_json_to_list(filename):
+    # Import data from file into dict format
+    jsonbz = sp.io.json.load(filename) 
+    
+    gusbzList = []
+    gusbzList += [gus.Bezier(**splineDict) for splineDict in jsonbz["Bezier"]]
+    gusbzList += [gus.NURBS(**splineDict) for splineDict in jsonbz["NURBS"]]
+    gusbzList += [gus.BSpline(**splineDict) for splineDict in jsonbz["BSpline"]]
+    
+    return gusbzList
 
 if __name__ == "__main__":
   # Quick parse options
@@ -43,9 +55,12 @@ if __name__ == "__main__":
     print("No filename specified. , set with -i <filename>")
     quit()
   
-  spls = sp.load_splines(options.filename)
-  gs = [gus.NURBS(**a.todict()) for a in spls]
-  spls = None
+  if options.filename.endswith('.json'):
+    gs = import_json_to_list(options.filename)
+  else:
+    spls = sp.load_splines(options.filename)
+    gs = [gus.NURBS(**a.todict()) for a in spls]
+    spls = None
   
   if options.q_res == None:
     if len(gs[0].degrees) == 3 :
@@ -72,8 +87,12 @@ if __name__ == "__main__":
   # Now check the derivative if required
   if options.derivfilename != None:
     print("Start Sampling and reading the derivative file")
-    spls = sp.load_splines(options.derivfilename)
-    gsDeriv = [gus.NURBS(**a.todict()) for a in spls]
+    if options.derivfilename.endswith('.json'):
+      gsDeriv = import_json_to_list(options.derivfilename)
+    else:
+      spls = sp.load_splines(options.filename)
+      gsDeriv = [gus.NURBS(**a.todict()) for a in spls]
+      spls = None
 
     # Free memory
     spls = None

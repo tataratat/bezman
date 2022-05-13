@@ -47,6 +47,7 @@ class Base64_ {
     return et_reversed;
   }
 
+  /// Lookup Table for Decoding B64 string
   static constexpr std::array<unsigned, 256> char_decode_table =
       ReverseCharEncodeTable_();
 
@@ -165,6 +166,12 @@ class Base64_ {
     return ct_points;
   }
 
+  /**
+   * @brief Reading a b64 string, transforming it into a vector of a specific
+   * type
+   *
+   * @tparam OutputType target type
+   */
   template <
       typename OutputType,
       std::enable_if_t<!type_traits::isPoint_v<OutputType>, void*> = nullptr>

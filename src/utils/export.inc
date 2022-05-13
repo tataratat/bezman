@@ -206,7 +206,15 @@ void Export::GuessByExtension(
     AsJSON(spline_group, filename);
   } else if (extension_str == "mesh") {
     // Export as MFEM
-    AsMFEM(spline_group, filename);
+    if constexpr (parametric_dimension ==
+                      PhysicalPointType::kSpatialDimension &&
+                  (parametric_dimension == static_cast<std::size_t>(2) ||
+                   parametric_dimension == static_cast<std::size_t>(3))) {
+      AsMFEM(spline_group, filename);
+    } else {
+      // @todo throw exception
+      assert(false);
+    }
   } else {
     throw std::invalid_argument("File Extension not supported");
   }
@@ -366,10 +374,9 @@ void Export::AsMFEM(
   // MFEM format currently restricted to 2D2D and 3D3D
   static_assert(parametric_dimension == PhysicalPointType::kSpatialDimension,
                 "Mismatch between parametric and physical dimension");
-  //  "MFEM export limited to 2D and 3D meshes"
-  // @todo Exception
-  assert(parametric_dimension == static_cast<std::size_t>(2) ||
-         parametric_dimension == static_cast<std::size_t>(3));
+  static_assert(parametric_dimension == static_cast<std::size_t>(2) ||
+                    parametric_dimension == static_cast<std::size_t>(3),
+                "MFEM export limited to 2D and 3D meshes");
 
   // -- Auxiliary values --
   const std::size_t number_of_splines{spline_group.size()};

@@ -185,17 +185,15 @@ class MicrostructureGenerator {
                i_derivative++) {
             const auto microstructure_derivative =
                 (microstructure_derivative_first_par_dim.MultiplyComponentwise(
-                     microtile_vector[i_derivative].ExtractDimension(0)))
-                    .AddComponentwise(
-                        microstructure_derivative_second_par_dim
-                            .MultiplyComponentwise(
-                                microtile_vector[i_derivative].ExtractDimension(
-                                    1)))
-                    .AddComponentwise(
-                        microstructure_derivative_third_par_dim
-                            .MultiplyComponentwise(
-                                microtile_vector[i_derivative].ExtractDimension(
-                                    2)));
+                     microtile_vector[i_derivative + 1].ExtractDimension(0)))
+                    .AddComponentwise(microstructure_derivative_second_par_dim
+                                          .MultiplyComponentwise(
+                                              microtile_vector[i_derivative + 1]
+                                                  .ExtractDimension(1)))
+                    .AddComponentwise(microstructure_derivative_third_par_dim
+                                          .MultiplyComponentwise(
+                                              microtile_vector[i_derivative + 1]
+                                                  .ExtractDimension(2)));
             // Assign to microstructure
             for (unsigned i_spline_in_tile{};
                  i_spline_in_tile < Microtile::kNumberOfSplines;

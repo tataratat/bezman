@@ -469,7 +469,7 @@ void Export::AsMFEM(
         for (std::size_t i_neighbor{};
              i_neighbor < number_of_relevant_element_faces; i_neighbor++) {
           const std::size_t& face_to_check = faces[i_neighbor];
-          // Check if boundary, if true --> Loop is closed
+          // Check if boundary
           if (connectivity[current_spline_id][face_to_check] ==
               static_cast<std::size_t>(-1)) {
             number_of_boundaries++;
@@ -503,6 +503,13 @@ void Export::AsMFEM(
       n_assigned_knot_vectors++;
     }
   }
+
+  // The boundary count is only valid for 2D elements, as all faces correspond
+  // to exactly one knot_vector dimension. In higher order problems, like 3D the
+  // same face needs to be checkt for n_dim-1 knot_vector dimensions, the number
+  // of boundaries therefore needs to be updated accordingly
+  assert(number_of_boundaries % (parametric_dimension - 1) == 0);
+  number_of_boundaries /= (parametric_dimension - 1);
 
   // map for the edges -> key is the edge with the vertices | value is the
   // knot vector id

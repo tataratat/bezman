@@ -138,7 +138,10 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
     &BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::
         AddComponentwise(const BezierSplineGroup &rhs) {
-  assert(("Size Mismatch", this->size() == rhs.size()));
+
+  if(this->size() != rhs.size()){
+    utils::Logger::TerminatingError("Size Mismatch inside the operation AddCompnentwise");
+  }
   for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
     (*this)[i_spline] += rhs[i_spline];
   }
@@ -155,7 +158,10 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::
     MultiplyComponentwise(
         const BezierSplineGroup<parametric_dimension, PointTypeRHS, ScalarRHS>
             &rhs) const {
-  assert(("Size Mismatch", this->size() == rhs.size()));
+
+  if(this->size() != rhs.size()){
+    utils::Logger::TerminatingError("Size Mismatch inside the operation AddCompnentwise");
+  }
   BezierSplineGroup<parametric_dimension,
                     decltype(PhysicalPointType{} * PointTypeRHS{}),
                     decltype(ScalarType{} * ScalarRHS{})>

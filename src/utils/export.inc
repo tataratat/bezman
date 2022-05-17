@@ -186,7 +186,6 @@ void Export::GuessByExtension(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group,
     const std::string& filename) {
-  auto& logger = Logger::Get();
 
   // In case of a absolute path strip filename
   std::size_t last_found_id = filename.find_last_of("/\\");
@@ -198,21 +197,21 @@ void Export::GuessByExtension(
       file_without_path.substr(extension_start_id + 1);
 
   if (extension_str == "itd") {
-    logger.Logging("Identified IRIT export format");
+    Logger::Logging("Identified IRIT export format");
     // Export as IRIT
     AsIRIT(spline_group, filename);
   } else if (extension_str == "xml") {
-    logger.Logging("Identified XML export format");
+    Logger::Logging("Identified XML export format");
     // Export as XML
     AsXML(spline_group, filename);
   } else if (extension_str == "json") {
-    logger.Logging("Identified json export format");
-    logger.ExtendedInformation("Json Export format uses base64 as default");
-    logger.ExtendedInformation("Use AsJSON function to change to text output");
+    Logger::Logging("Identified json export format");
+    Logger::ExtendedInformation("Json Export format uses base64 as default");
+    Logger::ExtendedInformation("Use AsJSON function to change to text output");
     // Export as custom JSON
     AsJSON(spline_group, filename);
   } else if (extension_str == "mesh") {
-    logger.Logging("Identified MFEM export format");
+    Logger::Logging("Identified MFEM export format");
     // Export as MFEM
     if constexpr (parametric_dimension ==
                       PhysicalPointType::kSpatialDimension &&
@@ -220,8 +219,8 @@ void Export::GuessByExtension(
                    parametric_dimension == static_cast<std::size_t>(3))) {
       AsMFEM(spline_group, filename);
     } else {
-      logger.Error("MFEM only supports 2D->2D or 3D->3D Splines");
-      logger.TerminatingError("Not Implemented");
+      Logger::Error("MFEM only supports 2D->2D or 3D->3D Splines");
+      Logger::TerminatingError("Not Implemented");
     }
   } else {
     throw std::invalid_argument("File Extension not supported");
@@ -244,8 +243,7 @@ void Export::AsIRIT(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group,
     const std::string& filename) {
-  auto& logger = Logger::Get();
-  logger.UserInfo("Starting IRIT Export as : " + filename);
+  Logger::UserInfo("Starting IRIT Export as : " + filename);
   // Create File Stream
   std::ofstream export_file;
   export_file.open(ensureFileExtension(filename, "itd"));
@@ -268,7 +266,7 @@ void Export::AsIRIT(
   // Write Footer
   export_file << "\n]";
   export_file.close();
-  logger.Logging("Finished IRIT Export");
+  Logger::Logging("Finished IRIT Export");
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -287,9 +285,8 @@ void Export::AsXML(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group,
     const std::string& filename) {
-  auto& logger = Logger::Get();
-  logger.UserInfo("Starting XML Export as : " + filename);
-  logger.Warning(
+  Logger::UserInfo("Starting XML Export as : " + filename);
+  Logger::Warning(
       "XML Export inefficient (export as NURBS) and not standardized.");
   // Create File Stream
   std::ofstream export_file;
@@ -311,7 +308,7 @@ void Export::AsXML(
   // Write Footer
   export_file << "</SplineList>\n";
   export_file.close();
-  logger.Logging("Finishing XML Export");
+  Logger::Logging("Finishing XML Export");
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -330,9 +327,8 @@ void Export::AsJSON(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group,
     const std::string& filename, const bool base64encoding) {
-  auto& logger = Logger::Get();
-  logger.UserInfo("Starting JSON Export as : " + filename);
-  logger.Logging(base64encoding ? "Exporting using Base64 Encoding"
+  Logger::UserInfo("Starting JSON Export as : " + filename);
+  Logger::Logging(base64encoding ? "Exporting using Base64 Encoding"
                                 : "Exporting as Text-Only");
   // Create File Stream
   std::ofstream export_file;
@@ -369,7 +365,7 @@ void Export::AsJSON(
   // Write Footer
   export_file << "  ]\n}";
   export_file.close();
-  logger.Logging("Finishing XML Export");
+  Logger::Logging("Finishing XML Export");
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -388,9 +384,8 @@ void Export::AsMFEM(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group,
     const std::string& filename) {
-  auto& logger = Logger::Get();
-  logger.UserInfo("Starting MFEM Export as : " + filename);
-  logger.Warning(
+  Logger::UserInfo("Starting MFEM Export as : " + filename);
+  Logger::Warning(
       "MFEM Exports of derivatives will result in different enumerations!");
   // Create File Stream
   std::ofstream export_file;
@@ -421,10 +416,10 @@ void Export::AsMFEM(
   const auto connectivity =
       beziermanipulation::utils::algorithms::GetConnectivityForSplineGroup(
           spline_group);
-  if (connectivity.size() > 0) {
-    logger.TerminatingError("Creating connectivity failed.");
+  if (connectivity.size() == 0) {
+    Logger::TerminatingError("Creating connectivity failed.");
   }
-  logger.ExtendedInformation("Connectivity retrieved without errors");
+  Logger::ExtendedInformation("Connectivity retrieved without errors");
 
   // Initialize counters
   std::size_t number_of_boundaries{};
@@ -448,7 +443,7 @@ void Export::AsMFEM(
   const auto vertex_id = algorithms::IndexUniquePointList(
       corner_vertices,
       spline_group.MaximumCorner() - spline_group.MinimumCorner());
-  logger.ExtendedInformation("Enumerated Vertices using uniquified points");
+  Logger::ExtendedInformation("Enumerated Vertices using uniquified points");
 
   // Continue with 2.
   // Enumerate knot vectors
@@ -516,13 +511,13 @@ void Export::AsMFEM(
           // went wrong --> error
           if (knot_vector_ids[current_neighbor][i_dim] !=
               static_cast<std::size_t>(-1)) {
-            logger.TerminatingError(
+            Logger::TerminatingError(
                 "Connectivity error. Knotvector mismatch between two "
                 "neighboring splines");
           }
           if (spline_group[current_neighbor].GetDegrees()[i_dim] !=
               spline_group[i_spline].GetDegrees()[i_dim]) {
-            logger.TerminatingError(
+            Logger::TerminatingError(
                 "Connectivity error. Degree mismatch between two "
                 "neighboring splines");
           }
@@ -536,7 +531,7 @@ void Export::AsMFEM(
       n_assigned_knot_vectors++;
     }
   }
-  logger.ExtendedInformation("Knotvector assignment successful");
+  Logger::ExtendedInformation("Knotvector assignment successful");
 
   // The boundary count is only valid for 2D elements, as all faces correspond
   // to exactly one knot_vector dimension. In higher order problems, like 3D the
@@ -710,7 +705,7 @@ void Export::AsMFEM(
 
   // Write Footer
   export_file.close();
-  logger.Logging("Finishing XML Export");
+  Logger::Logging("Finishing XML Export");
 }
 
 #endif  // SRC_UTILS_EXPORT_INC

@@ -36,11 +36,16 @@ auto FindConnectivity(
     const Point<physical_dimension, ScalarType> orientation_metric,
     const std::array<std::size_t, number_of_element_faces>& opposite_face_list,
     const ScalarType tolerance = 1e-5) {
+
   // Check if number of faces is a divisor of the point list length
-  assert(face_center_points.size() % number_of_element_faces == 0);
+  if(face_center_points.size() % number_of_element_faces != 0){
+    Logger::TerminatingError("Wrong number of faces and center points");
+  }
 
   // Assure Metric is normed and non-zero
-  assert(orientation_metric.EuclidianNorm() > 0);
+  if(orientation_metric.EuclidianNorm() < 1e-20){
+    Logger::TerminatingError("Wrong Metric");
+  }
   const Point<physical_dimension, ScalarType> normed_orientation_metric =
       orientation_metric *
       (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
@@ -73,7 +78,10 @@ auto FindConnectivity(
 
   // Sort Metric Vector
   const auto metric_order_indices = algorithms::IndexListSort(scalar_metric);
+  Logger::Logging("List of indices sorted. Contains "
+                 + std::to_string(n_total_points) + " points.");
 
+  Logger::Logging("Start looping over all points");
   // Loop over points
   for (unsigned int lower_limit = 0; lower_limit < n_total_points - 1;
        lower_limit++) {
@@ -122,9 +130,20 @@ auto FindConnectivity(
       // Check 1. (@todo EXCEPTION)
       assert(connectivity[element_id_start][element_face_id_start] ==
              static_cast<std::size_t>(-2));
+
+      if(connectivity[element_face_id_start][element_face_id_start] !=
+         static_cast<std::size_t>(-2)){
+        Logger::Error("Connectivity connection is invalid.");
+      }
+
       // Check 2. (@todo EXCEPTION)
-      assert(opposite_face_list[element_face_id_start] == element_face_id_end);
-      assert(opposite_face_list[element_face_id_end] == element_face_id_start);
+      // TODO check if mfem format is used for the output -> if not do not check
+      if(opposite_face_list[element_face_id_start] != element_face_id_end) {
+        Logger::Error("Orientation Problem for MFEM-mesh output.");
+      }
+      if(opposite_face_list[element_face_id_end] != element_face_id_start){
+        Logger::Error("Orientation Problem for MFEM-mesh output.");
+      }
       // If both tests passed, update connectivity
       connectivity[element_id_start][element_face_id_start] = element_id_end;
       connectivity[element_id_end][element_face_id_end] = element_id_start;
@@ -165,11 +184,14 @@ std::vector<std::size_t> IndexUniquePointList(
         original_point_list,
     const Point<physical_dimension, ScalarType> orientation_metric,
     const ScalarType tolerance = 1e-5) {
+
   // Assure Metric is normed and non-zero
-  assert(orientation_metric.EuclidianNorm() > 0);
-  const Point<physical_dimension, ScalarType> normed_orientation_metric =
-      orientation_metric *
-      (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
+  if(orientation_metric.EuclidianNorm() <= 0){
+    Logger::TerminatingError("Metric is not normed or zero");
+  }
+  const Point<physical_dimension, ScalarType> normed_orientation_metric
+  = orientation_metric *(static_cast<ScalarType>(1.) /
+          orientation_metric.EuclidianNorm());
 
   // Store information in Auxiliary Values
   const std::size_t n_total_points{original_point_list.size()};
@@ -197,6 +219,7 @@ std::vector<std::size_t> IndexUniquePointList(
   const auto metric_order_indices = algorithms::IndexListSort(scalar_metric);
 
   // Start Uniquifying
+  Logger::ExtendedInformation("Starting uniquifying indices of point list");
   std::size_t number_of_new_points{};
   for (std::size_t lower_limit{0}; lower_limit < n_total_points - 1;
        lower_limit++) {
@@ -222,7 +245,9 @@ std::vector<std::size_t> IndexUniquePointList(
       if (found_duplicate) {
         if (unique_indices[metric_order_indices[upper_limit]] !=
             static_cast<std::size_t>(-1)) {
-          assert(true);  // Use logger here
+          Logger::TerminatingError(
+                  "Failure in indexing Unique Point List. "
+                  "Found two unique_indices with the same value");
         }
         unique_indices[metric_order_indices[upper_limit]] =
             number_of_new_points;
@@ -238,6 +263,7 @@ std::vector<std::size_t> IndexUniquePointList(
       static_cast<std::size_t>(-1)) {
     unique_indices[metric_order_indices[last_index]] = number_of_new_points;
   }
+  Logger::ExtendedInformation("Finished uniquifying indices of point list");
   return unique_indices;
 }
 
@@ -253,8 +279,10 @@ auto GetConnectivityForSplineGroup(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group) {
   // Current implementation is only made for bi- and trivariates
-  static_assert((parametric_dimension == 3 || parametric_dimension == 2),
-                "High-Dimensional and Line Patches not supported");
+  if(!(parametric_dimension == 3 || parametric_dimension == 2)){
+    Logger::TerminatingError("High-Dimensional and Line "
+                                     "Patches not supported");
+  }
 
   // Array that stores opposite faces
   constexpr auto opposite_faces =

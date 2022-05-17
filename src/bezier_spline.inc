@@ -205,6 +205,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   BezierSpline derivative{new_degrees};
   const ScalarType factor = static_cast<ScalarType>(degrees[par_dim]);
 
+  utils::Logger::Logging("Starting deriving of all control points");
+
   // Start looping over all control points in derivative and determine their new
   // values
   for (IndexingType i_point{0}; i_point < derivative.NumberOfControlPoints;
@@ -215,6 +217,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     derivative.control_points[i_point] =
         factor * (ControlPoint(next_index) - ControlPoint(index));
   }
+  utils::Logger::Logging("Finished deriving of all control points");
   return derivative;
 }
 

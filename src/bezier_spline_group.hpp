@@ -6,6 +6,8 @@
 
 #include "bezierManipulation/src/bezier_spline.hpp"
 #include "bezierManipulation/src/point.hpp"
+#include "bezierManipulation/src/utils/logger.hpp"
+
 
 namespace beziermanipulation {
 

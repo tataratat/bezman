@@ -3,24 +3,25 @@
 
 int main() {
   // Get the logger
-  auto& logger = beziermanipulation::utils::Logger::Get();
+ // auto& logger = beziermanipulation::utils::Logger::Get();
 
   // Shorter version for the facilitated access
+  using Logger = beziermanipulation::utils::Logger;
   using LoggerOutputOptions = beziermanipulation::utils::Logger::OutputLevel;
-  logger.SetOutputLevel(15);
-  logger.Warning("This is a warning");
-  logger.Error("This is an error");
-  logger.UserInfo("This is a user info");
-  logger.UserInfo("Now enabling timestamps");
-  logger.SetOutputLevel(
+  Logger::SetOutputLevel(15);
+  Logger::Warning("This is a warning");
+  Logger::Error("This is an error");
+  Logger::UserInfo("This is a user info");
+  Logger::UserInfo("Now enabling timestamps");
+  Logger::SetOutputLevel(
       {LoggerOutputOptions::all});
-  logger.Warning("This is a warning");
-  logger.Error("This is an error");
-  logger.UserInfo("This is a user info");
-  logger.Logging("This is a logging information");
-  logger.ExtendedInformation("This is extended logging information");
+  Logger::Warning("This is a warning");
+  Logger::Error("This is an error");
+  Logger::UserInfo("This is a user info");
+  Logger::Logging("This is a logging information");
+  Logger::ExtendedInformation("This is extended logging information");
 
-  logger.TerminatingError<std::logic_error>("This is a terminating error! - Kills Program.");
+  Logger::TerminatingError<std::logic_error>("This is a terminating error! - Kills Program.");
 
   return 0;
 }

@@ -64,6 +64,36 @@ class Logger {
     init();
   }
 
+  static void SetOutputLevel(const std::initializer_list<OutputLevel>& output_options) {
+    Get().SetOutputLevel_(output_options);
+  }
+
+  static void Warning(const std::string& warning_text){
+    Get().Warning_(warning_text);
+  }
+
+  static void TerminatingError(const std::string& error_text){
+    Get().TerminatingError_(error_text);
+  }
+
+  static void Error(const std::string& error_text){
+    Get().Error_(error_text);
+  }
+
+  static void UserInfo(const std::string& info_text){
+    Get().UserInfo_(info_text);
+  }
+
+  static void Logging(const std::string& log_text){
+    Get().Logging_(log_text);
+  }
+
+  static void ExtendedInformation(const std::string& log_text) {
+    Get().ExtendedInformation_(log_text);
+  }
+
+
+      private:
   /**
    * @brief Set the Output Level
    *
@@ -72,7 +102,7 @@ class Logger {
    *
    * SetOutputLevel({OutputLevel::warnings, OutputLevel::errors});
    */
-  void SetOutputLevel(
+  void SetOutputLevel_(
       const std::initializer_list<OutputLevel>& output_options) {
     outputlevel_ = 0;
     for (auto i_option = output_options.begin();
@@ -88,7 +118,7 @@ class Logger {
    * The function writes formated output based on the chosen level of
    * information
    */
-  void Warning(const std::string& warning_text) {
+  void Warning_(const std::string& warning_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::warnings) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -108,7 +138,7 @@ class Logger {
    * The function writes formated output based on the chosen level of
    * information
    */
-  void UserInfo(const std::string& info_text) {
+  void UserInfo_(const std::string& info_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::userinfo) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -128,7 +158,7 @@ class Logger {
    * The function writes formated output based on the chosen level of
    * information
    */
-  void Logging(const std::string& log_text) {
+  void Logging_(const std::string& log_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::logging) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -149,7 +179,7 @@ class Logger {
    * The function writes formated output based on the chosen level of
    * information
    */
-  void ExtendedInformation(const std::string& log_text) {
+  void ExtendedInformation_(const std::string& log_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::logging_verbose) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -169,7 +199,7 @@ class Logger {
    * This function writes formated output, but also terminates the execution of
    * the problem
    */
-  void Error(const std::string& error_text) {
+  void Error_(const std::string& error_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::errors) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -190,7 +220,7 @@ class Logger {
    * potentially leads to the termination of the program
    */
   template <typename ExceptionType = std::runtime_error>
-  void TerminatingError(const std::string& error_text) {
+  void TerminatingError_(const std::string& error_text) {
     if (static_cast<unsigned>(OutputLevel::errors) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
                 << ColorText("crit. error", Color::red) << "]" << GetTimeStamp()

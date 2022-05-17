@@ -181,7 +181,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
     &BezierSplineGroup<parametric_dimension, PhysicalPointType,
                        ScalarType>::operator+=(const BezierSplineGroup &rhs) {
-  (*this).insert(this->begin(), rhs.begin(), rhs.end());
+  (*this).insert(this->end(), rhs.begin(), rhs.end());
   return (*this);
 }
 

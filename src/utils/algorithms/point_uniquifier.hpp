@@ -37,6 +37,7 @@ auto FindConnectivity(
     const std::array<std::size_t, number_of_element_faces>& opposite_face_list,
     const ScalarType tolerance = 1e-5) {
   // Check if number of faces is a divisor of the point list length
+  Logger::Logging("Searching for Connectivity");
   if (face_center_points.size() % number_of_element_faces != 0) {
     Logger::TerminatingError("Wrong number of faces and center points");
   }
@@ -77,10 +78,10 @@ auto FindConnectivity(
 
   // Sort Metric Vector
   const auto metric_order_indices = algorithms::IndexListSort(scalar_metric);
-  Logger::Logging("List of indices sorted. Contains " +
+  Logger::ExtendedInformation("List of indices sorted. Contains " +
                   std::to_string(n_total_points) + " points.");
 
-  Logger::Logging("Start looping over all points");
+  Logger::ExtendedInformation("Start looping over all points");
   // Loop over points
   for (unsigned int lower_limit = 0; lower_limit < n_total_points - 1;
        lower_limit++) {
@@ -164,6 +165,7 @@ auto FindConnectivity(
   if (connectivity[last_element][last_face] == static_cast<std::size_t>(-2)) {
     connectivity[last_element][last_face] = static_cast<std::size_t>(-1);
   }
+  Logger::Logging("Found Connectivity");
   return connectivity;
 }
 
@@ -183,6 +185,7 @@ std::vector<std::size_t> IndexUniquePointList(
         original_point_list,
     const Point<physical_dimension, ScalarType> orientation_metric,
     const ScalarType tolerance = 1e-5) {
+  Logger::Logging("Indexing unique point list");
   // Assure Metric is normed and non-zero
   if (orientation_metric.EuclidianNorm() <= 0) {
     Logger::TerminatingError("Metric is not normed or zero");
@@ -261,7 +264,7 @@ std::vector<std::size_t> IndexUniquePointList(
       static_cast<std::size_t>(-1)) {
     unique_indices[metric_order_indices[last_index]] = number_of_new_points;
   }
-  Logger::ExtendedInformation("Finished uniquifying indices of point list");
+  Logger::Logging("Finished successful uniquifying indices of point list");
   return unique_indices;
 }
 
@@ -276,6 +279,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 auto GetConnectivityForSplineGroup(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group) {
+
+  Logger::Logging("Start searching for connectivity in Spline Group");
   // Current implementation is only made for bi- and trivariates
   if (!(parametric_dimension == 3 || parametric_dimension == 2)) {
     Logger::TerminatingError(

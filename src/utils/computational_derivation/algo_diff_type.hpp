@@ -7,6 +7,8 @@
 #include <iostream>
 #include <vector>
 
+#include "bezierManipulation/src/utils/logger.hpp"
+
 namespace beziermanipulation::utils::computational_derivation {
 
 /*!
@@ -100,8 +102,10 @@ class AlgoDiffType {
   AlgoDiffType(const Scalar &value, const IndexingType_ &n_derivatives,
                const IndexingType_ active_component)
       : v_{value}, d_(n_derivatives, Scalar_{}) {
-    assert(
-        ("Requested derivative out of range.", active_component < d_.size()));
+    if(active_component >= d_.size()){
+      Logger::TerminatingError(
+              "Requested derivative out of range");
+    }
     SetActiveComponent(active_component);
   }
 
@@ -134,6 +138,8 @@ class AlgoDiffType {
    *       mathematical computations
    */
   void SetActiveComponent(const size_t component) {
+    Logger::ExtendedInformation("Set active component to "+
+                                  std::to_string(component));
     std::fill(d_.begin(), d_.end(), Scalar_{});
     d_[component] = 1.0;
   }

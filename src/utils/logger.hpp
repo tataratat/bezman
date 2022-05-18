@@ -68,26 +68,57 @@ class Logger {
     Get().SetOutputLevel_(output_options);
   }
 
+  /**
+   * @brief Write foramted error warnings into the terminal and the error file
+   *
+   * This function writes formated output, but also throws an exception which
+   * potentially leads to the termination of the program
+   */
   static void Warning(const std::string& warning_text){
     Get().Warning_(warning_text);
   }
 
+  template <typename ExceptionType = std::runtime_error>
   static void TerminatingError(const std::string& error_text){
-    Get().TerminatingError_(error_text);
+    Get().TerminatingError_<ExceptionType>(error_text);
   }
 
+  /**
+  * @brief Write foramted error warnings into the terminal and the error file
+  *
+  * This function writes formated output, but also terminates the execution of
+  * the problem
+  */
   static void Error(const std::string& error_text){
     Get().Error_(error_text);
   }
 
+  /**
+  * @brief Write a formated user information into the terminal and log file
+  *
+  * The function writes formated output based on the chosen level of
+  * information
+  */
   static void UserInfo(const std::string& info_text){
     Get().UserInfo_(info_text);
   }
 
+  /**
+   * @brief Write a formated logging information into the terminal and log file
+   *
+   * The function writes formated output based on the chosen level of
+   * information
+   */
   static void Logging(const std::string& log_text){
     Get().Logging_(log_text);
   }
 
+  /**
+  * @brief Write a formated extended information into the terminal and log file
+  *
+  * The function writes formated output based on the chosen level of
+  * information
+  */
   static void ExtendedInformation(const std::string& log_text) {
     Get().ExtendedInformation_(log_text);
   }

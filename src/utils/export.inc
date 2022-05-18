@@ -266,7 +266,7 @@ void Export::AsIRIT(
   // Write Footer
   export_file << "\n]";
   export_file.close();
-  Logger::Logging("Finished IRIT Export");
+  Logger::UserInfo("Finished IRIT Export");
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -308,7 +308,7 @@ void Export::AsXML(
   // Write Footer
   export_file << "</SplineList>\n";
   export_file.close();
-  Logger::Logging("Finishing XML Export");
+  Logger::UserInfo("Finished XML Export");
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -365,7 +365,7 @@ void Export::AsJSON(
   // Write Footer
   export_file << "  ]\n}";
   export_file.close();
-  Logger::Logging("Finishing XML Export");
+  Logger::UserInfo("Finished XML Export");
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -705,7 +705,7 @@ void Export::AsMFEM(
 
   // Write Footer
   export_file.close();
-  Logger::Logging("Finishing XML Export");
+  Logger::UserInfo("Finised XML Export");
 }
 
 #endif  // SRC_UTILS_EXPORT_INC

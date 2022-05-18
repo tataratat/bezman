@@ -13,11 +13,12 @@ namespace beziermanipulation::utils::algorithms {
  */
 template <typename T>
 std::vector<std::size_t> IndexListSort(const std::vector<T>& v) {
+  Logger::ExtendedInformation("Start sorting vector");
   std::vector<size_t> idx(v.size());
   std::iota(idx.begin(), idx.end(), 0);
   std::stable_sort(idx.begin(), idx.end(),
                    [&v](size_t i1, size_t i2) { return v[i1] < v[i2]; });
-
+  Logger::ExtendedInformation("Finished sorting vector");
   return idx;
 }
 

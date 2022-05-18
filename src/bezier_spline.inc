@@ -129,6 +129,14 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   const int starting_points_per_group = index_offsets[par_dim];
   const int n_groups = n_starting_points / starting_points_per_group;
 
+  utils::Logger::ExtendedInformation(
+          "Order elevating along the parametric dimension with\n"
+          "starting points: " +std::to_string(n_starting_points) +
+          "\noffset: " + std::to_string(starting_point_offset) +
+          "\nstarting point per group: " +
+          std::to_string(starting_points_per_group)+
+          "\nnumber of groups: " + std::to_string(n_groups));
+
   // Resize the CTPS vector accordingly
   NumberOfControlPoints =
       NumberOfControlPoints / (degrees[par_dim] + 1) * (degrees[par_dim] + 2);
@@ -191,6 +199,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     }
   }
   UpdateIndexOffsets_();
+  utils::Logger::ExtendedInformation(
+          "Finished Order elevating along the parametric dimension");
   return (*this);
 }
 
@@ -505,10 +515,16 @@ constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::ExtractDimension(unsigned int dimension) const {
   if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
-    assert(dimension == 0ul);
+    if(dimension != 0ul){
+      utils::Logger::TerminatingError(
+              "Can not extract dimension of higher order than 0");
+    }
     return (*this);
   } else {
-    assert(dimension < PointTypePhysical_::kSpatialDimension);
+    if(dimension >= PointTypePhysical_::kSpatialDimension){
+      utils::Logger::TerminatingError(
+              "Dimension is bigger of the SpatialDimension");
+    }
     BezierSpline<parametric_dimension, ScalarType, ScalarType> extracted_spline(
         degrees);
     for (std::size_t i{}; i < NumberOfControlPoints; i++) {
@@ -527,7 +543,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::RaisePower(
   // multiplications
   static_assert(std::is_scalar_v<PhysicalPointType>,
                 "Only Scalar-type Splines can be raised to a power.");
-  assert(("Not implemented, as raising to 0 would be inefficient.", power > 0));
+  if(power <= 0){
+    utils::Logger::TerminatingError(
+            "Raising to 0 would be inefficient and is not implemented");
+  }
   BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
       power_spline{(*this)};
   for (int i{1}; i < power; i++) {
@@ -541,8 +560,10 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::MaximumCorner() const {
-  assert(("Spline seems to be non-defined or has no control-points",
-          NumberOfControlPoints > 0));
+  if(NumberOfControlPoints <= 0){
+    utils::Logger::TerminatingError(
+            "Spline is non-defined or has no control-points");
+  }
   PhysicalPointType maximum{control_points[0]};
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
@@ -558,8 +579,11 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::MinimumCorner() const {
-  assert(("Spline seems to be non-defined or has no control-points",
-          NumberOfControlPoints > 0));
+
+  if(NumberOfControlPoints <= 0){
+    utils::Logger::TerminatingError(
+          "Spline is non-defined or has no control-points");
+  }
   PhysicalPointType minimum{control_points[0]};
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
@@ -576,6 +600,8 @@ constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     TransposeAndScale(const PhysicalPointType& transposition,
                       const PhysicalPointType& scale_vector) {
+  utils::Logger::ExtendedInformation(
+          "Scaling spline along different dimensions and transposes position");
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
     for (IndexingType i{}; i < NumberOfControlPoints; i++) {
@@ -671,8 +697,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
       std::accumulate(degrees.begin(), degrees.end(), 0);
 
   // Check if the inner function fits into the unit cube
-  assert(("Inner function must fit unit cube to perform composition.",
-          inner_function.FitsIntoUnitCube()));
+  if(!inner_function.FitsIntoUnitCube()){
+    utils::Logger::TerminatingError("Inner function must fit unit cube to "
+                                    "perform composition");
+  }
   // New degrees
   std::array<IndexingType, parametric_dimension_inner_spline> new_degrees{
       inner_function.GetDegrees()};
@@ -805,9 +833,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
     // Check if the bernstein_basis_tensor_product has the degrees (and number
     // of control_points) as expected
-    assert(("Degree mismatch",
-            new_degrees == bernstein_basis_tensor_product.GetDegrees()));
-
+    if(new_degrees != bernstein_basis_tensor_product.GetDegrees()){
+      utils::Logger::TerminatingError(
+              "Bernstein Basis Tensor Product has unexpected degrees");
+    }
     // Now that all factors have been precomputed we can determine the
     // control-points of the resulting spline
     for (IndexingType i_control_point_composition{};
@@ -843,8 +872,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
       composition_group{number_of_splines};
 
   // Check if the inner function fits into the unit cube
-  assert(("Inner function must fit unit cube to perform composition.",
-          inner_function_group.FitsIntoUnitCube()));
+  if(!inner_function_group.FitsIntoUnitCube()){
+    utils::Logger::TerminatingError("Inner function must fit unit cube to "
+                                    "perform composition");
+  }
 
   // Check Dimensions
   static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
@@ -863,6 +894,8 @@ BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::SplitAtPosition(const ScalarType& splitting_plane,
                                           const IndexingType
                                               splitting_dimension) const {
+
+  utils::Logger::ExtendedInformation("Starting splitting spline");
   /*
    * Notation:
    * A group the number of all starting points that are subsequent, i.e. the
@@ -888,8 +921,9 @@ BezierSpline<parametric_dimension, PhysicalPointType,
    */
 
   // Check bounds (as default knot-vector is [0,0,..,1,1,...])
-  assert(("Split Plane out of bounds",
-          ((splitting_plane > 0.) && (splitting_plane < 1.))));
+  if(!(splitting_plane > 0. && splitting_plane < 1.)){
+    utils::Logger::TerminatingError("Split Plane is out of bounds");
+  }
 
   // Initialize return values
   BezierSpline first_part{(*this)}, second_part{(*this)};
@@ -953,8 +987,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
       return_value(splitting_planes.size() + 1);
 
   // Check if the split plane vector has increasing values
-  assert(("Split Plane values must be increasing",
-          std::is_sorted(splitting_planes.begin(), splitting_planes.end())));
+  if(!std::is_sorted(splitting_planes.begin(), splitting_planes.end())){
+    utils::Logger::TerminatingError("Split Plane values must be increasing");
+  }
 
   // If vector is empty return empty group containing only the Spline itself
   if (splitting_planes.size() == 0) {

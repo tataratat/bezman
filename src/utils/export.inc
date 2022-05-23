@@ -31,7 +31,7 @@ void Export::format2IRITfile(
 
   // Write different degrees
   for (std::size_t i{}; i < parametric_dimension; i++) {
-    // IRIT expexts order not degrees
+    // IRIT expects order not degrees
     export_file << spline.GetDegrees()[i] + 1 << " ";
   }
 
@@ -257,7 +257,7 @@ void Export::AsIRIT(
     export_file << "\n\t[OBJECT BEZIERSPLINE" << i;
     // Small spacer for Readability
     export_file << "\n";
-    // Export individual splines seperately
+    // Export individual splines separately
     format2IRITfile(spline_group[i], export_file);
     // Finalize Current Spline
     export_file << "\n\t]";
@@ -301,7 +301,7 @@ void Export::AsXML(
 
   // Write all Splines from Group into new file
   for (std::size_t i{0}; i < spline_group.size(); i++) {
-    // Export individual splines seperately
+    // Export individual splines separately
     format2XMLfile(spline_group[i], export_file);
   }
 
@@ -352,7 +352,7 @@ void Export::AsJSON(
     export_file
         << "    {\n      \"SplineType\" : \"Bezier\",\n      \"SplineID\" : "
         << i << ",\n";
-    // Export individual splines seperately
+    // Export individual splines separately
     format2JSONfile(spline_group[i], export_file, base64encoding);
     export_file << "    }";
     if (i < spline_group.size() - 1) {
@@ -518,8 +518,7 @@ void Export::AsMFEM(
           if (spline_group[current_neighbor].GetDegrees()[i_dim] !=
               spline_group[i_spline].GetDegrees()[i_dim]) {
             Logger::TerminatingError(
-                "Connectivity error. Degree mismatch between two "
-                "neighboring splines");
+                "Degree mismatch between two neighboring splines");
           }
 
           // set new knot vector
@@ -535,7 +534,7 @@ void Export::AsMFEM(
 
   // The boundary count is only valid for 2D elements, as all faces correspond
   // to exactly one knot_vector dimension. In higher order problems, like 3D the
-  // same face needs to be checkt for n_dim-1 knot_vector dimensions, the number
+  // same face needs to be checked for n_dim-1 knot_vector dimensions, the number
   // of boundaries therefore needs to be updated accordingly
   assert(number_of_boundaries % (parametric_dimension - 1) == 0);
   number_of_boundaries /= (parametric_dimension - 1);

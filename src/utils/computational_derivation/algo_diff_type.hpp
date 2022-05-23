@@ -21,11 +21,11 @@ namespace beziermanipulation::utils::computational_derivation {
  *
  * This implementation is based on and largely inspired by @danielwolff1's
  * implementation in campiga, modified to be used at runtime. This slows down
- * the code, but provides more flexibilty.
+ * the code, but provides more flexibility.
  *
  * Supported operations:
  *  - Addition
- *  - Substraction
+ *  - Subtraction
  *  - Multiplication
  *  - Division
  *  - log, log10 and exp
@@ -102,10 +102,8 @@ class AlgoDiffType {
   AlgoDiffType(const Scalar &value, const IndexingType_ &n_derivatives,
                const IndexingType_ active_component)
       : v_{value}, d_(n_derivatives, Scalar_{}) {
-    if(active_component >= d_.size()){
-      Logger::TerminatingError(
-              "Requested derivative out of range");
-    }
+    assert(("Requested derivative out of range.",
+            active_component < d_.size()));
     SetActiveComponent(active_component);
   }
 
@@ -132,14 +130,12 @@ class AlgoDiffType {
    * Marks the current variable as the component-th active variable of a vector
    * by first filling the derivative vector with zeros and then setting the
    * provided component to one.
-   * @param component    The component in range {0,...,n_derivs-1} which is
+   * @param component    The component in range {0,...,n_derives-1} which is
    * represented by this variable
    * @note This method is meant for initialization and should not be used within
    *       mathematical computations
    */
   void SetActiveComponent(const size_t component) {
-    Logger::ExtendedInformation("Set active component to "+
-                                  std::to_string(component));
     std::fill(d_.begin(), d_.end(), Scalar_{});
     d_[component] = 1.0;
   }
@@ -275,7 +271,7 @@ class AlgoDiffType {
   friend constexpr AlgoDiffType<ScalarF> operator+(
       const ScalarF &a, const AlgoDiffType<ScalarF> &b);
 
-  /// Substraction
+  /// Subtraction
   template <typename ScalarF>
   friend constexpr AlgoDiffType<ScalarF> operator-(
       const ScalarF &a, const AlgoDiffType<ScalarF> &b);

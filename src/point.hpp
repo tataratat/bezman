@@ -11,7 +11,7 @@ namespace beziermanipulation {
 /*
  * Point class
  *
- * Class inherites most of its functionality from std::array, however, scalar
+ * Class inherits most of its functionality from std::array, however, scalar
  * multiplication and basic operations were added to facilitate the
  * interpolation of control points in the splines class.
  *
@@ -65,14 +65,14 @@ class Point : public std::array<BaseType, spatial_dimension> {
     return (*this);
   }
 
-  /// Substraction using RAII
+  /// Subtraction using RAII
   constexpr Point operator-(const Point& rhs) const {
     Point<spatial_dimension, BaseType> difference{(*this)};
     difference -= rhs;
     return difference;
   }
 
-  /// Substraction
+  /// Subtraction
   constexpr Point& operator-=(const Point& rhs) {
     for (unsigned int i = 0; i < spatial_dimension; i++) {
       (*this)[i] = (*this)[i] - rhs[i];
@@ -140,6 +140,18 @@ class Point : public std::array<BaseType, spatial_dimension> {
     }
     os << "]";
     return os;
+  }
+
+  static std::string toString(const Point& p){
+    std::ostringstream out;
+    out << "[" << std::setw(p.output_precision + 2)
+       << std::setprecision(p.output_precision) << p[0];
+    for (size_t i{1}; i < spatial_dimension; ++i) {
+      out << ", " << std::setw(p.output_precision + 2)
+         << std::setprecision(p.output_precision) << p[i];
+    }
+    out << "]";
+    return out.str();
   }
 };  // namespace std::array<BaseType,spatial_dimension>
 }  // namespace beziermanipulation

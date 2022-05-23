@@ -129,14 +129,6 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   const int starting_points_per_group = index_offsets[par_dim];
   const int n_groups = n_starting_points / starting_points_per_group;
 
-  utils::Logger::ExtendedInformation(
-          "Order elevating along the parametric dimension with\n"
-          "starting points: " +std::to_string(n_starting_points) +
-          "\noffset: " + std::to_string(starting_point_offset) +
-          "\nstarting point per group: " +
-          std::to_string(starting_points_per_group)+
-          "\nnumber of groups: " + std::to_string(n_groups));
-
   // Resize the CTPS vector accordingly
   NumberOfControlPoints =
       NumberOfControlPoints / (degrees[par_dim] + 1) * (degrees[par_dim] + 2);
@@ -200,7 +192,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
   UpdateIndexOffsets_();
   utils::Logger::ExtendedInformation(
-          "Finished Order elevating along the parametric dimension");
+          "Finished Order elevating along the parametric dimension with \n"
+          "\nnew degree: " + std::to_string(degrees[par_dim]) + " and parametric"
+          " dimension: " + std::to_string(par_dim));
   return (*this);
 }
 
@@ -215,7 +209,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   BezierSpline derivative{new_degrees};
   const ScalarType factor = static_cast<ScalarType>(degrees[par_dim]);
 
-  utils::Logger::Logging("Starting deriving of all control points");
+  utils::Logger::Logging("Calculating derivative along axis " +
+                        std::to_string(par_dim));
 
   // Start looping over all control points in derivative and determine their new
   // values
@@ -227,7 +222,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     derivative.control_points[i_point] =
         factor * (ControlPoint(next_index) - ControlPoint(index));
   }
-  utils::Logger::Logging("Finished deriving of all control points");
+  utils::Logger::Logging("Derivative successfully computed");
   return derivative;
 }
 
@@ -242,7 +237,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
    * size of a group is the number of subsequent 0s. E.g. in the example:
    * Group size of index 0 is 1, group size of index 1 is 3, etc.. Group
    * offset is thus the distance between two group-starting-points. The idea is
-   * to collaps the groups one by one starting from the first parametric
+   * to collapse the groups one by one starting from the first parametric
    * dimension going forward. For indexing, see SplitAtPosition(...)
    */
 
@@ -517,13 +512,13 @@ BezierSpline<parametric_dimension, PhysicalPointType,
   if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
     if(dimension != 0ul){
       utils::Logger::TerminatingError(
-              "Can not extract dimension of higher order than 0");
+              "Extraction of Scalar-value spline requested");
     }
     return (*this);
   } else {
     if(dimension >= PointTypePhysical_::kSpatialDimension){
       utils::Logger::TerminatingError(
-              "Dimension is bigger of the SpatialDimension");
+              "Dimension out of range for Scalar extraction");
     }
     BezierSpline<parametric_dimension, ScalarType, ScalarType> extracted_spline(
         degrees);
@@ -544,7 +539,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::RaisePower(
   static_assert(std::is_scalar_v<PhysicalPointType>,
                 "Only Scalar-type Splines can be raised to a power.");
   if(power <= 0){
-    utils::Logger::TerminatingError(
+    utils::Logger::Error(
             "Raising to 0 would be inefficient and is not implemented");
   }
   BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
@@ -601,7 +596,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     TransposeAndScale(const PhysicalPointType& transposition,
                       const PhysicalPointType& scale_vector) {
   utils::Logger::ExtendedInformation(
-          "Scaling spline along different dimensions and transposes position");
+          "Starting scaling and transposing spline to move bounds");
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
     for (IndexingType i{}; i < NumberOfControlPoints; i++) {
@@ -757,7 +752,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
         static_cast<ScalarRHS>(1.) - extracted_dimension;
 
     // Loop over all possible Bernstein basis functions and assign the n-th
-    // entry the extracteed dimension to the power n (see "Free Form Surface
+    // entry the extracted dimension to the power n (see "Free Form Surface
     // Analysis Using a Hybrid of Symbolic and Numeric Computation" - Elber -
     // Eq. 6.2)
     // 1. Multiply c(t) ^ i - terms
@@ -798,7 +793,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
    *
    * for the three-dimensional case C = T_{ijk} Bi Bj Bk
    * Looping over all i j k (as is currently done) is very inefficient, as many
-   * splines Products are ccomputed multiple times (ijk). If the product can be
+   * splines Products are computed multiple times (ijk). If the product can be
    * organized as follows, the computational cost can significantly be reduced.
    * for i:
    *    for j:
@@ -833,10 +828,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
     // Check if the bernstein_basis_tensor_product has the degrees (and number
     // of control_points) as expected
-    if(new_degrees != bernstein_basis_tensor_product.GetDegrees()){
-      utils::Logger::TerminatingError(
-              "Bernstein Basis Tensor Product has unexpected degrees");
-    }
+    assert(("Bernstein Basis Tensor Product has unexpected degrees",
+            new_degrees == bernstein_basis_tensor_product.GetDegrees()));
     // Now that all factors have been precomputed we can determine the
     // control-points of the resulting spline
     for (IndexingType i_control_point_composition{};
@@ -895,7 +888,10 @@ BezierSpline<parametric_dimension, PhysicalPointType,
                                           const IndexingType
                                               splitting_dimension) const {
 
-  utils::Logger::ExtendedInformation("Starting splitting spline");
+  utils::Logger::ExtendedInformation(
+          "Splitting spline along parametric dimension " +
+          std::to_string(splitting_dimension) + " at position " +
+          std::to_string(splitting_plane));
   /*
    * Notation:
    * A group the number of all starting points that are subsequent, i.e. the
@@ -922,7 +918,8 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 
   // Check bounds (as default knot-vector is [0,0,..,1,1,...])
   if(!(splitting_plane > 0. && splitting_plane < 1.)){
-    utils::Logger::TerminatingError("Split Plane is out of bounds");
+    utils::Logger::TerminatingError("Split Plane is at "+
+            std::to_string(splitting_plane) + ", which is out of bounds (0,1)");
   }
 
   // Initialize return values
@@ -930,7 +927,7 @@ BezierSpline<parametric_dimension, PhysicalPointType,
   BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
       spline_group_split{first_part, second_part};
 
-  // Refernces for simplified access
+  // References for simplified access
   auto& ctps_first = spline_group_split[0].control_points;
   auto& ctps_second = spline_group_split[1].control_points;
 
@@ -998,7 +995,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
 
   // Loop over all split planes and assign the first part to the vector,
-  // then split the remainng part at the relativ required position
+  // then split the remaining part at the relative required position
   auto split_spline = SplitAtPosition(splitting_planes[0], splitting_dimension);
   return_value[0] = split_spline[0];
   for (std::size_t i_split{1}; i_split < splitting_planes.size(); i_split++) {

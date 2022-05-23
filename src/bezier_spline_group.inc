@@ -5,8 +5,6 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr bool BezierSplineGroup<parametric_dimension, PhysicalPointType,
                                  ScalarType>::FitsIntoUnitCube() const {
-  utils::Logger::Logging(
-          "Controlling if group fits into the unit cube");
   for (auto spline : (*this)) {
     if (!spline.FitsIntoUnitCube()) {
       utils::Logger::Logging(
@@ -33,7 +31,8 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType,
           std::max(maximum_corner[i_dim], maximum_corner_i[i_dim]);
     }
   }
-  utils::Logger::ExtendedInformation("Found max. corner");
+  utils::Logger::ExtendedInformation("Found max. corner at position:"
+      + PhysicalPointType::toString(maximum_corner));
   return maximum_corner;
 }
 
@@ -51,7 +50,9 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType,
           std::min(minimum_corner[i_dim], minimum_corner_i[i_dim]);
     }
   }
-  utils::Logger::ExtendedInformation("Found min. corner");
+  utils::Logger::ExtendedInformation("Found max. corner at position:"
+                                     + PhysicalPointType::toString(minimum_corner));
+
   return minimum_corner;
 }
 
@@ -83,8 +84,8 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
   BezierSplineGroup composed_group{number_of_splines_in_group};
 
   utils::Logger::ExtendedInformation(
-          "Composing single spline with spline group of "
-          + std::to_string(number_of_splines_in_group) +" splines");
+          "Composing " + std::to_string(number_of_splines_in_group)
+          + " splines into the outer function spline");
 
   // Compose each part of the structure individually
   for (IndexingType i{}; i < number_of_splines_in_group; i++) {
@@ -101,10 +102,6 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
   // Initiate return value
   const auto number_of_splines_in_outer_group = this->size();
   const auto number_of_splines_in_inner_group = inner_function_group.size();
-
-  utils::Logger::ExtendedInformation("Composing two spline groups with "
-              + std::to_string(number_of_splines_in_inner_group) + " and "
-              + std::to_string(number_of_splines_in_outer_group) +  " splines");
 
   BezierSplineGroup composed_group{number_of_splines_in_outer_group *
                                    number_of_splines_in_inner_group};
@@ -126,7 +123,7 @@ constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
 BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::
     DerivativeWRTParametricDimension(const IndexingType par_dim) const {
 
-  utils::Logger::Logging("Calculating derivative of all components");
+  utils::Logger::Logging("Iterating over spline group for derivatives");
   // Initialize return value with size of current group
   BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
       derived_group{this->size()};
@@ -142,8 +139,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr BezierSplineGroup<parametric_dimension, ScalarType, ScalarType>
 BezierSplineGroup<parametric_dimension, PhysicalPointType,
                   ScalarType>::ExtractDimension(unsigned int par_dim) const {
-  utils::Logger::Logging("Extract component (dimension: " +
-                          std::to_string(par_dim)+ ") of physical spline");
+  utils::Logger::ExtendedInformation("Extract component (dimension: " +
+                          std::to_string(par_dim)+ ") from spline group");
   // Initialize return value with size of current group
   BezierSplineGroup<parametric_dimension, ScalarType, ScalarType> derived_group{
       this->size()};
@@ -164,8 +161,7 @@ constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
 
   if(this->size() != rhs.size()){
     utils::Logger::TerminatingError(
-            "Size Mismatch for adding  two Bezier Spline Groups componentwise "
-            "to the current Group");
+            "Size Mismatch for entry-wise Addition between Spline Groups");
   }
   for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
     (*this)[i_spline] += rhs[i_spline];
@@ -189,8 +185,7 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>::
 
   if(this->size() != rhs.size()){
     utils::Logger::TerminatingError(
-            "Size Mismatch for adding  two Bezier Spline Groups componentwise "
-            "to the current Group");
+            "Size Mismatch for Entry-wise Multiplication between two groups");
   }
   BezierSplineGroup<parametric_dimension,
                     decltype(PhysicalPointType{} * PointTypeRHS{}),

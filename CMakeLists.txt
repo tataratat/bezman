@@ -98,6 +98,7 @@ install(EXPORT ${TARGETS_EXPORT_NAME} NAMESPACE ${namespace} DESTINATION ${confi
 ### User Output
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "Build debug!")
+    target_compile_definitions(${MY_FANCY_TARGET_NAME} INTERFACE NDEBUG)
 else()
     message(STATUS "Build release!")
 endif()

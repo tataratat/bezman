@@ -32,7 +32,7 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType,
     }
   }
   utils::Logger::ExtendedInformation("Found max. corner at position:"
-      + PhysicalPointType::toString(maximum_corner));
+      + maximum_corner.toString());
   return maximum_corner;
 }
 
@@ -51,7 +51,7 @@ BezierSplineGroup<parametric_dimension, PhysicalPointType,
     }
   }
   utils::Logger::ExtendedInformation("Found max. corner at position:"
-                                     + PhysicalPointType::toString(minimum_corner));
+                                     + minimum_corner.toString());
 
   return minimum_corner;
 }
@@ -138,14 +138,14 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSplineGroup<parametric_dimension, ScalarType, ScalarType>
 BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                  ScalarType>::ExtractDimension(unsigned int par_dim) const {
+                  ScalarType>::ExtractDimension(unsigned int physical_dimension) const {
   utils::Logger::ExtendedInformation("Extract component (dimension: " +
-                          std::to_string(par_dim)+ ") from spline group");
+                          std::to_string(physical_dimension)+ ") from spline group");
   // Initialize return value with size of current group
   BezierSplineGroup<parametric_dimension, ScalarType, ScalarType> derived_group{
       this->size()};
   for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
-    derived_group[i_spline] = (*this)[i_spline].ExtractDimension(par_dim);
+    derived_group[i_spline] = (*this)[i_spline].ExtractDimension(physical_dimension);
   }
   return derived_group;
 }

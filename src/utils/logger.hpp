@@ -52,6 +52,13 @@ class Logger {
     Get().SetOutputLevel_(outputlevel);
   }
 
+  /**
+   * @brief Set the Output Level with initializer list
+   *
+   * Set the output level, default its just written into the terminal. The
+   * outputlevel is set via a list which contains all chosen enum objects,
+   * see OutputLevel
+   */
   static void SetOutputLevel(const std::initializer_list<OutputLevel>& output_options) {
     Get().SetOutputLevel_(output_options);
   }

@@ -192,9 +192,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
   UpdateIndexOffsets_();
   utils::Logger::ExtendedInformation(
-          "Finished Order elevating along the parametric dimension with \n"
-          "\nnew degree: " + std::to_string(degrees[par_dim]) + " and parametric"
-          " dimension: " + std::to_string(par_dim));
+          "Spline elevating along parametric dimension " +
+          std::to_string(par_dim) + " to degree " +
+          std::to_string(degrees[par_dim]));
   return (*this);
 }
 
@@ -209,7 +209,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   BezierSpline derivative{new_degrees};
   const ScalarType factor = static_cast<ScalarType>(degrees[par_dim]);
 
-  utils::Logger::Logging("Calculating derivative along axis " +
+  utils::Logger::Logging("Calculating derivative along parametric dimension " +
                         std::to_string(par_dim));
 
   // Start looping over all control points in derivative and determine their new
@@ -538,9 +538,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::RaisePower(
   // multiplications
   static_assert(std::is_scalar_v<PhysicalPointType>,
                 "Only Scalar-type Splines can be raised to a power.");
-  if(power <= 0){
+  if(power == 0){
     utils::Logger::Error(
-            "Raising to 0 would be inefficient and is not implemented");
+            "Raising to 0 is inefficient. Please revisit");
+    return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{std::array<std::size_t, parametric_dimension>{}, 1.};
   }
   BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
       power_spline{(*this)};

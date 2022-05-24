@@ -33,7 +33,7 @@ template <std::size_t physical_dimension, typename ScalarType,
 auto FindConnectivity(
     const std::vector<Point<physical_dimension, ScalarType>>&
         face_center_points,
-    const Point<physical_dimension, ScalarType> orientation_metric,
+    Point<physical_dimension, ScalarType> orientation_metric,
     const std::array<std::size_t, number_of_element_faces>& opposite_face_list,
     const ScalarType tolerance = 1e-5) {
   // Check if number of faces is a divisor of the point list length
@@ -45,6 +45,8 @@ auto FindConnectivity(
   if (orientation_metric.EuclidianNorm() < 1e-20) {
     Logger::Warning("Metric has no length. Chose non-zero "
                     "metric for ordering points");
+    Logger::Warning("Fall back to default metric, which is {1., 1., ...}");
+    orientation_metric.fill(1.);
   }
   const Point<physical_dimension, ScalarType> normed_orientation_metric =
       orientation_metric *
@@ -130,7 +132,8 @@ auto FindConnectivity(
 
       if (connectivity[element_id_start][element_face_id_start] !=
           static_cast<std::size_t>(-2)) {
-        Logger::TerminatingError("Connectivity connection is invalid.");
+        Logger::TerminatingError("Connectivity connection is invalid. "
+                                 "Found conflicting interceptions");
       }
 
       // Check 2. (@todo EXCEPTION)
@@ -139,7 +142,7 @@ auto FindConnectivity(
         Logger::TerminatingError(
                 "Orientation Problem for MFEM-mesh output.");
       }
-#ifdef RE_DEBUG
+#ifdef NDEBUG
       if (opposite_face_list[element_face_id_end] != element_face_id_start) {
         Logger::Error("Orientation Problem for MFEM-mesh output.");
       }
@@ -265,7 +268,8 @@ std::vector<std::size_t> IndexUniquePointList(
       static_cast<std::size_t>(-1)) {
     unique_indices[metric_order_indices[last_index]] = number_of_new_points;
   }
-  Logger::Logging("Indexing complete");
+  Logger::Logging("Found " + std::to_string(number_of_new_points) +
+  " unique points out of " + std::to_string(n_total_points) + " points");
   return unique_indices;
 }
 

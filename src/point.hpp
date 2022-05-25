@@ -143,13 +143,12 @@ class Point : public std::array<BaseType, spatial_dimension> {
   }
 
   std::string toString() const {
-    Point& p = *this;
     std::ostringstream out;
-    out << "[" << std::setw(p.output_precision + 2)
-       << std::setprecision(p.output_precision) << p[0];
+    out << "[" << std::setw(output_precision + 2)
+       << std::setprecision(output_precision) << (*this)[0];
     for (size_t i{1}; i < spatial_dimension; ++i) {
-      out << ", " << std::setw(p.output_precision + 2)
-         << std::setprecision(p.output_precision) << p[i];
+      out << ", " << std::setw(output_precision + 2)
+          << std::setprecision(output_precision) << (*this)[i];
     }
     out << "]";
     return out.str();

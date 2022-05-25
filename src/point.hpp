@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 namespace beziermanipulation {
 
@@ -138,7 +139,7 @@ class Point : public std::array<BaseType, spatial_dimension> {
 
   /// Converts Point into a string object
   std::string toString() const {
-    std::ostringstream out;
+    std::ostringstream out{};
     out << "[" << std::setw(output_precision + 2)
         << std::setprecision(output_precision) << (*this)[0];
     for (size_t i{1}; i < spatial_dimension; ++i) {

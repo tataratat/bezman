@@ -142,7 +142,7 @@ class Point : public std::array<BaseType, spatial_dimension> {
     return os;
   }
 
-  std::string toString(){
+  std::string toString() const {
     Point& p = *this;
     std::ostringstream out;
     out << "[" << std::setw(p.output_precision + 2)

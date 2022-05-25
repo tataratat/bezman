@@ -47,3 +47,5 @@
 # ignore exported microstructures
 *.xml
 *.itd
+*.json
+*.mesh

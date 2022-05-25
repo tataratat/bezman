@@ -186,7 +186,6 @@ void Export::GuessByExtension(
     const BezierSplineGroup<parametric_dimension, PhysicalPointType,
                             ScalarType>& spline_group,
     const std::string& filename) {
-
   // In case of a absolute path strip filename
   std::size_t last_found_id = filename.find_last_of("/\\");
   const std::string file_without_path = filename.substr(last_found_id + 1);
@@ -329,7 +328,7 @@ void Export::AsJSON(
     const std::string& filename, const bool base64encoding) {
   Logger::UserInfo("Starting JSON Export as : " + filename);
   Logger::Logging(base64encoding ? "Exporting using Base64 Encoding"
-                                : "Exporting as Text-Only");
+                                 : "Exporting as Text-Only");
   // Create File Stream
   std::ofstream export_file;
   export_file.open(ensureFileExtension(filename, "json"));
@@ -534,8 +533,8 @@ void Export::AsMFEM(
 
   // The boundary count is only valid for 2D elements, as all faces correspond
   // to exactly one knot_vector dimension. In higher order problems, like 3D the
-  // same face needs to be checked for n_dim-1 knot_vector dimensions, the number
-  // of boundaries therefore needs to be updated accordingly
+  // same face needs to be checked for n_dim-1 knot_vector dimensions, the
+  // number of boundaries therefore needs to be updated accordingly
   assert(number_of_boundaries % (parametric_dimension - 1) == 0);
   number_of_boundaries /= (parametric_dimension - 1);
 

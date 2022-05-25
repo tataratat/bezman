@@ -121,7 +121,7 @@ int main() {
       MicrostructureGenerator<CrossTile3D, RingSegments3D, ValueFieldExample>{};
   // Modify the deformation function
   micro_structure_generator.deformation_function_generator.SetNumberOfSegments(
-      std::array<int, 3>{4,4,4});
+      std::array<int, 3>{4, 4, 4});
 
   // Construct the composition
   const auto test_composition =

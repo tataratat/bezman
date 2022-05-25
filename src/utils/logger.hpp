@@ -59,7 +59,8 @@ class Logger {
    * outputlevel is set via a list which contains all chosen enum objects,
    * see OutputLevel
    */
-  static void SetOutputLevel(const std::initializer_list<OutputLevel>& output_options) {
+  static void SetOutputLevel(
+      const std::initializer_list<OutputLevel>& output_options) {
     Get().SetOutputLevel_(output_options);
   }
 
@@ -69,38 +70,36 @@ class Logger {
    * This function writes formatted output, but also throws an exception which
    * potentially leads to the termination of the program
    */
-  static void Warning(const std::string& warning_text){
+  static void Warning(const std::string& warning_text) {
     Get().Warning_(warning_text);
   }
 
   /**
-  * @brief Write formatted error warnings into the terminal and the error file
-  *
-  * This function writes formatted output, but also throws an exception which
-  * potentially leads to the termination of the program
-  */
+   * @brief Write formatted error warnings into the terminal and the error file
+   *
+   * This function writes formatted output, but also throws an exception which
+   * potentially leads to the termination of the program
+   */
   template <typename ExceptionType = std::runtime_error>
-  static void TerminatingError(const std::string& error_text){
+  static void TerminatingError(const std::string& error_text) {
     Get().TerminatingError_<ExceptionType>(error_text);
   }
 
   /**
-  * @brief Write formatted error warnings into the terminal and the error file
-  *
-  * This function writes formatted output, but also terminates the execution of
-  * the problem
-  */
-  static void Error(const std::string& error_text){
-    Get().Error_(error_text);
-  }
+   * @brief Write formatted error warnings into the terminal and the error file
+   *
+   * This function writes formatted output, but also terminates the execution of
+   * the problem
+   */
+  static void Error(const std::string& error_text) { Get().Error_(error_text); }
 
   /**
-  * @brief Write a formatted user information into the terminal and log file
-  *
-  * The function writes formatted output based on the chosen level of
-  * information
-  */
-  static void UserInfo(const std::string& info_text){
+   * @brief Write a formatted user information into the terminal and log file
+   *
+   * The function writes formatted output based on the chosen level of
+   * information
+   */
+  static void UserInfo(const std::string& info_text) {
     Get().UserInfo_(info_text);
   }
 
@@ -110,44 +109,42 @@ class Logger {
    * The function writes formatted output based on the chosen level of
    * information
    */
-  static void Logging(const std::string& log_text){
-    Get().Logging_(log_text);
-  }
+  static void Logging(const std::string& log_text) { Get().Logging_(log_text); }
 
   /**
-  * @brief Write a formatted extended information into the terminal and log file
-  *
-  * The function writes formatted output based on the chosen level of
-  * information
-  */
+   * @brief Write a formatted extended information into the terminal and log
+   * file
+   *
+   * The function writes formatted output based on the chosen level of
+   * information
+   */
   static void ExtendedInformation(const std::string& log_text) {
     Get().ExtendedInformation_(log_text);
   }
 
-
-  private:
-    /**
-    * @brief Get the Logger object
-    *
-    * Returns a singleton reference to the logger instance.
-    */
+ private:
+  /**
+   * @brief Get the Logger object
+   *
+   * Returns a singleton reference to the logger instance.
+   */
   static Logger& Get() {
     static Logger singleton_instance;
     singleton_instance.init();
     return singleton_instance;
   }
 
-    /**
-     * @brief Set the Output Level
-     *
-     * Set the output level, default its just written into the terminal. The
-     * outputlevel is set via an unsigned integer value which represents the sum
-     * of all chosen enum objects, see OutputLevel
-     */
-    void SetOutputLevel_(unsigned int outputlevel) {
-      outputlevel_ = outputlevel;
-      init();
-    }
+  /**
+   * @brief Set the Output Level
+   *
+   * Set the output level, default its just written into the terminal. The
+   * outputlevel is set via an unsigned integer value which represents the sum
+   * of all chosen enum objects, see OutputLevel
+   */
+  void SetOutputLevel_(unsigned int outputlevel) {
+    outputlevel_ = outputlevel;
+    init();
+  }
 
   /**
    * @brief Set the Output Level
@@ -229,7 +226,8 @@ class Logger {
   }
 
   /**
-   * @brief Write a formatted extended information into the terminal and log file
+   * @brief Write a formatted extended information into the terminal and log
+   * file
    *
    * The function writes formatted output based on the chosen level of
    * information
@@ -278,8 +276,9 @@ class Logger {
   void TerminatingError_(const std::string& error_text) {
     if (static_cast<unsigned>(OutputLevel::errors) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
-                << ColorText("crit. error", Color::red) << "]" << GetTimeStamp_()
-                << " : " << ColorText(error_text, Color::red) << "\n";
+                << ColorText("crit. error", Color::red) << "]"
+                << GetTimeStamp_() << " : " << ColorText(error_text, Color::red)
+                << "\n";
     }
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::error_file) & outputlevel_) {

@@ -102,8 +102,8 @@ class AlgoDiffType {
   AlgoDiffType(const Scalar &value, const IndexingType_ &n_derivatives,
                const IndexingType_ active_component)
       : v_{value}, d_(n_derivatives, Scalar_{}) {
-    assert(("Requested derivative out of range.",
-            active_component < d_.size()));
+    assert(
+        ("Requested derivative out of range.", active_component < d_.size()));
     SetActiveComponent(active_component);
   }
 
@@ -119,7 +119,7 @@ class AlgoDiffType {
     return *this;
   }
 
-  AlgoDiffType& operator=(const AlgoDiffType &t) = default;
+  AlgoDiffType &operator=(const AlgoDiffType &t) = default;
 
   /** @defgroup GetterSetters Getter and Setter Methods
    * Setter methods for values and derivatives

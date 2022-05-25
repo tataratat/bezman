@@ -8,7 +8,6 @@
 #include "bezierManipulation/src/point.hpp"
 #include "bezierManipulation/src/utils/logger.hpp"
 
-
 namespace beziermanipulation {
 
 /*
@@ -45,7 +44,7 @@ class BezierSplineGroup
  public:
   /// Default constructor (to profit from std::vectors implementations)
   constexpr BezierSplineGroup() = default;
-  
+
   /// Default constructor (to profit from std::vectors implementations)
   template <typename IntegralType, typename = typename std::enable_if_t<
                                        std::is_integral_v<IntegralType>>>
@@ -85,8 +84,9 @@ class BezierSplineGroup
   constexpr BezierSplineGroup<parametric_dimension,
                               decltype(PhysicalPointType{} * PointTypeRHS{}),
                               decltype(ScalarType{} * ScalarRHS{})>
-  MultiplyComponentwise(const BezierSplineGroup<parametric_dimension,
-                                                PointTypeRHS, ScalarRHS> &rhs) const;
+  MultiplyComponentwise(
+      const BezierSplineGroup<parametric_dimension, PointTypeRHS, ScalarRHS>
+          &rhs) const;
 
   /// Calculate the derivative of all components and return in a new group
   constexpr BezierSplineGroup DerivativeWRTParametricDimension(

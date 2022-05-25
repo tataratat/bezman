@@ -192,9 +192,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
   UpdateIndexOffsets_();
   utils::Logger::ExtendedInformation(
-          "Spline elevating along parametric dimension " +
-          std::to_string(par_dim) + " to degree " +
-          std::to_string(degrees[par_dim]));
+      "Spline elevating along parametric dimension " + std::to_string(par_dim) +
+      " to degree " + std::to_string(degrees[par_dim]));
   return (*this);
 }
 
@@ -210,7 +209,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   const ScalarType factor = static_cast<ScalarType>(degrees[par_dim]);
 
   utils::Logger::Logging("Calculating derivative along parametric dimension " +
-                        std::to_string(par_dim));
+                         std::to_string(par_dim));
 
   // Start looping over all control points in derivative and determine their new
   // values
@@ -510,15 +509,15 @@ constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::ExtractDimension(unsigned int dimension) const {
   if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
-    if(dimension != 0ul){
+    if (dimension != 0ul) {
       utils::Logger::TerminatingError(
-              "Extraction of Scalar-value spline requested");
+          "Extraction of Scalar-value spline requested");
     }
     return (*this);
   } else {
-    if(dimension >= PointTypePhysical_::kSpatialDimension){
+    if (dimension >= PointTypePhysical_::kSpatialDimension) {
       utils::Logger::TerminatingError(
-              "Dimension out of range for Scalar extraction");
+          "Dimension out of range for Scalar extraction");
     }
     BezierSpline<parametric_dimension, ScalarType, ScalarType> extracted_spline(
         degrees);
@@ -538,10 +537,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::RaisePower(
   // multiplications
   static_assert(std::is_scalar_v<PhysicalPointType>,
                 "Only Scalar-type Splines can be raised to a power.");
-  if(power == 0){
-    utils::Logger::Error(
-            "Raising to 0 is inefficient. Please revisit");
-    return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{std::array<std::size_t, parametric_dimension>{}, 1.};
+  if (power == 0) {
+    utils::Logger::Error("Raising to 0 is inefficient. Please revisit");
+    return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
+        std::array<std::size_t, parametric_dimension>{}, 1.};
   }
   BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
       power_spline{(*this)};
@@ -556,9 +555,9 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::MaximumCorner() const {
-  if(NumberOfControlPoints <= 0){
+  if (NumberOfControlPoints == 0) {
     utils::Logger::TerminatingError(
-            "Spline is non-defined or has no control-points");
+        "Spline is non-defined or has no control-points");
   }
   PhysicalPointType maximum{control_points[0]};
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
@@ -575,10 +574,9 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::MinimumCorner() const {
-
-  if(NumberOfControlPoints <= 0){
+  if (NumberOfControlPoints == 0) {
     utils::Logger::TerminatingError(
-          "Spline is non-defined or has no control-points");
+        "Spline is non-defined or has no control-points");
   }
   PhysicalPointType minimum{control_points[0]};
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
@@ -597,7 +595,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     TransposeAndScale(const PhysicalPointType& transposition,
                       const PhysicalPointType& scale_vector) {
   utils::Logger::ExtendedInformation(
-          "Starting scaling and transposing spline to move bounds");
+      "Starting scaling and transposing spline to move bounds");
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
     for (IndexingType i{}; i < NumberOfControlPoints; i++) {
@@ -693,9 +691,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
       std::accumulate(degrees.begin(), degrees.end(), 0);
 
   // Check if the inner function fits into the unit cube
-  if(!inner_function.FitsIntoUnitCube()){
-    utils::Logger::TerminatingError("Inner function must fit unit cube to "
-                                    "perform composition");
+  if (!inner_function.FitsIntoUnitCube()) {
+    utils::Logger::TerminatingError(
+        "Inner function must fit unit cube to "
+        "perform composition");
   }
   // New degrees
   std::array<IndexingType, parametric_dimension_inner_spline> new_degrees{
@@ -866,9 +865,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
       composition_group{number_of_splines};
 
   // Check if the inner function fits into the unit cube
-  if(!inner_function_group.FitsIntoUnitCube()){
-    utils::Logger::TerminatingError("Inner function must fit unit cube to "
-                                    "perform composition");
+  if (!inner_function_group.FitsIntoUnitCube()) {
+    utils::Logger::TerminatingError(
+        "Inner function must fit unit cube to "
+        "perform composition");
   }
 
   // Check Dimensions
@@ -888,11 +888,10 @@ BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::SplitAtPosition(const ScalarType& splitting_plane,
                                           const IndexingType
                                               splitting_dimension) const {
-
   utils::Logger::ExtendedInformation(
-          "Splitting spline along parametric dimension " +
-          std::to_string(splitting_dimension) + " at position " +
-          std::to_string(splitting_plane));
+      "Splitting spline along parametric dimension " +
+      std::to_string(splitting_dimension) + " at position " +
+      std::to_string(splitting_plane));
   /*
    * Notation:
    * A group the number of all starting points that are subsequent, i.e. the
@@ -918,9 +917,10 @@ BezierSpline<parametric_dimension, PhysicalPointType,
    */
 
   // Check bounds (as default knot-vector is [0,0,..,1,1,...])
-  if(!(splitting_plane > 0. && splitting_plane < 1.)){
-    utils::Logger::TerminatingError("Split Plane is at "+
-            std::to_string(splitting_plane) + ", which is out of bounds (0,1)");
+  if (!(splitting_plane > 0. && splitting_plane < 1.)) {
+    utils::Logger::TerminatingError("Split Plane is at " +
+                                    std::to_string(splitting_plane) +
+                                    ", which is out of bounds (0,1)");
   }
 
   // Initialize return values
@@ -985,7 +985,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
       return_value(splitting_planes.size() + 1);
 
   // Check if the split plane vector has increasing values
-  if(!std::is_sorted(splitting_planes.begin(), splitting_planes.end())){
+  if (!std::is_sorted(splitting_planes.begin(), splitting_planes.end())) {
     utils::Logger::TerminatingError("Split Plane values must be increasing");
   }
 

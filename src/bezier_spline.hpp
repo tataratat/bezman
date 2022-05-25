@@ -9,6 +9,7 @@
 
 #include "bezierManipulation/src/point.hpp"
 #include "bezierManipulation/src/utils/fastbinomialcoefficient.hpp"
+#include "bezierManipulation/src/utils/logger.hpp"
 
 namespace beziermanipulation {
 

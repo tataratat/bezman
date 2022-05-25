@@ -191,6 +191,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     }
   }
   UpdateIndexOffsets_();
+  utils::Logger::ExtendedInformation(
+      "Spline elevating along parametric dimension " + std::to_string(par_dim) +
+      " to degree " + std::to_string(degrees[par_dim]));
   return (*this);
 }
 
@@ -205,6 +208,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   BezierSpline derivative{new_degrees};
   const ScalarType factor = static_cast<ScalarType>(degrees[par_dim]);
 
+  utils::Logger::Logging("Calculating derivative along parametric dimension " +
+                         std::to_string(par_dim));
+
   // Start looping over all control points in derivative and determine their new
   // values
   for (IndexingType i_point{0}; i_point < derivative.NumberOfControlPoints;
@@ -215,6 +221,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     derivative.control_points[i_point] =
         factor * (ControlPoint(next_index) - ControlPoint(index));
   }
+  utils::Logger::Logging("Derivative successfully computed");
   return derivative;
 }
 
@@ -229,7 +236,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
    * size of a group is the number of subsequent 0s. E.g. in the example:
    * Group size of index 0 is 1, group size of index 1 is 3, etc.. Group
    * offset is thus the distance between two group-starting-points. The idea is
-   * to collaps the groups one by one starting from the first parametric
+   * to collapse the groups one by one starting from the first parametric
    * dimension going forward. For indexing, see SplitAtPosition(...)
    */
 
@@ -502,10 +509,16 @@ constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::ExtractDimension(unsigned int dimension) const {
   if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
-    assert(dimension == 0ul);
+    if (dimension != 0ul) {
+      utils::Logger::TerminatingError(
+          "Extraction of Scalar-value spline requested");
+    }
     return (*this);
   } else {
-    assert(dimension < PointTypePhysical_::kSpatialDimension);
+    if (dimension >= PointTypePhysical_::kSpatialDimension) {
+      utils::Logger::TerminatingError(
+          "Dimension out of range for Scalar extraction");
+    }
     BezierSpline<parametric_dimension, ScalarType, ScalarType> extracted_spline(
         degrees);
     for (std::size_t i{}; i < NumberOfControlPoints; i++) {
@@ -524,7 +537,11 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::RaisePower(
   // multiplications
   static_assert(std::is_scalar_v<PhysicalPointType>,
                 "Only Scalar-type Splines can be raised to a power.");
-  assert(("Not implemented, as raising to 0 would be inefficient.", power > 0));
+  if (power == 0) {
+    utils::Logger::Error("Raising to 0 is inefficient. Please revisit");
+    return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
+        std::array<std::size_t, parametric_dimension>{}, 1.};
+  }
   BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
       power_spline{(*this)};
   for (int i{1}; i < power; i++) {
@@ -538,8 +555,10 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::MaximumCorner() const {
-  assert(("Spline seems to be non-defined or has no control-points",
-          NumberOfControlPoints > 0));
+  if (NumberOfControlPoints == 0) {
+    utils::Logger::TerminatingError(
+        "Spline is non-defined or has no control-points");
+  }
   PhysicalPointType maximum{control_points[0]};
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
@@ -555,8 +574,10 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::MinimumCorner() const {
-  assert(("Spline seems to be non-defined or has no control-points",
-          NumberOfControlPoints > 0));
+  if (NumberOfControlPoints == 0) {
+    utils::Logger::TerminatingError(
+        "Spline is non-defined or has no control-points");
+  }
   PhysicalPointType minimum{control_points[0]};
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
@@ -573,6 +594,8 @@ constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     TransposeAndScale(const PhysicalPointType& transposition,
                       const PhysicalPointType& scale_vector) {
+  utils::Logger::ExtendedInformation(
+      "Starting scaling and transposing spline to move bounds");
   for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
        i_dim++) {
     for (IndexingType i{}; i < NumberOfControlPoints; i++) {
@@ -668,8 +691,11 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
       std::accumulate(degrees.begin(), degrees.end(), 0);
 
   // Check if the inner function fits into the unit cube
-  assert(("Inner function must fit unit cube to perform composition.",
-          inner_function.FitsIntoUnitCube()));
+  if (!inner_function.FitsIntoUnitCube()) {
+    utils::Logger::TerminatingError(
+        "Inner function must fit unit cube to "
+        "perform composition");
+  }
   // New degrees
   std::array<IndexingType, parametric_dimension_inner_spline> new_degrees{
       inner_function.GetDegrees()};
@@ -726,7 +752,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
         static_cast<ScalarRHS>(1.) - extracted_dimension;
 
     // Loop over all possible Bernstein basis functions and assign the n-th
-    // entry the extracteed dimension to the power n (see "Free Form Surface
+    // entry the extracted dimension to the power n (see "Free Form Surface
     // Analysis Using a Hybrid of Symbolic and Numeric Computation" - Elber -
     // Eq. 6.2)
     // 1. Multiply c(t) ^ i - terms
@@ -767,7 +793,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
    *
    * for the three-dimensional case C = T_{ijk} Bi Bj Bk
    * Looping over all i j k (as is currently done) is very inefficient, as many
-   * splines Products are ccomputed multiple times (ijk). If the product can be
+   * splines Products are computed multiple times (ijk). If the product can be
    * organized as follows, the computational cost can significantly be reduced.
    * for i:
    *    for j:
@@ -802,9 +828,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
     // Check if the bernstein_basis_tensor_product has the degrees (and number
     // of control_points) as expected
-    assert(("Degree mismatch",
+    assert(("Bernstein Basis Tensor Product has unexpected degrees",
             new_degrees == bernstein_basis_tensor_product.GetDegrees()));
-
     // Now that all factors have been precomputed we can determine the
     // control-points of the resulting spline
     for (IndexingType i_control_point_composition{};
@@ -840,8 +865,11 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
       composition_group{number_of_splines};
 
   // Check if the inner function fits into the unit cube
-  assert(("Inner function must fit unit cube to perform composition.",
-          inner_function_group.FitsIntoUnitCube()));
+  if (!inner_function_group.FitsIntoUnitCube()) {
+    utils::Logger::TerminatingError(
+        "Inner function must fit unit cube to "
+        "perform composition");
+  }
 
   // Check Dimensions
   static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
@@ -860,6 +888,10 @@ BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::SplitAtPosition(const ScalarType& splitting_plane,
                                           const IndexingType
                                               splitting_dimension) const {
+  utils::Logger::ExtendedInformation(
+      "Splitting spline along parametric dimension " +
+      std::to_string(splitting_dimension) + " at position " +
+      std::to_string(splitting_plane));
   /*
    * Notation:
    * A group the number of all starting points that are subsequent, i.e. the
@@ -885,15 +917,18 @@ BezierSpline<parametric_dimension, PhysicalPointType,
    */
 
   // Check bounds (as default knot-vector is [0,0,..,1,1,...])
-  assert(("Split Plane out of bounds",
-          ((splitting_plane > 0.) && (splitting_plane < 1.))));
+  if (!(splitting_plane > 0. && splitting_plane < 1.)) {
+    utils::Logger::TerminatingError("Split Plane is at " +
+                                    std::to_string(splitting_plane) +
+                                    ", which is out of bounds (0,1)");
+  }
 
   // Initialize return values
   BezierSpline first_part{(*this)}, second_part{(*this)};
   BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
       spline_group_split{first_part, second_part};
 
-  // Refernces for simplified access
+  // References for simplified access
   auto& ctps_first = spline_group_split[0].control_points;
   auto& ctps_second = spline_group_split[1].control_points;
 
@@ -950,8 +985,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
       return_value(splitting_planes.size() + 1);
 
   // Check if the split plane vector has increasing values
-  assert(("Split Plane values must be increasing",
-          std::is_sorted(splitting_planes.begin(), splitting_planes.end())));
+  if (!std::is_sorted(splitting_planes.begin(), splitting_planes.end())) {
+    utils::Logger::TerminatingError("Split Plane values must be increasing");
+  }
 
   // If vector is empty return empty group containing only the Spline itself
   if (splitting_planes.size() == 0) {
@@ -960,7 +996,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
 
   // Loop over all split planes and assign the first part to the vector,
-  // then split the remainng part at the relativ required position
+  // then split the remaining part at the relative required position
   auto split_spline = SplitAtPosition(splitting_planes[0], splitting_dimension);
   return_value[0] = split_spline[0];
   for (std::size_t i_split{1}; i_split < splitting_planes.size(); i_split++) {

@@ -7,6 +7,8 @@
 #include <iostream>
 #include <vector>
 
+#include "bezierManipulation/src/utils/logger.hpp"
+
 namespace beziermanipulation::utils::computational_derivation {
 
 /*!
@@ -19,11 +21,11 @@ namespace beziermanipulation::utils::computational_derivation {
  *
  * This implementation is based on and largely inspired by @danielwolff1's
  * implementation in campiga, modified to be used at runtime. This slows down
- * the code, but provides more flexibilty.
+ * the code, but provides more flexibility.
  *
  * Supported operations:
  *  - Addition
- *  - Substraction
+ *  - Subtraction
  *  - Multiplication
  *  - Division
  *  - log, log10 and exp
@@ -117,7 +119,7 @@ class AlgoDiffType {
     return *this;
   }
 
-  AlgoDiffType& operator=(const AlgoDiffType &t) = default;
+  AlgoDiffType &operator=(const AlgoDiffType &t) = default;
 
   /** @defgroup GetterSetters Getter and Setter Methods
    * Setter methods for values and derivatives
@@ -128,7 +130,7 @@ class AlgoDiffType {
    * Marks the current variable as the component-th active variable of a vector
    * by first filling the derivative vector with zeros and then setting the
    * provided component to one.
-   * @param component    The component in range {0,...,n_derivs-1} which is
+   * @param component    The component in range {0,...,n_derives-1} which is
    * represented by this variable
    * @note This method is meant for initialization and should not be used within
    *       mathematical computations
@@ -269,7 +271,7 @@ class AlgoDiffType {
   friend constexpr AlgoDiffType<ScalarF> operator+(
       const ScalarF &a, const AlgoDiffType<ScalarF> &b);
 
-  /// Substraction
+  /// Subtraction
   template <typename ScalarF>
   friend constexpr AlgoDiffType<ScalarF> operator-(
       const ScalarF &a, const AlgoDiffType<ScalarF> &b);

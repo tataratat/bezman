@@ -49,3 +49,6 @@
 *.itd
 *.json
 *.mesh
+
+# cmake cache file
+CMakeCache.txt

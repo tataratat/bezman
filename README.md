@@ -1,4 +1,4 @@
-# bezierManipulation
+# BEZMAN
 Light weight library in C++ for functional composition for Bézier splines.
 
 This small prototyping library is created to test out algorithms to create and modify small microstructures and analytically derive their control points. The objective is the analytical calculation of gradients of microstructures formed through functional composition between splines
@@ -7,7 +7,7 @@ This small prototyping library is created to test out algorithms to create and m
 ## Installation
 The Project uses cmake, to facilitate integration in other projects (I recommend cmake version 3.16++). *Project is tested on gcc `10.3.xx` and has also been tested on clang `11.1.xx` and `12.0.xx`.*
 
-Go to your destinated installation directory and create a build and install directory (can also be inside the bezierManipulation folder). Step into the build directory.
+Go to your destinated installation directory and create a build and install directory (can also be inside the bezman folder). Step into the build directory.
 ```
 mkdir build install
 cd build
@@ -54,4 +54,4 @@ doxygen Doxyfile
 This will create a new folder named `doxydocs` in the current directory, in which you will find an `index.html` file. Open it with a browser of your choice.
 
 ## Python integration
-Most of the functionality provided by this library is integrated into the software suite [gustaf](https://github.com/tataratat/gustaf). `Gustaf` aims to provide user-friendly manipulation of splines and their visualization and animation, for post-processing and presentation purposes.
+Most of the functionality provided by this library is integrated into the software suite [gustaf](https://github.com/tataratat/gustaf). `Gustaf` aims to provide user-friendly of splines and their visualization and animation, for post-processing and presentation purposes.

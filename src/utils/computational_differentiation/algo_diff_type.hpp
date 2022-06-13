@@ -1,5 +1,5 @@
-#ifndef UTILS_COMPUTATIONAL_DERIVATION_ALGO_DIFF_TYPE_HPP
-#define UTILS_COMPUTATIONAL_DERIVATION_ALGO_DIFF_TYPE_HPP
+#ifndef UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_HPP
+#define UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_HPP
 
 // c++ library
 #include <cassert>
@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 
-namespace beziermanipulation::utils::computational_derivation {
+namespace beziermanipulation::utils::computational_differentiation {
 
 /*!
  * @class AlgoDiffType
@@ -420,8 +420,8 @@ class AlgoDiffType {
 
 };  // end class AlgoDiffType
 
-#include "bezierManipulation/src/utils/computational_derivation/algo_diff_type.inc"
+#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.inc"
 
-}  // namespace beziermanipulation::utils::computational_derivation
+}  // namespace beziermanipulation::utils::computational_differentiation
 
-#endif  // UTILS_COMPUTATIONAL_DERIVATION_ALGO_DIFF_TYPE_HPP
+#endif  // UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_HPP

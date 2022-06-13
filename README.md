@@ -41,10 +41,10 @@ Run CMake and build the executable
 cmake ..
 make
 ```
-The example files also feature a display script, which is based on the [gustav](https://github.com/j042/gustav-alpha) library.
+The example files also feature a display script, which is based on the [gustav](https://github.com/tataratat/gustaf) library.
 
 ## Building the documentation
-If you want to build the documentation, you can do so using [doxygen](https://github.com/tataratat/gustaf), by running these commands:
+If you want to build the documentation, you can do so using [doxygen](https://www.doxygen.nl/index.html), by running these commands:
 ```
 # Go to the documentation directory
 cd doc

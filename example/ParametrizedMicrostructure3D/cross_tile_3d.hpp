@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/utils/computational_derivation/algo_diff_type.hpp"
+#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.hpp"
 
 using namespace beziermanipulation;
 
@@ -23,7 +23,7 @@ using namespace beziermanipulation;
 class CrossTile3D {
  private:
   // Aliases
-  using ADT = utils::computational_derivation::AlgoDiffType<double>;
+  using ADT = utils::computational_differentiation::AlgoDiffType<double>;
   using PointADT3D = Point<3, ADT>;
   using Point3D = Point<3, double>;
   using BezierGroup = BezierSplineGroup<3, Point3D, double>;

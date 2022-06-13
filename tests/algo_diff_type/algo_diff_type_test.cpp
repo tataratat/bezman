@@ -1,13 +1,15 @@
-#include <gtest/gtest.h>
-#include <cmath>
+#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.hpp"
 
-#include "bezierManipulation/src/utils/computational_derivation/algo_diff_type.hpp"
+#include <gtest/gtest.h>
+
+#include <cmath>
 
 using namespace beziermanipulation;
 
 namespace beziermanipulation::tests::algo_diff_type_test {
 
-using ADT = utils::computational_derivation::AlgoDiffType<double>;
+using ADT = utils::computational_differentiation::AlgoDiffType<double>;
+using ADTstatic = utils::computational_differentiation::AlgoDiffType<double, 2>;
 
 // Constructors and Basic Operations
 TEST(AlgoTypeTest, TestValueCorrectnessBasic) {
@@ -25,8 +27,8 @@ TEST(AlgoTypeTest, TestValueCorrectnessBasic) {
 // Constructors and Basic Operations
 TEST(AlgoTypeTest, TestValueCorrectnessBasicFriends) {
   // Define some Variables
-  const double  x{3.};  // x = 3
-  ADT y{2., 1, 0};  // y = 2
+  const double x{3.};  // x = 3
+  ADT y{2., 1, 0};     // y = 2
 
   // Test Values
   EXPECT_FLOAT_EQ((x + y).GetValue(), 3. + 2.);
@@ -55,7 +57,7 @@ TEST(AlgoTypeTest, TestDerivCorrectnessBasic) {
 
 TEST(AlgoTypeTest, TestDerivCorrectnessBasicFriends) {
   // Define some Variables
-  double x{3.};  // x = 3
+  double x{3.};           // x = 3
   const ADT y{2., 1, 0};  // y = 2
 
   // Test Derivatives with respect to x, i.e. d/dx(Expression)
@@ -119,4 +121,30 @@ TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometric) {
   EXPECT_FLOAT_EQ(atan(x).GetDerivatives()[0], 1. / (1. + 0.49));
 };
 
-} // namespace beziermanipulation::tests::spline_operations
+// Constructors and Basic Operations for static types
+TEST(AlgoTypeTest, TestValueCorrectnessBasicStatic) {
+  // Define some Variables
+  ADTstatic x{3., 0};  // x = 3
+  ADTstatic y{2., 1};  // y = 2
+
+  // Test Values
+  EXPECT_FLOAT_EQ((x + y).GetValue(), 3. + 2.);
+  EXPECT_FLOAT_EQ((x * y).GetValue(), 3. * 2.);
+  EXPECT_FLOAT_EQ((x / y).GetValue(), 3. / 2.);
+  EXPECT_FLOAT_EQ((x - y).GetValue(), 3. - 2.);
+};
+
+TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometricStatic) {
+  // Define some Variables
+  const ADTstatic x{.7, 0};  // x = .7
+
+  EXPECT_FLOAT_EQ(cos(x).GetDerivatives()[0], -std::sin(.7));
+  EXPECT_FLOAT_EQ(sin(x).GetDerivatives()[0], std::cos(.7));
+  EXPECT_FLOAT_EQ(tan(x).GetDerivatives()[0],
+                  1 / (std::cos(.7) * std::cos(.7)));
+  EXPECT_FLOAT_EQ(acos(x).GetDerivatives()[0], -1. / std::sqrt(1 - 0.49));
+  EXPECT_FLOAT_EQ(asin(x).GetDerivatives()[0], 1. / std::sqrt(1 - 0.49));
+  EXPECT_FLOAT_EQ(atan(x).GetDerivatives()[0], 1. / (1. + 0.49));
+};
+
+}  // namespace beziermanipulation::tests::algo_diff_type_test

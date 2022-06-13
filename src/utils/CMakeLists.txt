@@ -9,7 +9,7 @@ set(LOCAL_HEADERS
 )
 
 # Add All Subdirectories
-add_subdirectory(computational_derivation)
+add_subdirectory(computational_differentiation)
 add_subdirectory(type_traits)
 add_subdirectory(algorithms)
 

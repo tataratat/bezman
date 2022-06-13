@@ -31,7 +31,7 @@
 #include <vector>
 
 #include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/utils/computational_derivation/algo_diff_type.hpp"
+#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.hpp"
 #include "bezierManipulation/src/utils/export.hpp"
 #include "cross_tile_3d.hpp"
 #include "microstructure_generator.hpp"
@@ -50,7 +50,7 @@ using namespace beziermanipulation;
  */
 class ValueFieldExample {
  private:
-  using ADT = utils::computational_derivation::AlgoDiffType<double>;
+  using ADT = utils::computational_differentiation::AlgoDiffType<double>;
   using Point3D = Point<3, double>;
 
  public:

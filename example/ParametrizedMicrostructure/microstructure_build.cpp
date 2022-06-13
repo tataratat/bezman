@@ -31,13 +31,13 @@
 #include <vector>
 
 #include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/utils/computational_derivation/algo_diff_type.hpp"
+#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.hpp"
 #include "bezierManipulation/src/utils/export.hpp"
 
 using namespace beziermanipulation;
 
 // Define aliases to abriviate code
-using ADT = utils::computational_derivation::AlgoDiffType<double>;
+using ADT = utils::computational_differentiation::AlgoDiffType<double>;
 using PointADT2D = Point<2, ADT>;
 using Point2D = Point<2, double>;
 using BezierGroup = BezierSplineGroup<2, Point2D, double>;

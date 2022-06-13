@@ -41,7 +41,7 @@ Run CMake and build the executable
 cmake ..
 make
 ```
-The example files also feature a display script, which is based on the [gustav](https://github.com/j042/gustav-alpha) library.
+The example files also feature a display script, which is based on the [gustav](https://github.com/tataratat/gustaf) library.
 
 ## Building the documentation
 If you want to build the documentation, you can do so using [doxygen](https://www.doxygen.nl/index.html), by running these commands:
@@ -52,3 +52,6 @@ cd doc
 doxygen Doxyfile
 ```
 This will create a new folder named `doxydocs` in the current directory, in which you will find an `index.html` file. Open it with a browser of your choice.
+
+## Python integration
+Most of the functionality provided by this library is integrated into the software suite [gustaf](https://github.com/tataratat/gustaf). `Gustaf` aims to provide user-friendly manipulation of splines and their visualization and animation, for post-processing and presentation purposes.

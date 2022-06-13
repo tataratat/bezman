@@ -11,7 +11,7 @@
 class RingSegments3D {
  private:
   // Aliases
-  using ADT = utils::computational_derivation::AlgoDiffType<double>;
+  using ADT = utils::computational_differentiation::AlgoDiffType<double>;
   using PointADT3D = Point<3, ADT>;
   using Point3D = Point<3, double>;
   using BezierGroup = BezierSplineGroup<3, Point3D, double>;

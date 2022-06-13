@@ -1,15 +1,14 @@
-#ifndef UTILS_COMPUTATIONAL_DERIVATION_ALGO_DIFF_TYPE_HPP
-#define UTILS_COMPUTATIONAL_DERIVATION_ALGO_DIFF_TYPE_HPP
+#ifndef UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_HPP
+#define UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_HPP
 
 // c++ library
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <vector>
 
-#include "bezierManipulation/src/utils/logger.hpp"
-
-namespace beziermanipulation::utils::computational_derivation {
+namespace beziermanipulation::utils::computational_differentiation {
 
 /*!
  * @class AlgoDiffType
@@ -36,8 +35,9 @@ namespace beziermanipulation::utils::computational_derivation {
  *
  * @tparam Scalar      The intrinsic data type for storing the value and the
  *                     derivative components
+ * @tparam numberOfDerivatives
  */
-template <typename Scalar>
+template <typename Scalar, std::size_t numberOfDerivatives = 0>
 class AlgoDiffType {
  public:
   /// Alias for the intrinsic scalar data type
@@ -47,10 +47,12 @@ class AlgoDiffType {
   using IndexingType_ = std::size_t;
 
   /// Alias for the data type of this class
-  using ADT_ = AlgoDiffType<Scalar>;
+  using ADT_ = AlgoDiffType<Scalar, numberOfDerivatives>;
 
   /// Alias for the data type storing the gradient
-  using DerivType_ = std::vector<Scalar_>;
+  using DerivType_ =
+      std::conditional_t<numberOfDerivatives == 0, std::vector<Scalar_>,
+                         std::array<Scalar_, numberOfDerivatives>>;
 
  private:
   /*!
@@ -85,9 +87,17 @@ class AlgoDiffType {
   AlgoDiffType() : v_{}, d_{} {}
 
   /// Scalar Constructor without Derivative
+  template <std::size_t dummy = numberOfDerivatives,
+            typename std::enable_if_t<dummy == 0> * = nullptr>
   AlgoDiffType(const Scalar_ &value, const IndexingType_ &n_derivatives)
       : v_{value},
         d_(n_derivatives, Scalar_{}){};  // d_{size} initializes to Scalar{}
+
+  /// Scalar Constructor without Derivative
+  template <std::size_t dummy = numberOfDerivatives,
+            typename std::enable_if_t<dummy != 0> * = nullptr>
+  AlgoDiffType(const Scalar_ &value)
+      : v_{value}, d_{} {};  // d_{size} initializes to Scalar{}
 
   /// Define a destructor
   ~AlgoDiffType() = default;
@@ -99,9 +109,27 @@ class AlgoDiffType {
    * e_i \f$, which corresponds to the component with respect to which the
    * derivative is supposed to be computed.
    */
+  template <std::size_t dummy = numberOfDerivatives,
+            typename std::enable_if_t<dummy == 0> * = nullptr>
   AlgoDiffType(const Scalar &value, const IndexingType_ &n_derivatives,
                const IndexingType_ active_component)
       : v_{value}, d_(n_derivatives, Scalar_{}) {
+    assert(
+        ("Requested derivative out of range.", active_component < d_.size()));
+    SetActiveComponent(active_component);
+  }
+
+  /*!
+   * Constructor for user initialization of an instance. It initializes an
+   * instance with the value \f$ x_i \f$ for which the computation is supposed
+   * to be carried out and sets its derivative to the canonical basis vector \f$
+   * e_i \f$, which corresponds to the component with respect to which the
+   * derivative is supposed to be computed.
+   */
+  template <std::size_t dummy = numberOfDerivatives,
+            typename std::enable_if_t<dummy != 0> * = nullptr>
+  AlgoDiffType(const Scalar &value, const IndexingType_ active_component)
+      : v_{value}, d_{} {
     assert(
         ("Requested derivative out of range.", active_component < d_.size()));
     SetActiveComponent(active_component);
@@ -130,7 +158,7 @@ class AlgoDiffType {
    * Marks the current variable as the component-th active variable of a vector
    * by first filling the derivative vector with zeros and then setting the
    * provided component to one.
-   * @param component    The component in range {0,...,n_derives-1} which is
+   * @param component    The component in range {0,...,n_derivs-1} which is
    * represented by this variable
    * @note This method is meant for initialization and should not be used within
    *       mathematical computations
@@ -262,122 +290,139 @@ class AlgoDiffType {
    */
 
   /// Simple Default Output stream overload
-  template <typename ScalarF>
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const AlgoDiffType<ScalarF> &a);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend std::ostream &operator<<(
+      std::ostream &os, const AlgoDiffType<ScalarF, numberOfDerivativesF> &a);
 
   /// Addition
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> operator+(
-      const ScalarF &a, const AlgoDiffType<ScalarF> &b);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> operator+(
+      const ScalarF &a, const AlgoDiffType<ScalarF, numberOfDerivativesF> &b);
 
   /// Subtraction
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> operator-(
-      const ScalarF &a, const AlgoDiffType<ScalarF> &b);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> operator-(
+      const ScalarF &a, const AlgoDiffType<ScalarF, numberOfDerivativesF> &b);
 
   /// Multiplication
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> operator*(
-      const ScalarF &a, const AlgoDiffType<ScalarF> &b);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> operator*(
+      const ScalarF &a, const AlgoDiffType<ScalarF, numberOfDerivativesF> &b);
 
   /// Division
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> operator/(
-      const ScalarF &a, const AlgoDiffType<ScalarF> &b);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> operator/(
+      const ScalarF &a, const AlgoDiffType<ScalarF, numberOfDerivativesF> &b);
 
   /// Natural exponent of AlgoDiffType (e.g. \f$ \exp{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> exp(
-      const AlgoDiffType<ScalarF> &exponent);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> exp(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &exponent);
 
   /// Absolute Value
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> abs(const AlgoDiffType<ScalarF> &base);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> abs(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &base);
 
   /// Power of AlgoDiffType (e.g. \f$ (x_i)^a \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> pow(const AlgoDiffType<ScalarF> &base,
-                                             const ScalarF &power);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> pow(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &base,
+      const ScalarF &power);
 
   /// Power of AlgoDiffType (using \f$ (x)^y = exp(ln(x)y) \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> pow(
-      const AlgoDiffType<ScalarF> &base, const AlgoDiffType<ScalarF> &power);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> pow(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &base,
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &power);
 
   /// Square root of AlgoDiffType (e.g. \f$ \sqrt{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> sqrt(
-      const AlgoDiffType<ScalarF> &radicand);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> sqrt(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &radicand);
 
   /// Natural logarithm of AlgoDiffType (e.g. \f$ \log{x_i} \f$ )
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> log(const AlgoDiffType<ScalarF> &xi);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> log(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &xi);
 
   /// Logarithm to base 10 of AlgoDiffType (e.g. \f$ \log_{10}{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> log10(const AlgoDiffType<ScalarF> &a);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> log10(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &a);
 
   /// Cosine function of AlgoDiffType (e.g. \f$ \cos{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> cos(const AlgoDiffType<ScalarF> &a);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> cos(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &a);
 
   /// Sine function of AlgoDiffType (e.g. \f$ \sin{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> sin(const AlgoDiffType<ScalarF> &a);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> sin(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &a);
 
   /// Tangent function of AlgoDiffType (e.g. \f$ \tan{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> tan(const AlgoDiffType<ScalarF> &a);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> tan(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &a);
 
   /// Inverse Cosine function of AlgoDiffType (e.g. \f$ \acos{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> acos(const AlgoDiffType<ScalarF> &a);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> acos(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &a);
 
   /// Inverse Sine function of AlgoDiffType (e.g. \f$ \asin{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> asin(const AlgoDiffType<ScalarF> &a);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> asin(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &a);
 
   /// Inverse Tangent function of AlgoDiffType (e.g. \f$ \atan{x_i} \f$)
-  template <typename ScalarF>
-  friend constexpr AlgoDiffType<ScalarF> atan(const AlgoDiffType<ScalarF> &a);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr AlgoDiffType<ScalarF, numberOfDerivativesF> atan(
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &a);
 
   /// Greater operator with a Scalar
-  template <typename ScalarF>
-  friend constexpr bool operator>(const ScalarF &scalar,
-                                  const AlgoDiffType<ScalarF> &adt);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr bool operator>(
+      const ScalarF &scalar,
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &adt);
 
   /// Greater equal operator  with a Scalar
-  template <typename ScalarF>
-  friend constexpr bool operator>=(const ScalarF &scalar,
-                                   const AlgoDiffType<ScalarF> &adt);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr bool operator>=(
+      const ScalarF &scalar,
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &adt);
 
   /// Smaller operator with a Scalar
-  template <typename ScalarF>
-  friend constexpr bool operator<(const ScalarF &scalar,
-                                  const AlgoDiffType<ScalarF> &adt);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr bool operator<(
+      const ScalarF &scalar,
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &adt);
 
   /// Smaller equal operator  with a Scalar
-  template <typename ScalarF>
-  friend constexpr bool operator<=(const ScalarF &scalar,
-                                   const AlgoDiffType<ScalarF> &adt);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr bool operator<=(
+      const ScalarF &scalar,
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &adt);
 
   /// Equal operator with a Scalar
-  template <typename ScalarF>
-  friend constexpr bool operator==(const ScalarF &scalar,
-                                   const AlgoDiffType<ScalarF> &adt);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr bool operator==(
+      const ScalarF &scalar,
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &adt);
 
   /// Unequal operator  with a Scalar
-  template <typename ScalarF>
-  friend constexpr bool operator!=(const ScalarF &scalar,
-                                   const AlgoDiffType<ScalarF> &adt);
+  template <typename ScalarF, std::size_t numberOfDerivativesF>
+  friend constexpr bool operator!=(
+      const ScalarF &scalar,
+      const AlgoDiffType<ScalarF, numberOfDerivativesF> &adt);
 
   /** @} */  // End of Friend Injections
 
 };  // end class AlgoDiffType
 
-#include "bezierManipulation/src/utils/computational_derivation/algo_diff_type.inc"
+#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.inc"
 
-}  // namespace beziermanipulation::utils::computational_derivation
+}  // namespace beziermanipulation::utils::computational_differentiation
 
-#endif  // UTILS_COMPUTATIONAL_DERIVATION_ALGO_DIFF_TYPE_HPP
+#endif  // UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_HPP

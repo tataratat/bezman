@@ -8,7 +8,7 @@
 #include <iostream>
 #include <vector>
 
-namespace beziermanipulation::utils::computational_differentiation {
+namespace bezman::utils::computational_differentiation {
 
 /*!
  * @class AlgoDiffType
@@ -421,8 +421,8 @@ class AlgoDiffType {
 
 };  // end class AlgoDiffType
 
-#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.inc"
+#include "bezman/src/utils/computational_differentiation/algo_diff_type.inc"
 
-}  // namespace beziermanipulation::utils::computational_differentiation
+}  // namespace bezman::utils::computational_differentiation
 
 #endif  // UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_HPP

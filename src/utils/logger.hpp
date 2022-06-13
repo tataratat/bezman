@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace beziermanipulation::utils {
+namespace bezman::utils {
 /**
  * @brief Provides functionality for output information
  *
@@ -401,5 +401,5 @@ class Logger {
   Logger(Logger const&);
   void operator=(Logger const&);
 };
-}  // namespace beziermanipulation::utils
+}  // namespace bezman::utils
 #endif  // SRC_UTILS_LOGGER_HPP

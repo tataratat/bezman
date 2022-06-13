@@ -2,11 +2,11 @@
 
 #include <array>
 
-#include "bezierManipulation/src/bezier_spline.hpp"
+#include "bezman/src/bezier_spline.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
-namespace beziermanipulation::tests::basic_operations {
+namespace bezman::tests::basic_operations {
 
 class BezierTestingSuite : public ::testing::Test {
   using Point2D = Point<2, double>;
@@ -106,4 +106,4 @@ TEST_F(BezierTestingSuite, Derivation) {
   // Expect equality.
   EXPECT_EQ(line1.DerivativeWRTParametricDimension(0), line1_deriv);
 }
-}  // namespace beziermanipulation::tests::basic_operations
+}  // namespace bezman::tests::basic_operations

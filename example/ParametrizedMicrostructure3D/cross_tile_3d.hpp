@@ -4,10 +4,10 @@
 #include <algorithm>
 #include <vector>
 
-#include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.hpp"
+#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/utils/computational_differentiation/algo_diff_type.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
 /**
  * @brief Cross tile with variable thickness

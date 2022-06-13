@@ -7,11 +7,11 @@
 #include <numeric>
 #include <vector>
 
-#include "bezierManipulation/src/point.hpp"
-#include "bezierManipulation/src/utils/fastbinomialcoefficient.hpp"
-#include "bezierManipulation/src/utils/logger.hpp"
+#include "bezman/src/point.hpp"
+#include "bezman/src/utils/fastbinomialcoefficient.hpp"
+#include "bezman/src/utils/logger.hpp"
 
-namespace beziermanipulation {
+namespace bezman {
 
 // Forward declaration for later use
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -351,8 +351,8 @@ class BezierSpline {
                   const IndexingType splitting_dimension = 0) const;
 };
 
-#include "bezierManipulation/src/bezier_spline.inc"
+#include "bezman/src/bezier_spline.inc"
 
-}  // namespace beziermanipulation
+}  // namespace bezman
 
 #endif  // SRC_BEZIER_SPLINE_HPP

@@ -3,13 +3,13 @@
 
 #include <array>
 
-#include "bezierManipulation/src/utils/binomialcoefficientlookuptablecreator.hpp"
+#include "bezman/src/utils/binomialcoefficientlookuptablecreator.hpp"
 
 #ifndef MAX_BINOMIAL_DEGREE
 #define MAX_BINOMIAL_DEGREE 30u
 #endif
 
-namespace beziermanipulation::utils {
+namespace bezman::utils {
 
 /*
  * Lookup Class with static binomial coeffient
@@ -41,6 +41,6 @@ class FastBinomialCoefficient {
     return look_up[n * (n + 1) / 2 + i];
   }
 };
-}  // namespace beziermanipulation::utils
+}  // namespace bezman::utils
 
 #endif  // SRC_UTILS_FASTBINOMIALCOEFFICIENT_HPP

@@ -30,14 +30,14 @@
 #include <cmath>
 #include <vector>
 
-#include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.hpp"
-#include "bezierManipulation/src/utils/export.hpp"
+#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/utils/computational_differentiation/algo_diff_type.hpp"
+#include "bezman/src/utils/export.hpp"
 #include "cross_tile_3d.hpp"
 #include "microstructure_generator.hpp"
 #include "ring_segments_3d.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
 /**
  * @brief Value Field Function defined in the parametric domain of the

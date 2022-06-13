@@ -4,11 +4,11 @@
 #include <cassert>
 #include <vector>
 
-#include "bezierManipulation/src/bezier_spline.hpp"
-#include "bezierManipulation/src/point.hpp"
-#include "bezierManipulation/src/utils/logger.hpp"
+#include "bezman/src/bezier_spline.hpp"
+#include "bezman/src/point.hpp"
+#include "bezman/src/utils/logger.hpp"
 
-namespace beziermanipulation {
+namespace bezman {
 
 /*
  * Group of Bezier splines with same parametric dimension and PointType
@@ -108,10 +108,10 @@ class BezierSplineGroup
 
   /// + Operator for concatenation
   constexpr BezierSplineGroup &operator+=(const PhysicalPointType &translation);
-};  // namespace beziermanipulation
+};  // namespace bezman
 
-#include "bezierManipulation/src/bezier_spline_group.inc"
+#include "bezman/src/bezier_spline_group.inc"
 
-}  // namespace beziermanipulation
+}  // namespace bezman
 
 #endif  // SRC_BEZIER_SPLINE_GROUP_HPP

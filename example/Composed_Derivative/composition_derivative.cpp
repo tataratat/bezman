@@ -1,8 +1,8 @@
 // Load Bezier
-#include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/utils/export.hpp"
+#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/utils/export.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
 int main() {
   // Define aliases

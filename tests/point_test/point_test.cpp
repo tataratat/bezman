@@ -3,13 +3,13 @@
 #include <array>
 
 #define MAX_BINOMIAL_DEGREE 62u  // Required for second test set
-#include "bezierManipulation/src/bezier_spline.hpp"
-#include "bezierManipulation/src/point.hpp"
-#include "bezierManipulation/src/utils/type_traits/is_point.hpp"
+#include "bezman/src/bezier_spline.hpp"
+#include "bezman/src/point.hpp"
+#include "bezman/src/utils/type_traits/is_point.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
-namespace beziermanipulation::tests::point_test {
+namespace bezman::tests::point_test {
 
 class BezierTestingSuite : public ::testing::Test {
   using Point3D = Point<3, double>;
@@ -45,4 +45,4 @@ TEST_F(BezierTestingSuite, PointCreationTests) {
   EXPECT_FALSE((utils::type_traits::isPoint_v<BezierSpline<2,Point<3, double>, double>>));
 }
 
-}  // namespace beziermanipulation::tests::point_test
+}  // namespace bezman::tests::point_test

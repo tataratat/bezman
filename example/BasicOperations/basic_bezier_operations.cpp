@@ -1,9 +1,9 @@
 // #include <random>
 
 // Load tensorSuite
-#include "bezierManipulation/src/bezier_spline.hpp"
+#include "bezman/src/bezier_spline.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
 int main() {
   std::cout << "Working on the Bezier Splines\n";

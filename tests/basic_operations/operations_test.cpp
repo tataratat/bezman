@@ -2,11 +2,11 @@
 
 #include <array>
 
-#include "bezierManipulation/src/bezier_spline.hpp"
+#include "bezman/src/bezier_spline.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
-namespace beziermanipulation::tests::basic_operations {
+namespace bezman::tests::basic_operations {
 
 class BezierTestingSuite : public ::testing::Test {
   using Point3D = Point<3, double>;
@@ -137,4 +137,4 @@ TEST_F(BezierTestingSuite, MultiplicationTest2) {
   }
 }
 
-}  // namespace beziermanipulation::tests::basic_operations
+}  // namespace bezman::tests::basic_operations

@@ -30,11 +30,11 @@
 #include <cmath>
 #include <vector>
 
-#include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.hpp"
-#include "bezierManipulation/src/utils/export.hpp"
+#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/utils/computational_differentiation/algo_diff_type.hpp"
+#include "bezman/src/utils/export.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
 // Define aliases to abriviate code
 using ADT = utils::computational_differentiation::AlgoDiffType<double>;

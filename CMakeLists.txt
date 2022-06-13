@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 # Define Project
-project("bezierManipulation"
+project("bezman"
         VERSION 0.0.1
         DESCRIPTION "A header library to facilitate the manipulation of Bezier-splines"
         LANGUAGES CXX)

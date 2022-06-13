@@ -4,12 +4,12 @@
 #include <iostream>
 #include <vector>
 
-#include "bezierManipulation/src/point.hpp"
-#include "bezierManipulation/src/utils/algorithms/point_uniquifier.hpp"
+#include "bezman/src/point.hpp"
+#include "bezman/src/utils/algorithms/point_uniquifier.hpp"
 
-using namespace beziermanipulation::utils;
+using namespace bezman::utils;
 
-namespace beziermanipulation::tests::io::connectivity_check {
+namespace bezman::tests::io::connectivity_check {
 
 class ConnectivityCheckSuite : public ::testing::Test {
   /*
@@ -26,7 +26,7 @@ class ConnectivityCheckSuite : public ::testing::Test {
    *               |         |
    *               0 --(0)-- 1
    */
-  using Point2D = ::beziermanipulation::Point<2ul, double>;
+  using Point2D = ::bezman::Point<2ul, double>;
 
  public:
   // Face center points
@@ -89,4 +89,4 @@ TEST_F(ConnectivityCheckSuite, UniquifyPointsTest) {
   EXPECT_EQ(connectivity, uniquelist);
 }
 
-}  // namespace beziermanipulation::tests::io::connectivity_check
+}  // namespace bezman::tests::io::connectivity_check

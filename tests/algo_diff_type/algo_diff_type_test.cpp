@@ -1,12 +1,12 @@
-#include "bezierManipulation/src/utils/computational_differentiation/algo_diff_type.hpp"
+#include "bezman/src/utils/computational_differentiation/algo_diff_type.hpp"
 
 #include <gtest/gtest.h>
 
 #include <cmath>
 
-using namespace beziermanipulation;
+using namespace bezman;
 
-namespace beziermanipulation::tests::algo_diff_type_test {
+namespace bezman::tests::algo_diff_type_test {
 
 using ADT = utils::computational_differentiation::AlgoDiffType<double>;
 using ADTstatic = utils::computational_differentiation::AlgoDiffType<double, 2>;
@@ -147,4 +147,4 @@ TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometricStatic) {
   EXPECT_FLOAT_EQ(atan(x).GetDerivatives()[0], 1. / (1. + 0.49));
 };
 
-}  // namespace beziermanipulation::tests::algo_diff_type_test
+}  // namespace bezman::tests::algo_diff_type_test

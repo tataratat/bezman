@@ -5,12 +5,12 @@
 #include <cassert>
 #include <vector>
 
-#include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/point.hpp"
-#include "bezierManipulation/src/utils/algorithms/hypercube.hpp"
-#include "bezierManipulation/src/utils/algorithms/sort.hpp"
+#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/point.hpp"
+#include "bezman/src/utils/algorithms/hypercube.hpp"
+#include "bezman/src/utils/algorithms/sort.hpp"
 
-namespace beziermanipulation::utils::algorithms {
+namespace bezman::utils::algorithms {
 
 /**
  * @brief Takes a set of points and determines point-connectivity using a metric
@@ -335,5 +335,5 @@ auto GetConnectivityForSplineGroup(
       opposite_faces);
 }
 
-}  // namespace beziermanipulation::utils::algorithms
+}  // namespace bezman::utils::algorithms
 #endif  // UTILS_UNIQUIFY_POINT_UNIQUIFIER_HPP

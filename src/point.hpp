@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace beziermanipulation {
+namespace bezman {
 
 /*
  * Point class
@@ -150,6 +150,6 @@ class Point : public std::array<BaseType, spatial_dimension> {
     return out.str();
   }
 };  // namespace std::array<BaseType,spatial_dimension>
-}  // namespace beziermanipulation
+}  // namespace bezman
 
 #endif  // SRC_POINT_HPP

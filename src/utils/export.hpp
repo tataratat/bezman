@@ -6,15 +6,15 @@
 #include <stdexcept>
 #include <string>
 
-#include "bezierManipulation/src/bezier_spline.hpp"
-#include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/point.hpp"
-#include "bezierManipulation/src/utils/algorithms/int_power.hpp"
-#include "bezierManipulation/src/utils/algorithms/point_uniquifier.hpp"
-#include "bezierManipulation/src/utils/base64.hpp"
-#include "bezierManipulation/src/utils/logger.hpp"
+#include "bezman/src/bezier_spline.hpp"
+#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/point.hpp"
+#include "bezman/src/utils/algorithms/int_power.hpp"
+#include "bezman/src/utils/algorithms/point_uniquifier.hpp"
+#include "bezman/src/utils/base64.hpp"
+#include "bezman/src/utils/logger.hpp"
 
-namespace beziermanipulation::utils {
+namespace bezman::utils {
 
 /*
  * Static Class for Export Routines
@@ -159,7 +159,7 @@ class Export {
       const std::string &filename);
 };
 
-#include "bezierManipulation/src/utils/export.inc"
+#include "bezman/src/utils/export.inc"
 
-}  // namespace beziermanipulation::utils
+}  // namespace bezman::utils
 #endif  // SRC_UTILS_EXPORT_HPP

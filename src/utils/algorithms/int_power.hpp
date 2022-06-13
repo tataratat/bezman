@@ -1,7 +1,7 @@
 #ifndef UTILS_ALGORITHMS_INT_POWER_HPP
 #define UTILS_ALGORITHMS_INT_POWER_HPP
 
-namespace beziermanipulation::utils::algorithms {
+namespace bezman::utils::algorithms {
 
 /**
  * @brief Recursive function of integer powers
@@ -20,6 +20,6 @@ constexpr IntegralType IntPower(const IntegralType& base,
     return base * tmp * tmp;
   }
 }
-}  // namespace beziermanipulation::utils::sort
+}  // namespace bezman::utils::sort
 
 #endif  // UTILS_ALGORITHMS_INT_POWER_HPP

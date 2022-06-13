@@ -1,4 +1,4 @@
-#include "bezierManipulation/src/utils/base64.hpp"
+#include "bezman/src/utils/base64.hpp"
 
 #include <gtest/gtest.h>
 
@@ -6,11 +6,11 @@
 #include <iostream>
 #include <vector>
 
-#include "bezierManipulation/src/point.hpp"
+#include "bezman/src/point.hpp"
 
-using namespace beziermanipulation::utils;
+using namespace bezman::utils;
 
-namespace beziermanipulation::tests::io::base64 {
+namespace bezman::tests::io::base64 {
 
 class Base64ExportSuite : public ::testing::Test {
  public:
@@ -19,9 +19,9 @@ class Base64ExportSuite : public ::testing::Test {
   std::vector<float> float_vect_one{3.0, 4., 0.2, -.4};
   std::vector<double> double_vect_one{3.0, 4., 0.2, -.4};
 
-  std::vector<beziermanipulation::Point<3, double>> point_vector{
-      beziermanipulation::Point<3, double>{1., 2., 1.},
-      beziermanipulation::Point<3, double>{-0.65, 0., 9.}};
+  std::vector<bezman::Point<3, double>> point_vector{
+      bezman::Point<3, double>{1., 2., 1.},
+      bezman::Point<3, double>{-0.65, 0., 9.}};
 };
 
 /*
@@ -42,9 +42,9 @@ TEST_F(Base64ExportSuite, ExportImportTest) {
 
 TEST_F(Base64ExportSuite, ExportImportTestPoints) {
   // Points
-  const auto test_point_ctps = Base64::Decode<beziermanipulation::Point<3ul, double>>(
+  const auto test_point_ctps = Base64::Decode<bezman::Point<3ul, double>>(
       Base64::Encode(point_vector));
   EXPECT_EQ(point_vector, test_point_ctps);
 }
 
-}  // namespace beziermanipulation::tests::io::base64
+}  // namespace bezman::tests::io::base64

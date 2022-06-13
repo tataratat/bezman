@@ -3,11 +3,11 @@
 #include <array>
 
 #define MAX_BINOMIAL_DEGREE 62u  // Required for second test set
-#include "bezierManipulation/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_spline_group.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
-namespace beziermanipulation::tests::composition_test {
+namespace bezman::tests::composition_test {
 
 class BezierTestingSuite : public ::testing::Test {
   using Point2D = Point<2, double>;
@@ -56,4 +56,4 @@ TEST_F(BezierTestingSuite, Composition) {
   EXPECT_NO_FATAL_FAILURE(deformation_function.Compose(microtile_cross));
 }
 
-}  // namespace beziermanipulation::tests::composition_test
+}  // namespace bezman::tests::composition_test

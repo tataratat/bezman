@@ -1,9 +1,9 @@
 #ifndef UTILS_TYPE_TRAITS_IS_BEZIER_SPLINE_HPP
 #define UTILS_TYPE_TRAITS_IS_BEZIER_SPLINE_HPP
 
-#include "beziermanipulation/src/bezier_spline.hpp"
+#include "bezman/src/bezier_spline.hpp"
 
-namespace beziermanipulation::utils::type_traits {
+namespace bezman::utils::type_traits {
 
 /// Checker if a template type is an instance of BezierSpline
 template <typename SplineType>
@@ -22,6 +22,6 @@ struct isBezierSpline<BezierSpline<spatial_dimension, BaseType>> {
 template <typename SplineType>
 constexpr bool isBezierSpline_v = isBezierSpline<SplineType>::value;
 
-}  // namespace beziermanipulation::utils::type_traits
+}  // namespace bezman::utils::type_traits
 
 #endif  // UTILS_TYPE_TRAITS_IS_BEZIER_SPLINE_HPP

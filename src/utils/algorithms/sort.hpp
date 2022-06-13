@@ -5,7 +5,7 @@
 #include <numeric>
 #include <vector>
 
-namespace beziermanipulation::utils::algorithms {
+namespace bezman::utils::algorithms {
 
 /*
  * Sort Vector using lambda expressions
@@ -20,5 +20,5 @@ std::vector<std::size_t> IndexListSort(const std::vector<T>& v) {
   return idx;
 }
 
-}  // namespace beziermanipulation::utils::algorithms
+}  // namespace bezman::utils::algorithms
 #endif  // UTILS_ALGORITHMS_SORT_HPP

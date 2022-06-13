@@ -3,7 +3,7 @@
 
 #include <array>
 
-namespace beziermanipulation::utils {
+namespace bezman::utils {
 
 /*
  * Class to create a look-up table for binomial coefficients

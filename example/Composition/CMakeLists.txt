@@ -9,8 +9,8 @@ message(STATUS "Searching for install directory in ${CMAKE_PREFIX_PATH}!")
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(bezierManipulation)
+find_package(bezman)
 
 add_executable(simple_composition simple_composition.cpp)
 
-target_link_libraries(simple_composition PRIVATE bezierManipulation::bezierManipulation)
+target_link_libraries(simple_composition PRIVATE bezman::bezman)

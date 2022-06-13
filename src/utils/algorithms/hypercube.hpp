@@ -3,9 +3,9 @@
 
 #include <array>
 
-#include "bezierManipulation/src/utils/algorithms/int_power.hpp"
+#include "bezman/src/utils/algorithms/int_power.hpp"
 
-namespace beziermanipulation::utils::algorithms {
+namespace bezman::utils::algorithms {
 
 /**
  * @brief Provides functions and auxiliary values for hypercubes
@@ -85,12 +85,12 @@ class HyperCube {
    * See Pictures for numbering system in class header
    */
   static std::array<std::size_t,
-                    beziermanipulation::utils::algorithms::IntPower(
+                    bezman::utils::algorithms::IntPower(
                         static_cast<std::size_t>(2), dimension)>
   VertexIdForDegrees(const std::array<std::size_t, dimension> &degrees) {
     // Alias for Readability
     using ReturnType =
-        std::array<std::size_t, beziermanipulation::utils::algorithms::IntPower(
+        std::array<std::size_t, bezman::utils::algorithms::IntPower(
                                     static_cast<std::size_t>(2), dimension)>;
     static_assert((dimension == 3 || dimension == 2),
                   "High-Dimensional and Line Patches not supported");
@@ -130,13 +130,13 @@ class HyperCube {
    * See Pictures for numbering system in class header
    */
   static constexpr std::array<
-      std::array<std::size_t, beziermanipulation::utils::algorithms::IntPower(
+      std::array<std::size_t, bezman::utils::algorithms::IntPower(
                                   static_cast<std::size_t>(2), dimension - 1)>,
       dimension * 2>
   SubElementVerticesToFace() {
     using ReturnType =
         std::array<std::array<std::size_t,
-                              beziermanipulation::utils::algorithms::IntPower(
+                              bezman::utils::algorithms::IntPower(
                                   static_cast<std::size_t>(2), dimension - 1)>,
                    2 * dimension>;
 
@@ -217,5 +217,5 @@ class HyperCube {
     }
   }
 };
-}  // namespace beziermanipulation::utils::algorithms
+}  // namespace bezman::utils::algorithms
 #endif  // UTILS_ALGORITHMS_HYPERCUBE_HPP

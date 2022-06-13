@@ -1,9 +1,9 @@
-#include "bezierManipulation/src/utils/logger.hpp"
+#include "bezman/src/utils/logger.hpp"
 
 int main() {
   // Shorter version for the facilitated access
-  using Logger = beziermanipulation::utils::Logger;
-  using LoggerOutputOptions = beziermanipulation::utils::Logger::OutputLevel;
+  using Logger = bezman::utils::Logger;
+  using LoggerOutputOptions = bezman::utils::Logger::OutputLevel;
   Logger::SetOutputLevel(15);
   Logger::Warning("This is a warning");
   Logger::Error("This is an error");

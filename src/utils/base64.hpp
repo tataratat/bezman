@@ -5,10 +5,10 @@
 #include <cassert>
 #include <vector>
 
-#include "bezierManipulation/src/point.hpp"
-#include "bezierManipulation/src/utils/type_traits/is_point.hpp"
+#include "bezman/src/point.hpp"
+#include "bezman/src/utils/type_traits/is_point.hpp"
 
-namespace beziermanipulation::utils {
+namespace bezman::utils {
 
 /**
  * @brief Encode for base64 export
@@ -122,7 +122,7 @@ class Base64_ {
    */
   template <std::size_t dimension, typename Scalar>
   static std::string Encode(
-      const std::vector<beziermanipulation::Point<dimension, Scalar>>&
+      const std::vector<bezman::Point<dimension, Scalar>>&
           data_vector) {
     std::vector<Scalar> ctps_converted(dimension * data_vector.size());
     for (std::size_t i_point{}; i_point < data_vector.size(); i_point++) {
@@ -138,7 +138,7 @@ class Base64_ {
   template <
       typename OutputType,
       std::enable_if_t<type_traits::isPoint_v<OutputType>, void*> = nullptr>
-  static std::vector<beziermanipulation::Point<OutputType::kSpatialDimension,
+  static std::vector<bezman::Point<OutputType::kSpatialDimension,
                                                typename OutputType::ScalarType>>
   Decode(const std::string& base64string) {
     // Aliases for readability
@@ -154,7 +154,7 @@ class Base64_ {
     assert(data_vector.size() % dimension == 0);
 
     // Init return type
-    std::vector<beziermanipulation::Point<dimension, ScalarType>> ct_points(
+    std::vector<bezman::Point<dimension, ScalarType>> ct_points(
         n_ctps);
 
     // Transfer data
@@ -223,6 +223,6 @@ class Base64_ {
 /// Non-template implementation can't use compile time functions as constexpr
 using Base64 = Base64_<>;
 
-}  // namespace beziermanipulation::utils
+}  // namespace bezman::utils
 
 #endif  // SRC_UTILS_BASE64_HPP

@@ -12,13 +12,13 @@ message(STATUS "Searching for install directory in ${CMAKE_PREFIX_PATH}!")
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(bezierManipulation)
+find_package(bezman)
 
 add_executable(microstructure_build microstructure_build.cpp)
 
 target_sources(microstructure_build PRIVATE cross_tile_3d.hpp ring_segments_3d.hpp)
 
-set(LINK_LIBRARIES bezierManipulation::bezierManipulation)
+set(LINK_LIBRARIES bezman::bezman)
 
 
 if (OPENMP)

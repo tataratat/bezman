@@ -413,7 +413,7 @@ void Export::AsMFEM(
 
   // Retrieve Connectivity
   const auto connectivity =
-      beziermanipulation::utils::algorithms::GetConnectivityForSplineGroup(
+      bezman::utils::algorithms::GetConnectivityForSplineGroup(
           spline_group);
   if (connectivity.size() == 0) {
     Logger::TerminatingError("Creating connectivity failed.");

@@ -2,12 +2,12 @@
 
 #include <array>
 
-#include "bezierManipulation/src/bezier_spline_group.hpp"
-#include "bezierManipulation/src/utils/export.hpp"
+#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/utils/export.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
-namespace beziermanipulation::tests::spline_operations {
+namespace bezman::tests::spline_operations {
 using Point3D = Point<3, double>;
 
 class BezierTestingSuite : public ::testing::Test {
@@ -92,4 +92,4 @@ TEST_F(BezierTestingSuite, TestSplittingSurfaceHighOrder) {
   }
 }
 
-}  // namespace beziermanipulation::tests::spline_operations
+}  // namespace bezman::tests::spline_operations

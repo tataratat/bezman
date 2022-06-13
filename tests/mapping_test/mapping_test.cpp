@@ -3,11 +3,11 @@
 #include <array>
 
 #define MAX_BINOMIAL_DEGREE 62u  // Required for second test set
-#include "bezierManipulation/src/bezier_spline.hpp"
+#include "bezman/src/bezier_spline.hpp"
 
-using namespace beziermanipulation;
+using namespace bezman;
 
-namespace beziermanipulation::tests::mapping_test {
+namespace bezman::tests::mapping_test {
 
 class BezierTestingSuite : public ::testing::Test {
   using Point3D = Point<3, double>;
@@ -52,4 +52,4 @@ TEST_F(BezierTestingSuite, MappingToUnitCube) {
   }
 }
 
-}  // namespace beziermanipulation::tests::mapping_test
+}  // namespace bezman::tests::mapping_test

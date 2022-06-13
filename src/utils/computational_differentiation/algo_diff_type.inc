@@ -202,10 +202,10 @@ template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr AlgoDiffType<Scalar, numberOfDerivatives> operator/(
     const Scalar& a, const AlgoDiffType<Scalar, numberOfDerivatives>& b) {
   AlgoDiffType<Scalar, numberOfDerivatives> result_value{b};
-  Scalar tmp = -a / (b.v_ * b.v_);
-  result_value.v_ *= -tmp;
+  Scalar deriv = -a / (b.v_ * b.v_);
+  result_value.v_ *= -deriv;
   for (std::size_t i{}; i < result_value.GetNumberOfDerivatives(); i++) {
-    result_value.d_[i] *= tmp;
+    result_value.d_[i] *= deriv;
   }
 
   return result_value;
@@ -319,18 +319,18 @@ constexpr AlgoDiffType<Scalar, numberOfDerivatives> log10(
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr AlgoDiffType<Scalar, numberOfDerivatives> cos(
-    const AlgoDiffType<Scalar, numberOfDerivatives>& angle) {
-  AlgoDiffType<Scalar, numberOfDerivatives> result_value{angle};
+    const AlgoDiffType<Scalar, numberOfDerivatives>& rad) {
+  AlgoDiffType<Scalar, numberOfDerivatives> result_value{rad};
   Scalar sin_of_angle;
   if constexpr (std::is_arithmetic_v<Scalar>) {
     // Use STD namespace function
-    sin_of_angle = -std::sin(angle.v_);
-    result_value.v_ = std::cos(angle.v_);
+    sin_of_angle = -std::sin(rad.v_);
+    result_value.v_ = std::cos(rad.v_);
   } else {
-    sin_of_angle = -sin(angle.v_);
-    result_value.v_ = cos(angle.v_);
+    sin_of_angle = -sin(rad.v_);
+    result_value.v_ = cos(rad.v_);
   }
-  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+  for (std::size_t i{}; i < rad.GetNumberOfDerivatives(); i++) {
     result_value.d_[i] *= sin_of_angle;
   }
   return result_value;
@@ -338,18 +338,18 @@ constexpr AlgoDiffType<Scalar, numberOfDerivatives> cos(
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr AlgoDiffType<Scalar, numberOfDerivatives> sin(
-    const AlgoDiffType<Scalar, numberOfDerivatives>& angle) {
-  AlgoDiffType<Scalar, numberOfDerivatives> result_value{angle};
+    const AlgoDiffType<Scalar, numberOfDerivatives>& rad) {
+  AlgoDiffType<Scalar, numberOfDerivatives> result_value{rad};
   Scalar cos_of_angle;
   if constexpr (std::is_arithmetic_v<Scalar>) {
     // Use STD namespace function
-    cos_of_angle = std::cos(angle.v_);
-    result_value.v_ = std::sin(angle.v_);
+    cos_of_angle = std::cos(rad.v_);
+    result_value.v_ = std::sin(rad.v_);
   } else {
-    cos_of_angle = cos(angle.v_);
-    result_value.v_ = sin(angle.v_);
+    cos_of_angle = cos(rad.v_);
+    result_value.v_ = sin(rad.v_);
   }
-  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+  for (std::size_t i{}; i < rad.GetNumberOfDerivatives(); i++) {
     result_value.d_[i] *= cos_of_angle;
   }
   return result_value;
@@ -357,20 +357,20 @@ constexpr AlgoDiffType<Scalar, numberOfDerivatives> sin(
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr AlgoDiffType<Scalar, numberOfDerivatives> tan(
-    const AlgoDiffType<Scalar, numberOfDerivatives>& angle) {
-  AlgoDiffType<Scalar, numberOfDerivatives> result_value{angle};
+    const AlgoDiffType<Scalar, numberOfDerivatives>& rad) {
+  AlgoDiffType<Scalar, numberOfDerivatives> result_value{rad};
   Scalar auxiliary_value;
   if constexpr (std::is_arithmetic_v<Scalar>) {
     // Use STD namespace function
-    auxiliary_value = 1. / std::cos(angle.v_);
+    auxiliary_value = 1. / std::cos(rad.v_);
     auxiliary_value *= auxiliary_value;
-    result_value.v_ = std::tan(angle.v_);
+    result_value.v_ = std::tan(rad.v_);
   } else {
-    auxiliary_value = 1. / cos(angle.v_);
+    auxiliary_value = 1. / cos(rad.v_);
     auxiliary_value *= auxiliary_value;
-    result_value.v_ = tan(angle.v_);
+    result_value.v_ = tan(rad.v_);
   }
-  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+  for (std::size_t i{}; i < rad.GetNumberOfDerivatives(); i++) {
     result_value.d_[i] *= auxiliary_value;
   }
   return result_value;
@@ -378,18 +378,18 @@ constexpr AlgoDiffType<Scalar, numberOfDerivatives> tan(
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr AlgoDiffType<Scalar, numberOfDerivatives> acos(
-    const AlgoDiffType<Scalar, numberOfDerivatives>& angle) {
-  AlgoDiffType<Scalar, numberOfDerivatives> result_value{angle};
+    const AlgoDiffType<Scalar, numberOfDerivatives>& rad) {
+  AlgoDiffType<Scalar, numberOfDerivatives> result_value{rad};
   Scalar auxiliary_value;
   if constexpr (std::is_arithmetic_v<Scalar>) {
     // Use STD namespace function
-    auxiliary_value = -1. / std::sqrt(1 - angle.v_ * angle.v_);
-    result_value.v_ = std::acos(angle.v_);
+    auxiliary_value = -1. / std::sqrt(1 - rad.v_ * rad.v_);
+    result_value.v_ = std::acos(rad.v_);
   } else {
-    auxiliary_value = -1. / sqrt(1 - angle.v_ * angle.v_);
-    result_value.v_ = cos(angle.v_);
+    auxiliary_value = -1. / sqrt(1 - rad.v_ * rad.v_);
+    result_value.v_ = cos(rad.v_);
   }
-  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+  for (std::size_t i{}; i < rad.GetNumberOfDerivatives(); i++) {
     result_value.d_[i] *= auxiliary_value;
   }
   return result_value;
@@ -397,18 +397,18 @@ constexpr AlgoDiffType<Scalar, numberOfDerivatives> acos(
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr AlgoDiffType<Scalar, numberOfDerivatives> asin(
-    const AlgoDiffType<Scalar, numberOfDerivatives>& angle) {
-  AlgoDiffType<Scalar, numberOfDerivatives> result_value{angle};
+    const AlgoDiffType<Scalar, numberOfDerivatives>& rad) {
+  AlgoDiffType<Scalar, numberOfDerivatives> result_value{rad};
   Scalar auxiliary_value;
   if constexpr (std::is_arithmetic_v<Scalar>) {
     // Use STD namespace function
-    auxiliary_value = 1. / std::sqrt(1 - angle.v_ * angle.v_);
-    result_value.v_ = std::asin(angle.v_);
+    auxiliary_value = 1. / std::sqrt(1 - rad.v_ * rad.v_);
+    result_value.v_ = std::asin(rad.v_);
   } else {
-    auxiliary_value = 1. / std::sqrt(1 - angle.v_ * angle.v_);
-    result_value.v_ = asin(angle.v_);
+    auxiliary_value = 1. / std::sqrt(1 - rad.v_ * rad.v_);
+    result_value.v_ = asin(rad.v_);
   }
-  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+  for (std::size_t i{}; i < rad.GetNumberOfDerivatives(); i++) {
     result_value.d_[i] *= auxiliary_value;
   }
   return result_value;
@@ -416,16 +416,16 @@ constexpr AlgoDiffType<Scalar, numberOfDerivatives> asin(
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr AlgoDiffType<Scalar, numberOfDerivatives> atan(
-    const AlgoDiffType<Scalar, numberOfDerivatives>& angle) {
-  AlgoDiffType<Scalar, numberOfDerivatives> result_value{angle};
-  const Scalar auxiliary_value{1. / (1. + angle.v_ * angle.v_)};
+    const AlgoDiffType<Scalar, numberOfDerivatives>& rad) {
+  AlgoDiffType<Scalar, numberOfDerivatives> result_value{rad};
+  const Scalar auxiliary_value{1. / (1. + rad.v_ * rad.v_)};
   if constexpr (std::is_arithmetic_v<Scalar>) {
     // Use STD namespace function
-    result_value.v_ = std::atan(angle.v_);
+    result_value.v_ = std::atan(rad.v_);
   } else {
-    result_value.v_ = atan(angle.v_);
+    result_value.v_ = atan(rad.v_);
   }
-  for (std::size_t i{}; i < angle.GetNumberOfDerivatives(); i++) {
+  for (std::size_t i{}; i < rad.GetNumberOfDerivatives(); i++) {
     result_value.d_[i] *= auxiliary_value;
   }
   return result_value;

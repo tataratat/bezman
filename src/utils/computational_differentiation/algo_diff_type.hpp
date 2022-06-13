@@ -2,6 +2,7 @@
 #define UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_HPP
 
 // c++ library
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -87,14 +88,14 @@ class AlgoDiffType {
 
   /// Scalar Constructor without Derivative
   template <std::size_t dummy = numberOfDerivatives,
-            typename std::enable_if<dummy == 0>::type * = nullptr>
+            typename std::enable_if_t<dummy == 0> * = nullptr>
   AlgoDiffType(const Scalar_ &value, const IndexingType_ &n_derivatives)
       : v_{value},
         d_(n_derivatives, Scalar_{}){};  // d_{size} initializes to Scalar{}
 
   /// Scalar Constructor without Derivative
   template <std::size_t dummy = numberOfDerivatives,
-            typename std::enable_if<dummy != 0>::type * = nullptr>
+            typename std::enable_if_t<dummy != 0> * = nullptr>
   AlgoDiffType(const Scalar_ &value)
       : v_{value}, d_{} {};  // d_{size} initializes to Scalar{}
 
@@ -109,7 +110,7 @@ class AlgoDiffType {
    * derivative is supposed to be computed.
    */
   template <std::size_t dummy = numberOfDerivatives,
-            typename std::enable_if<dummy == 0>::type * = nullptr>
+            typename std::enable_if_t<dummy == 0> * = nullptr>
   AlgoDiffType(const Scalar &value, const IndexingType_ &n_derivatives,
                const IndexingType_ active_component)
       : v_{value}, d_(n_derivatives, Scalar_{}) {
@@ -126,7 +127,7 @@ class AlgoDiffType {
    * derivative is supposed to be computed.
    */
   template <std::size_t dummy = numberOfDerivatives,
-            typename std::enable_if<dummy != 0>::type * = nullptr>
+            typename std::enable_if_t<dummy != 0> * = nullptr>
   AlgoDiffType(const Scalar &value, const IndexingType_ active_component)
       : v_{value}, d_{} {
     assert(

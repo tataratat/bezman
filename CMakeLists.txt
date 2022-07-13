@@ -107,6 +107,9 @@ endif()
 if(GOOGLETEST)
     message(STATUS "Build tests!")
     
+    # Allow Logging
+    set(LOGGING OFF)
+    
 
     # The following 10 lines are from the google docs documentation to ensure version compatibility
     # Fetch the newest gtest version and make it locally available

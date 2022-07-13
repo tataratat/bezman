@@ -41,6 +41,9 @@ namespace bezman {
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 class BezierSplineGroup;
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+class RationalBezierSpline;
 
 /*
  * Class describing BezierSplines
@@ -56,6 +59,11 @@ class BezierSplineGroup;
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::Scalar>
 class BezierSpline {
+  // Friend declaration
+  template <std::size_t parent_parametric_dimension,
+            typename ParentPhysicalPointType, typename ParentScalarType>
+  friend class RationalBezierSpline;
+
  private:
   using IndexingType = std::size_t;
   using PointTypePhysical_ = PhysicalPointType;
@@ -74,8 +82,7 @@ class BezierSpline {
   template <typename... Indices>
   constexpr PhysicalPointType AddUpContributionsToControlPointVector_(
       PhysicalPointType& evaluation_point,
-      const std::array<std::array<ScalarType, MAX_BINOMIAL_DEGREE + 1>,
-                       parametric_dimension>& factors,
+      const std::array<std::vector<ScalarType>, parametric_dimension>& factors,
       const ScalarType& factor_product, const Indices&... indices) const;
 
   /// Polynomial degrees
@@ -209,7 +216,19 @@ class BezierSpline {
   constexpr PointTypePhysical_ Evaluate(
       const PointTypeParametric_& par_coords) const;
 
-  /// Evaluate the spline via the explicit precomputation of bernstein values
+  /// Evaluate Basis Functions
+  template <typename... T>
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  BasisFunctions(const T&... par_coords) const {
+    return BasisFunctions(PointTypeParametric_{par_coords...});
+  }
+
+  /// Evaluate Basis Functions
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  BasisFunctions(const PointTypeParametric_& par_coords) const;
+
+  /// Evaluate the spline via the explicit precomputation of bernstein
+  /// values
   constexpr PointTypePhysical_ ForwardEvaluate(
       const PointTypeParametric_& par_coords) const;
 

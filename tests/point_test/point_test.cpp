@@ -50,6 +50,10 @@ class BezierTestingSuite : public ::testing::Test {
   Point<3, int> point3{-1, -1, 1};
   Point<3, int> point4{-1, -2, -3};
   Point<3, int> point5{3, 6, 9};
+
+  // Points for testing division
+  Point2D point_div{2., 5.};
+  Point2D point_div_inv_x2{1., 0.4};
 };
 
 /*
@@ -62,11 +66,20 @@ TEST_F(BezierTestingSuite, PointTests) {
   EXPECT_EQ((-1) * point1, point4);
   EXPECT_EQ(point1 * 3, point5);
   EXPECT_EQ(-point1, point4);
+
+  EXPECT_FLOAT_EQ((point_div / 2.)[0], 1.);
+  EXPECT_FLOAT_EQ((point_div / 2.)[1], 2.5);
+  EXPECT_FLOAT_EQ((2. / point_div)[0], point_div_inv_x2[0]);
+  EXPECT_FLOAT_EQ((2. / point_div)[1], point_div_inv_x2[1]);
+  point_div /= 5.;
+  EXPECT_FLOAT_EQ(point_div[0], 0.4);
+  EXPECT_FLOAT_EQ(point_div[1], 1.);
 }
 
 TEST_F(BezierTestingSuite, PointCreationTests) {
   EXPECT_TRUE((utils::type_traits::isPoint_v<Point<3, double>>));
-  EXPECT_FALSE((utils::type_traits::isPoint_v<BezierSpline<2,Point<3, double>, double>>));
+  EXPECT_FALSE((utils::type_traits::isPoint_v<
+                BezierSpline<2, Point<3, double>, double>>));
 }
 
 }  // namespace bezman::tests::point_test

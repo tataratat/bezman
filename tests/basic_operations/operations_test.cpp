@@ -33,6 +33,7 @@ using namespace bezman;
 namespace bezman::tests::basic_operations {
 
 class BezierTestingSuite : public ::testing::Test {
+ public:
   using Point3D = Point<3, double>;
   using Point2D = Point<2, double>;
 
@@ -123,6 +124,32 @@ TEST_F(BezierTestingSuite, TestEvaluationRoutines) {
                     surface_spline.ForwardEvaluate(x, y)[0]);
     EXPECT_FLOAT_EQ(surface_spline.Evaluate(x, y)[1],
                     surface_spline.ForwardEvaluate(x, y)[1]);
+  }
+}
+
+// Test Basis Function evaluation
+TEST_F(BezierTestingSuite, TestBasisFunctions) {
+  // Elevate dergees
+  surface_spline.OrderElevateAlongParametricDimension(0);
+  surface_spline.OrderElevateAlongParametricDimension(1);
+  const auto degrees = surface_spline.GetDegrees();
+  // Create random evaluation point
+  const double xx{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+  const double xy{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+  const Point2D x{xx, xy};
+  // Retrieve basis functions
+  const auto basis_functions = surface_spline.BasisFunctions(xx, xy);
+
+  // Compare to analytical solution
+  for (std::size_t pdim{}; pdim < 2; pdim++) {
+    for (std::size_t i_basis{}; i_basis < degrees[pdim] + 1; i_basis++) {
+      const double analytical_solution_bernstein_pol =
+          utils::FastBinomialCoefficient::choose(degrees[pdim], i_basis) *
+          std::pow(x[pdim], i_basis) *
+          std::pow(1. - x[pdim], degrees[pdim] - i_basis);
+      EXPECT_FLOAT_EQ(basis_functions[pdim][i_basis],
+                      analytical_solution_bernstein_pol);
+    }
   }
 }
 

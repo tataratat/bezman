@@ -295,20 +295,18 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr PhysicalPointType BezierSpline<
-    parametric_dimension, PhysicalPointType,
-    ScalarType>::ForwardEvaluate(const PointTypeParametric_& par_coords) const {
-  /*
-   * Here we avoid Point operations and try to precompute as many values as
-   * possible, this greatly increases the complexity of the necessary code.
-   *
-   * They are all stored into an array to store them on the stack and avoid
-   * allocation
-   */
-  std::array<std::array<ScalarType, MAX_BINOMIAL_DEGREE + 1>,
-             parametric_dimension>
-      factors;
+constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+BezierSpline<parametric_dimension, PhysicalPointType,
+             ScalarType>::BasisFunctions(const PointTypeParametric_& par_coords)
+    const {
+  std::array<std::vector<ScalarType>, parametric_dimension> factors;
 
+  // Preallocate space to vectors
+  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
+    factors[par_dim].reserve(degrees[par_dim] + 1);
+  }
+
+  // Loop over parametric dimensions to precalculate basisfunctions
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
     ScalarType_ cfactor = static_cast<ScalarType>(1.);
     const ScalarType_ t_value = par_coords[par_dim];
@@ -316,10 +314,10 @@ constexpr PhysicalPointType BezierSpline<
     const IndexingType c_degree = degrees[par_dim];
     // Loop over dimensionwise ctps
     for (IndexingType i_ctps{0}; i_ctps < c_degree + 1; i_ctps++) {
-      factors[par_dim][i_ctps] =
+      factors[par_dim].push_back(
           static_cast<ScalarType>(
               utils::FastBinomialCoefficient::choose(c_degree, i_ctps)) *
-          cfactor;
+          cfactor);
       cfactor *= t_value;
     }
     // Backwards assignment
@@ -330,9 +328,23 @@ constexpr PhysicalPointType BezierSpline<
     }
   }
 
+  return factors;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr PhysicalPointType BezierSpline<
+    parametric_dimension, PhysicalPointType,
+    ScalarType>::ForwardEvaluate(const PointTypeParametric_& par_coords) const {
   /*
-   * Now that all values have been precomputed we have to sum up the individual
-   * contributions using (compile-time) recursion
+   * Here we avoid Point operations and try to precompute as many values as
+   * possible, this greatly increases the complexity of the necessary code.
+   */
+  const auto factors = BasisFunctions(par_coords);
+
+  /*
+   * Now that all values have been precomputed we have to sum up the
+   * individual contributions using (compile-time) recursion
    */
   PointTypePhysical_ evaluation_point{};
 
@@ -347,10 +359,13 @@ constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     AddUpContributionsToControlPointVector_(
         PhysicalPointType& evaluation_point,
-        const std::array<std::array<ScalarType, MAX_BINOMIAL_DEGREE + 1>,
-                         parametric_dimension>& factors,
+        const std::array<std::vector<ScalarType>, parametric_dimension>&
+            factors,
         const ScalarType& factor_product, const Indices&... indices) const {
   // Check that all are indices
+  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
+    assert(factors[par_dim] == degree + 1);
+  }
 
   // Loop over current parametric dimensions
   const IndexingType c_par_dim = sizeof...(Indices);

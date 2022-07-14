@@ -32,10 +32,12 @@ class RationalBezierSpline {
   using PointTypePhysical_ = PhysicalPointType;
   using PointTypeParametric_ = Point<parametric_dimension, ScalarType>;
   using ScalarType_ = ScalarType;
+  using PolynomialBezier =
+      BezierSpline<parametric_dimension, ScalarType, ScalarType>;
 
   /*!
-   * Numerator Spline, with control points multiplied with their respective
-   * weights
+   * Numerator Spline, with control points multiplied with their
+   * respective weights
    */
   BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
       weighted_spline_;
@@ -77,6 +79,14 @@ class RationalBezierSpline {
             weighted_spline_.NumberOfControlPoints,
             // Value
             static_cast<ScalarType>(1.))));
+    assert(CheckSplineCompatibility());
+  }
+
+  /// Constructor with two spline - weight and weighted spline
+  constexpr RationalBezierSpline(const PolynomialBezier& r_weighted_spline_,
+                                 const PolynomialBezier& r_weight_function_)
+      : weighted_spline_{r_weighted_spline_},
+        weight_function_{r_weight_function_} {
     assert(CheckSplineCompatibility());
   }
 
@@ -169,9 +179,7 @@ class RationalBezierSpline {
   constexpr ScalarType& Weight(
       const std::array<IndexingType, parametric_dimension>& index);
 
-  //-------------------
-
-  // @NOTE Essential operations
+  //------------------- Essential Operations
 
   /// Evaluate the spline via the deCasteljau algorithm
   constexpr PointTypePhysical_ Evaluate(
@@ -184,8 +192,22 @@ class RationalBezierSpline {
   }
 
   /// Evaluate Basis Functions
+  template <typename... T>
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  BasisFunctions(const T&... par_coords) const {
+    return BasisFunctions(PointTypeParametric_{par_coords...});
+  }
+
+  /// Evaluate Basis Functions
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
   BasisFunctions(const PointTypeParametric_& par_coords) const;
+
+  /// Evaluate Basis Functions
+  template <typename... T>
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  PolynomialBasisFunctions(const T&... par_coords) const {
+    return PolynomialBasisFunctions(PointTypeParametric_{par_coords...});
+  }
 
   /// Evaluate Basis Functions without respecting weights
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
@@ -201,13 +223,30 @@ class RationalBezierSpline {
     return ForwardEvaluate(PointTypeParametric_{par_coords...});
   }
 
+  //-------------------  Refinement Strategies
+
   /// Order elevation along a specific parametric dimension
   constexpr RationalBezierSpline& OrderElevateAlongParametricDimension(
       const IndexingType par_dim);
 
-  // @Note as far as I can see, there is no simple way to perform this
-  // operation and we will have to resort to quotient-rule derivatives
-  /// Derivative along a specific parametric dimension
+  /*
+   * Split the Bezier Spline into two distinct subdivisions
+   *
+   * Splits the Spline along a specific dimension and returns a group
+   * representing the same domain over two splines.
+   *
+   * @attention Not Implemented
+   */
+  constexpr RationalBezierSplineGroup<parametric_dimension, PhysicalPointType,
+                                      ScalarType>
+  SplitAtPosition(const ScalarType& splitting_plane,
+                  const IndexingType splitting_dimension = 0) const;
+
+  /**
+   * @brief  Derivative along a specific parametric dimension
+   *
+   * This function is implemented using the Quotient-rule for derivatives
+   */
   constexpr RationalBezierSpline DerivativeWRTParametricDimension(
       const IndexingType par_dim) const;
 
@@ -226,17 +265,6 @@ class RationalBezierSpline {
                                  decltype(ScalarType_{} * ScalarRHS{})>
   Compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                              ScalarRHS>& inner_function) const;
-
-  /*
-   * Split the Bezier Spline into two distinct subdivisions
-   *
-   * Splits the Spline along a specific dimension and returns a group
-   * representing the same domain over two splines.
-   */
-  constexpr RationalBezierSplineGroup<parametric_dimension, PhysicalPointType,
-                                      ScalarType>
-  SplitAtPosition(const ScalarType& splitting_plane,
-                  const IndexingType splitting_dimension = 0) const;
 
   /// Extract single coordinate spline
   constexpr RationalBezierSpline<parametric_dimension, ScalarType, ScalarType>

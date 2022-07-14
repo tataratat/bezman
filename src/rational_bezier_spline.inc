@@ -161,3 +161,31 @@ constexpr PhysicalPointType RationalBezierSpline<
          weight_function_.AddUpContributionsToControlPointVector_(
              weight_eval, factors, static_cast<ScalarType>(1.));
 }
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>&
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    OrderElevateAlongParametricDimension(const IndexingType par_dim) {
+  weighted_spline_.OrderElevateAlongParametricDimension(par_dim);
+  weight_function_.OrderElevateAlongParametricDimension(par_dim);
+  return (*this);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    DerivativeWRTParametricDimension(const IndexingType par_dim) const {
+  // Implemented using Quotient-rule
+  return RationalBezierSpline{
+      // u' * w - w' * u
+      weighted_spline_.DerivativeWRTParametricDimension(par_dim) *
+              weight_function_ +
+          weight_function_.DerivativeWRTParametricDimension(par_dim) *
+              weighted_spline_ * static_cast<ScalarType>(-1.),
+      // v^2
+      weight_function_ * weight_function_};
+}

@@ -37,6 +37,7 @@ namespace bezman::tests::rational_splines_test {
 class RationalSplineTestSuite : public ::testing::Test {
  public:
   using Point2D = Point<2, double>;
+  using Point1D = Point<1, double>;
 
  protected:
   void SetUp() override {}
@@ -49,9 +50,32 @@ class RationalSplineTestSuite : public ::testing::Test {
   std::array<std::size_t, 1> degree{2};
   std::array<std::size_t, 1> new_degree{3};
 
+  // Higher Dimensional Examples
+  std::vector<Point2D> ctps_2D{
+      Point2D{1., 0.}, Point2D{1., 1.}, Point2D{0., 1.},
+      Point2D{2., 0.}, Point2D{2., 2.}, Point2D{0., 2.},
+  };
+  std::vector<double> weights_2D{1., 1 / std::sqrt(2), 1.,
+                                 1., 1 / std::sqrt(2), 1.};
+  std::vector<Point2D> ctps2_2D{
+      Point2D{0., 0.}, Point2D{1., 0.}, Point2D{2., 0.},
+      Point2D{0., 1.}, Point2D{1., 1.}, Point2D{2., 1.},
+      Point2D{0., 2.}, Point2D{1., 2.}, Point2D{2., 2.}};
+  std::vector<double> weights2_2D{1., 1., 1., 1., 1., 1., 1., 1., 1.};
+  std::array<std::size_t, 2> degrees_2D{2, 1};
+  std::array<std::size_t, 2> degrees2_2D{2, 2};
+
   // Testing Point
   Point2D testing_point{2., 2.};
   double testing_weight{3.};
+
+  // Testing a derivative with a scalar bezier
+  std::vector<double> ctps_deriv_test{3., 4., 5.};
+  std::vector<double> weights_deriv_test{1., .5, 1.};
+
+  double AnalyticalSolutionToRspline(const double x) {
+    return (1. + 2. * x - 2 * x * x) / std::pow(1 - x + x * x, 2);
+  }
 };
 
 // Test Constructors and equal operations
@@ -143,5 +167,129 @@ TEST_F(RationalSplineTestSuite, ForwardEvaluation) {
   EXPECT_FLOAT_EQ(circular_arc.ForwardEvaluate(t)[0],
                   circular_arc.ForwardEvaluate(1. - t)[1]);
 }
+
+// Test Basis Function evaluation
+TEST_F(RationalSplineTestSuite, TestBasisFunctions) {
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  RationalBezier circular_arc(degree, ctps, weights);
+  // Create random evaluation point
+  const double xx{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+  const Point1D x{xx};
+  // Retrieve basis functions
+  const auto basis_functions = circular_arc.PolynomialBasisFunctions(xx);
+
+  EXPECT_EQ(basis_functions, circular_arc.PolynomialBasisFunctions(x));
+
+  // Compare to analytical solution
+  double weighted_basis_function_sum{};
+  // Test Polynomial Basis Functions
+  for (std::size_t i_basis{}; i_basis < degree[0] + 1; i_basis++) {
+    const double analytical_solution_bernstein_pol =
+        utils::FastBinomialCoefficient::choose(degree[0], i_basis) *
+        std::pow(x[0], i_basis) * std::pow(1. - x[0], degree[0] - i_basis);
+    weighted_basis_function_sum +=
+        analytical_solution_bernstein_pol * circular_arc.Weight(i_basis);
+    EXPECT_FLOAT_EQ(basis_functions[0][i_basis],
+                    analytical_solution_bernstein_pol);
+  }
+  // Test Weighted Basis Functions
+  const auto weighted_basis_function = circular_arc.BasisFunctions(xx);
+  EXPECT_EQ(weighted_basis_function, circular_arc.BasisFunctions(x));
+  for (std::size_t i_basis{}; i_basis < degree[0] + 1; i_basis++) {
+    const double analytical_solution_bernstein_pol =
+        utils::FastBinomialCoefficient::choose(degree[0], i_basis) *
+        std::pow(x[0], i_basis) * std::pow(1. - x[0], degree[0] - i_basis);
+    EXPECT_FLOAT_EQ(
+        weighted_basis_function[0][i_basis],
+        analytical_solution_bernstein_pol / weighted_basis_function_sum);
+  }
+}
+
+// Test High Dimensional Evaluation
+TEST_F(RationalSplineTestSuite, HighDimEvaluation) {
+  using RationalBezierSurface = RationalBezierSpline<2, Point2D, double>;
+  RationalBezierSurface circle_segment{degrees_2D, ctps_2D, weights_2D};
+  // Evaluate
+  Point2D mid_point{std::cos(std::acos(-1) * .25) * 1.5,
+                    std::sin(std::acos(-1) * .25) * 1.5};
+  EXPECT_FLOAT_EQ(circle_segment.Evaluate(.5, .5)[0], mid_point[0]);
+  EXPECT_FLOAT_EQ(circle_segment.Evaluate(.5, .5)[1], mid_point[1]);
+
+  // Test Basis Functions
+  RationalBezierSurface pseudo_polynomial_rectangle{degrees2_2D, ctps2_2D,
+                                                    weights2_2D};
+  const auto degrees = pseudo_polynomial_rectangle.GetDegrees();
+  // Create random evaluation point
+  const double xx{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+  const double xy{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+  const Point2D x{xx, xy};
+  // Retrieve basis functions
+  const auto basis_functions =
+      pseudo_polynomial_rectangle.BasisFunctions(xx, xy);
+  const auto pol_basis_functions =
+      pseudo_polynomial_rectangle.BasisFunctions(xx, xy);
+
+  // Compare to analytical solution
+  for (std::size_t pdim{}; pdim < 2; pdim++) {
+    for (std::size_t i_basis{}; i_basis < degrees[pdim] + 1; i_basis++) {
+      EXPECT_FLOAT_EQ(basis_functions[pdim][i_basis],
+                      pol_basis_functions[pdim][i_basis]);
+    }
+  }
+}
+
+// Test Refinement
+TEST_F(RationalSplineTestSuite, RefinementTest) {
+  using RationalBezierSurface = RationalBezierSpline<2, Point2D, double>;
+  RationalBezierSurface circle_segment{degrees_2D, ctps_2D, weights_2D};
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  RationalBezier circular_arc(degree, ctps, weights);
+  const RationalBezierSurface kcircle_segment{degrees_2D, ctps_2D, weights_2D};
+  const RationalBezier kcircular_arc(degree, ctps, weights);
+
+  // Test specification
+  const std::size_t n_refinement_level{3};
+  const std::size_t n_sample_points{10};
+
+  // Refinement
+  for (std::size_t i_refinement{0}; i_refinement < n_refinement_level;
+       i_refinement++) {
+    circle_segment.OrderElevateAlongParametricDimension(0);
+    circle_segment.OrderElevateAlongParametricDimension(1);
+    circular_arc.OrderElevateAlongParametricDimension(0);
+  }
+
+  // Sampling
+  for (std::size_t i_sample_x{0}; i_sample_x < n_sample_points; i_sample_x++) {
+    const double xx{static_cast<double>(rand()) /
+                    static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(circular_arc.Evaluate(xx)[0],
+                    kcircular_arc.Evaluate(xx)[0]);
+    for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points;
+         i_sample_y++) {
+      const double xy{static_cast<double>(rand()) /
+                      static_cast<double>(RAND_MAX)};
+      EXPECT_FLOAT_EQ(circle_segment.Evaluate(xx, xy)[0],
+                      kcircle_segment.Evaluate(xx, xy)[0]);
+      EXPECT_FLOAT_EQ(circle_segment.Evaluate(xx, xy)[1],
+                      kcircle_segment.Evaluate(xx, xy)[1]);
+    }
+  }
+}
+
+// Test Derivatives of rational Beziers
+TEST_F(RationalSplineTestSuite, DerivativeTesting) {
+  using RationalBezier = RationalBezierSpline<1, double, double>;
+  RationalBezier spline{degree, ctps_deriv_test, weights_deriv_test};
+  const auto derivative = spline.DerivativeWRTParametricDimension(0);
+  // Sample
+  const std::size_t n_sample_points{10};
+  for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(derivative.Evaluate(x), AnalyticalSolutionToRspline(x));
+  }
+}
+
+// Test Multiplication
 
 }  // namespace bezman::tests::rational_splines_test

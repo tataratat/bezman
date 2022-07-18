@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef UTILS_TYPE_TRAITS_IS_BEZIER_SPLINE_HPP
-#define UTILS_TYPE_TRAITS_IS_BEZIER_SPLINE_HPP
+#ifndef UTILS_TYPE_TRAITS_IS_RATIONAL_BEZIER_SPLINE_HPP
+#define UTILS_TYPE_TRAITS_IS_RATIONAL_BEZIER_SPLINE_HPP
 
 namespace bezman {
 // Forward declaration for later use
@@ -34,35 +34,27 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 class RationalBezierSpline;
 }  // namespace bezman
-
 namespace bezman::utils::type_traits {
 
 /// Checker if a template type is an instance of BezierSpline
 template <typename SplineType>
-struct isBezierSpline {
+struct isRationalBezierSpline {
   constexpr static bool value = false;
 };
 
 /// Checker if a template type is an instance of BezierSpline
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-struct isBezierSpline<
-    bezman::BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>> {
-  constexpr static bool value = true;
-};
-
-/// Checker if a template type is an instance of BezierSpline
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-struct isBezierSpline<
+struct isRationalBezierSpline<
     RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>> {
   constexpr static bool value = true;
 };
 
 /// Alias std naming conform
 template <typename SplineType>
-constexpr bool isBezierSpline_v = isBezierSpline<SplineType>::value;
+constexpr bool isRationalBezierSpline_v =
+    isRationalBezierSpline<SplineType>::value;
 
 }  // namespace bezman::utils::type_traits
 
-#endif  // UTILS_TYPE_TRAITS_IS_BEZIER_SPLINE_HPP
+#endif  // UTILS_TYPE_TRAITS_IS_RATIONAL_BEZIER_SPLINE_HPP

@@ -291,5 +291,247 @@ TEST_F(RationalSplineTestSuite, DerivativeTesting) {
 }
 
 // Test Multiplication
+TEST_F(RationalSplineTestSuite, MultiplicationTest) {
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  const RationalBezier circular_arc(degree, ctps, weights);
+  RationalBezier circular_arc_v(degree, ctps, weights);
+  // Create random evaluation point
+  const std::size_t n_sample_points{10};
+
+  const double scalar_v{static_cast<double>(rand()) /
+                        static_cast<double>(RAND_MAX)};
+  circular_arc_v *= scalar_v;
+  const auto circular_multiplied = circular_arc * scalar_v;
+
+  for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(circular_multiplied.Evaluate(x)[0],
+                    circular_arc.Evaluate(x)[0] * scalar_v);
+    EXPECT_FLOAT_EQ(circular_multiplied.Evaluate(x)[1],
+                    circular_arc.Evaluate(x)[1] * scalar_v);
+    EXPECT_FLOAT_EQ(circular_multiplied.Evaluate(x)[0],
+                    circular_arc_v.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(circular_multiplied.Evaluate(x)[1],
+                    circular_arc_v.Evaluate(x)[1]);
+  }
+}
+
+// Test Addition
+TEST_F(RationalSplineTestSuite, AdditionTest) {
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  const RationalBezier circular_arc(degree, ctps, weights);
+  RationalBezier circular_arc_v(degree, ctps, weights);
+  // Create random evaluation point
+  const std::size_t n_sample_points{10};
+
+  const Point2D shifting_vector{
+      static_cast<double>(rand()) / static_cast<double>(RAND_MAX),
+      static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+
+  circular_arc_v += shifting_vector;
+  const auto circular_modified = circular_arc + shifting_vector;
+
+  for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[0],
+                    circular_arc.Evaluate(x)[0] + shifting_vector[0]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[1],
+                    circular_arc.Evaluate(x)[1] + shifting_vector[1]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[0],
+                    circular_arc_v.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[1],
+                    circular_arc_v.Evaluate(x)[1]);
+  }
+}
+
+// Test Substraction
+TEST_F(RationalSplineTestSuite, Substraction) {
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  const RationalBezier circular_arc(degree, ctps, weights);
+  RationalBezier circular_arc_v(degree, ctps, weights);
+  // Create random evaluation point
+  const std::size_t n_sample_points{10};
+
+  const Point2D shifting_vector{
+      static_cast<double>(rand()) / static_cast<double>(RAND_MAX),
+      static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+
+  circular_arc_v -= shifting_vector;
+  const auto circular_modified = circular_arc - shifting_vector;
+  const auto inverted_spline = -circular_arc;
+
+  for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[0],
+                    circular_arc.Evaluate(x)[0] - shifting_vector[0]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[1],
+                    circular_arc.Evaluate(x)[1] - shifting_vector[1]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[0],
+                    circular_arc_v.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[1],
+                    circular_arc_v.Evaluate(x)[1]);
+    EXPECT_FLOAT_EQ(inverted_spline.Evaluate(x)[0],
+                    -circular_arc.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(inverted_spline.Evaluate(x)[1],
+                    -circular_arc.Evaluate(x)[1]);
+  }
+}
+
+// Test Addition
+TEST_F(RationalSplineTestSuite, SplineAdditionTest) {
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  const RationalBezier circular_arc(degree, ctps, weights);
+  RationalBezier circular_arc_v(degree, ctps, weights);
+  const RationalBezier secondary_spline{degree, ctps2, weights2};
+
+  // Create random evaluation point
+  const std::size_t n_sample_points{10};
+
+  // Adding Splines with the same weights does not elevate degree
+  EXPECT_EQ((circular_arc + circular_arc).GetDegrees(),
+            circular_arc.GetDegrees());
+
+  circular_arc_v += secondary_spline;
+  const auto circular_modified = circular_arc + secondary_spline;
+
+  for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(
+        circular_modified.Evaluate(x)[0],
+        circular_arc.Evaluate(x)[0] + secondary_spline.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(
+        circular_modified.Evaluate(x)[1],
+        circular_arc.Evaluate(x)[1] + secondary_spline.Evaluate(x)[1]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[0],
+                    circular_arc_v.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[1],
+                    circular_arc_v.Evaluate(x)[1]);
+  }
+}
+
+// Test Substraction of Splines
+TEST_F(RationalSplineTestSuite, SplineSubstractionTest) {
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  const RationalBezier circular_arc(degree, ctps, weights);
+  RationalBezier circular_arc_v(degree, ctps, weights);
+  const RationalBezier secondary_spline{degree, ctps2, weights2};
+
+  // Create random evaluation point
+  const std::size_t n_sample_points{10};
+
+  // Adding Splines with the same weights does not elevate degree
+  EXPECT_EQ((circular_arc - circular_arc).GetDegrees(),
+            circular_arc.GetDegrees());
+
+  circular_arc_v -= secondary_spline;
+  const auto circular_modified = circular_arc - secondary_spline;
+
+  for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(
+        circular_modified.Evaluate(x)[0],
+        circular_arc.Evaluate(x)[0] - secondary_spline.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(
+        circular_modified.Evaluate(x)[1],
+        circular_arc.Evaluate(x)[1] - secondary_spline.Evaluate(x)[1]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[0],
+                    circular_arc_v.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x)[1],
+                    circular_arc_v.Evaluate(x)[1]);
+  }
+}
+
+// Test Multiplication of Splines
+TEST_F(RationalSplineTestSuite, SplineMultiplicationTest) {
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  const RationalBezier circular_arc(degree, ctps, weights);
+  const RationalBezier secondary_spline{degree, ctps2, weights2};
+
+  // Create random evaluation point
+  const std::size_t n_sample_points{10};
+
+  const auto circular_modified = circular_arc * secondary_spline;
+
+  for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ(circular_modified.Evaluate(x),
+                    circular_arc.Evaluate(x) * secondary_spline.Evaluate(x));
+  }
+}
+
+// Test Unit Cube Checks
+TEST_F(RationalSplineTestSuite, CubeCheckSplineTest) {
+  using RationalBezierSurface = RationalBezierSpline<2, Point2D, double>;
+  const RationalBezierSurface circle_segment{degrees_2D, ctps_2D, weights_2D};
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  const RationalBezier circular_arc(degree, ctps, weights);
+  EXPECT_FLOAT_EQ(circle_segment.MaximumCorner()[0], Point2D(2., 2.)[0]);
+  EXPECT_FLOAT_EQ(circle_segment.MaximumCorner()[1], Point2D(2., 2.)[1]);
+  EXPECT_FLOAT_EQ(circle_segment.MinimumCorner()[0], Point2D(0., 0.)[0]);
+  EXPECT_FLOAT_EQ(circle_segment.MinimumCorner()[1], Point2D(0., 0.)[1]);
+  EXPECT_FALSE(circle_segment.FitsIntoUnitCube());
+  EXPECT_TRUE(circular_arc.FitsIntoUnitCube());
+}
+
+// Test Composition of (Rational) splines
+TEST_F(RationalSplineTestSuite, SplineComposition) {
+  using RationalBezierSurface = RationalBezierSpline<2, Point2D, double>;
+  RationalBezierSurface circle_segment_large =
+      RationalBezierSurface(degrees_2D, ctps_2D, weights_2D);
+  RationalBezierSurface circle_segment_small = circle_segment_large * 0.5;
+  using RationalBezier = RationalBezierSpline<1, Point2D, double>;
+  using BezierSurface = BezierSpline<2, Point2D, double>;
+  const RationalBezier circular_arc(degree, ctps, weights);
+  const BezierSurface rectangle{
+      // degrees
+      std::array<std::size_t, 2>{1, 1},
+      // CTPS
+      std::vector<Point2D>{Point2D{0.5, 0.}, Point2D{1., 0.3}, Point2D{0., 0.3},
+                           Point2D{0.5, 1.}}};
+
+  // Create random evaluation point
+  const std::size_t n_sample_points{5};
+
+  /// Perform Compositions
+  // Polynomial (Rational) [1D -> 2D]
+  const auto circular_composed = rectangle.Compose(circular_arc);
+  // Polynomial (Rational) [2D -> 2D]
+  const auto circle_segment_in_rectangle =
+      rectangle.Compose(circle_segment_small);
+  // Rational (Rational) [2D -> 2D]
+  const auto circle_circle_composition =
+      circle_segment_large.Compose(circle_segment_small);
+  // Rational (Polynomial)
+  const auto rectangle_in_circle_composition =
+      circle_segment_large.Compose(rectangle);
+
+  for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++) {
+    // Sample points
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    const double y{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    // Polynomial (Rational) [1D -> 2D]
+    EXPECT_FLOAT_EQ(circular_composed.Evaluate(x)[0],
+                    rectangle.Evaluate(circular_arc.Evaluate(x))[0]);
+    EXPECT_FLOAT_EQ(circular_composed.Evaluate(x)[1],
+                    rectangle.Evaluate(circular_arc.Evaluate(x))[1]);
+    // Polynomial (Rational) [2D -> 2D]
+    EXPECT_FLOAT_EQ(circle_segment_in_rectangle.Evaluate(x, y)[0],
+                    rectangle.Evaluate(circle_segment_small.Evaluate(x, y))[0]);
+    EXPECT_FLOAT_EQ(circle_segment_in_rectangle.Evaluate(x, y)[1],
+                    rectangle.Evaluate(circle_segment_small.Evaluate(x, y))[1]);
+    // Rational (Rational) [2D -> 2D]
+    EXPECT_FLOAT_EQ(
+        circle_circle_composition.Evaluate(x, y)[0],
+        circle_segment_large.Evaluate(circle_segment_small.Evaluate(x, y))[0]);
+    EXPECT_FLOAT_EQ(
+        circle_circle_composition.Evaluate(x, y)[1],
+        circle_segment_large.Evaluate(circle_segment_small.Evaluate(x, y))[1]);
+    // Rational (Rational) [2D -> 2D]
+    EXPECT_FLOAT_EQ(rectangle_in_circle_composition.Evaluate(x, y)[0],
+                    circle_segment_large.Evaluate(rectangle.Evaluate(x, y))[0]);
+    EXPECT_FLOAT_EQ(rectangle_in_circle_composition.Evaluate(x, y)[1],
+                    circle_segment_large.Evaluate(rectangle.Evaluate(x, y))[1]);
+  }
+}
 
 }  // namespace bezman::tests::rational_splines_test

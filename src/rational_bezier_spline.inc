@@ -180,12 +180,197 @@ constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     DerivativeWRTParametricDimension(const IndexingType par_dim) const {
   // Implemented using Quotient-rule
-  return RationalBezierSpline{
+  return RationalBezierSpline(
       // u' * w - w' * u
       weighted_spline_.DerivativeWRTParametricDimension(par_dim) *
-              weight_function_ +
+              weight_function_ -
           weight_function_.DerivativeWRTParametricDimension(par_dim) *
-              weighted_spline_ * static_cast<ScalarType>(-1.),
+              weighted_spline_,
       // v^2
-      weight_function_ * weight_function_};
+      weight_function_ * weight_function_);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>&
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::operator*=(const ScalarType& scalar) {
+  // Multiplication only reflects in the weighted spline
+  weighted_spline_ *= scalar;
+  return (*this);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::operator*(const ScalarType& scalar) const {
+  // Multiplication only reflects in the weighted spline
+  return RationalBezierSpline(weighted_spline_ * scalar, weight_function_);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>&
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator+=(const PhysicalPointType& point_shift) {
+  // Add up contributions to control points with weights
+  for (IndexingType i_ctps{}; i_ctps < weighted_spline_.NumberOfControlPoints;
+       i_ctps++) {
+    weighted_spline_.control_points[i_ctps] +=
+        point_shift * weight_function_.control_points[i_ctps];
+  }
+  return (*this);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator+(const PhysicalPointType& point_shift) const {
+  // Pass to operator +=
+  RationalBezierSpline return_spline{weighted_spline_, weight_function_};
+  return_spline += point_shift;
+  return return_spline;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>&
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator-=(const PhysicalPointType& point_shift) {
+  // Add up contributions to control points with weights
+  for (IndexingType i_ctps{}; i_ctps < weighted_spline_.NumberOfControlPoints;
+       i_ctps++) {
+    weighted_spline_.control_points[i_ctps] -=
+        point_shift * weight_function_.control_points[i_ctps];
+  }
+  return (*this);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator-(const PhysicalPointType& point_shift) const {
+  // Pass to operator +=
+  RationalBezierSpline return_spline{weighted_spline_, weight_function_};
+  return_spline -= point_shift;
+  return return_spline;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::operator-() const {
+  // Pass to operator +=
+  RationalBezierSpline return_spline{-weighted_spline_, weight_function_};
+  return return_spline;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename PointTypeRHS, typename ScalarRHS>
+constexpr RationalBezierSpline<parametric_dimension,
+                               decltype(PhysicalPointType{} + PointTypeRHS{}),
+                               decltype(ScalarType{} * ScalarRHS{})>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator+(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
+                                     ScalarRHS>& rhs) const {
+  if (weight_function_ == rhs.weight_function_) {
+    return RationalBezierSpline{weighted_spline_ + rhs.weighted_spline_,
+                                weight_function_};
+  } else {
+    return RationalBezierSpline{weighted_spline_ * rhs.weight_function_ +
+                                    weight_function_ * rhs.weighted_spline_,
+                                weight_function_ * rhs.weight_function_};
+  }
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>&
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator+=(const RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                                      ScalarType>& rhs) {
+  if (weight_function_ == rhs.weight_function_) {
+    weighted_spline_ += rhs.weighted_spline_;
+    return (*this);
+  } else {
+    weighted_spline_ = weighted_spline_ * rhs.weight_function_;
+    weighted_spline_ += weight_function_ * rhs.weighted_spline_;
+    weight_function_ = weight_function_ * rhs.weight_function_;
+    return (*this);
+  }
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename PointTypeRHS, typename ScalarRHS>
+constexpr RationalBezierSpline<parametric_dimension,
+                               decltype(PhysicalPointType{} - PointTypeRHS{}),
+                               decltype(ScalarType{} * ScalarRHS{})>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator-(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
+                                     ScalarRHS>& rhs) const {
+  if (weight_function_ == rhs.weight_function_) {
+    return RationalBezierSpline{weighted_spline_ - rhs.weighted_spline_,
+                                weight_function_};
+  } else {
+    return RationalBezierSpline{weighted_spline_ * rhs.weight_function_ -
+                                    weight_function_ * rhs.weighted_spline_,
+                                weight_function_ * rhs.weight_function_};
+  }
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                               ScalarType>&
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator-=(const RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                                      ScalarType>& rhs) {
+  if (weight_function_ == rhs.weight_function_) {
+    weighted_spline_ -= rhs.weighted_spline_;
+    return (*this);
+  } else {
+    weighted_spline_ = weighted_spline_ * rhs.weight_function_;
+    weighted_spline_ -= weight_function_ * rhs.weighted_spline_;
+    weight_function_ = weight_function_ * rhs.weight_function_;
+    return (*this);
+  }
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename PointTypeRHS, typename ScalarRHS>
+constexpr RationalBezierSpline<parametric_dimension,
+                               decltype(PhysicalPointType{} * PointTypeRHS{}),
+                               decltype(ScalarType{} * ScalarRHS{})>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+operator*(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
+                                     ScalarRHS>& rhs) const {
+  return RationalBezierSpline<parametric_dimension,
+                              decltype(PhysicalPointType{} * PointTypeRHS{}),
+                              decltype(ScalarType{} * ScalarRHS{})>{
+      weighted_spline_ * rhs.weighted_spline_,
+      weight_function_ * rhs.weight_function_};
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::ExtractDimension(const std::size_t& dimension)
+    const {
+  return weighted_spline_.ExtractDimension(dimension);
 }

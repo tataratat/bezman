@@ -34,6 +34,8 @@ SOFTWARE.
 #include "bezman/src/point.hpp"
 #include "bezman/src/utils/fastbinomialcoefficient.hpp"
 #include "bezman/src/utils/logger.hpp"
+#include "bezman/src/utils/type_traits/is_bezier_spline.hpp"
+#include "bezman/src/utils/type_traits/is_rational_bezier_spline.hpp"
 
 namespace bezman {
 
@@ -88,7 +90,35 @@ class BezierSpline {
   /// Polynomial degrees
   std::array<IndexingType, parametric_dimension> degrees{};
 
+  /**
+   * @brief Compose the Numerator Function of a polynomial and rational spline
+   *
+   * This function composes the Numerator only, so it can be reused to work with
+   * rational-rational-spline-compositions
+   */
+  template <typename SplineType,
+            std::enable_if_t<
+                utils::type_traits::isBezierSpline_v<SplineType>>* = nullptr>
+  constexpr auto ComposeNumeratorSpline(const SplineType& inner_function) const;
+
+  /**
+   * @brief Compose the Numerator Function of a polynomial and rational spline
+   *
+   * This function composes the Numerator only, so it can be reused to work with
+   * rational-rational-spline-compositions
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr BezierSpline<parametric_dimension_inner_spline,
+                         decltype(ScalarType{} * ScalarRHS{}),
+                         decltype(ScalarType{} * ScalarRHS{})>
+  ComposeDenominatorSpline(
+      const RationalBezierSpline<parametric_dimension_inner_spline,
+                                 PointTypeRHS, ScalarRHS>& inner_function)
+      const;
+
  public:
+  /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
 
   /// Offsets in Row based control point storage
@@ -250,6 +280,18 @@ class BezierSpline {
   /// Add two splines of same type
   constexpr BezierSpline& operator+=(BezierSpline rhs);
 
+  /// Substraction of Two Splines resulting in a new spline that describes the
+  /// pointwise addition of the two Beziers
+  template <typename PointTypeRHS, typename ScalarRHS>
+  constexpr BezierSpline<parametric_dimension,
+                         decltype(PhysicalPointType{} - PointTypeRHS{}),
+                         decltype(ScalarType_{} * ScalarRHS{})>
+  operator-(
+      BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS> rhs) const;
+
+  /// Add two splines of same type
+  constexpr BezierSpline& operator-=(BezierSpline rhs);
+
   /// Check if two splines are equivalent
   constexpr bool operator==(const BezierSpline& rhs) const;
 
@@ -263,10 +305,10 @@ class BezierSpline {
 
   /// Extract single coordinate spline
   constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
-  ExtractDimension(unsigned int dimension) const;
+  ExtractDimension(const IndexingType& dimension) const;
 
   constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
-  RaisePower(const unsigned int power) const;
+  RaisePower(const IndexingType power) const;
 
   /// Multiplication with scalar
   constexpr BezierSpline& operator*=(const ScalarType& scalar);
@@ -370,6 +412,23 @@ class BezierSpline {
   Compose(
       const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
                               ScalarRHS>& inner_function_group) const;
+
+  /*
+   * Functional Composition between a polynomial and rational spline
+   *
+   * Compose two splines, taking the (*this) spline as the outer funtion and the
+   * function argument as the inner function. This works so long as the
+   * parametric dimension of the outer function matches the physical dimension
+   * of the inner function.
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr RationalBezierSpline<parametric_dimension_inner_spline,
+                                 PhysicalPointType,
+                                 decltype(ScalarType_{} * ScalarRHS{})>
+  Compose(const RationalBezierSpline<parametric_dimension_inner_spline,
+                                     PointTypeRHS, ScalarRHS>& inner_function)
+      const;
 
   /*
    * Split the Bezier Spline into two distinct subdivisions

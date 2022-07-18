@@ -188,4 +188,17 @@ TEST_F(BezierTestingSuite, MultiplicationTest2) {
   }
 }
 
+// Raise a random spline to some powers and test the results at random points to
+// check for equality
+TEST_F(BezierTestingSuite, RaisingPowersTest) {
+  // Expect equality.
+  const auto spline_base = CreateRandomSpline(2);
+  const std::size_t maximum_power_test{5};
+  for (std::size_t i{}; i < maximum_power_test; i++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ((spline_base.RaisePower(i)).Evaluate(x),
+                    std::pow(spline_base.Evaluate(x), i));
+  }
+}
+
 }  // namespace bezman::tests::basic_operations

@@ -13,6 +13,9 @@ namespace bezman {
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 class RationalBezierSplineGroup;
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+class BezierSpline;
 
 /*
  * Class describing rational Bezier-Splines
@@ -31,21 +34,21 @@ class RationalBezierSpline {
   using IndexingType = std::size_t;
   using PointTypePhysical_ = PhysicalPointType;
   using PointTypeParametric_ = Point<parametric_dimension, ScalarType>;
-  using ScalarType_ = ScalarType;
-  using PolynomialBezier =
+  using PolynomialScalarBezier =
       BezierSpline<parametric_dimension, ScalarType, ScalarType>;
+  using PolynomialBezier =
+      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>;
 
   /*!
    * Numerator Spline, with control points multiplied with their
    * respective weights
    */
-  BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
-      weighted_spline_;
+  PolynomialBezier weighted_spline_;
 
   /*!
    * Denominator Spline contains the weight function
    */
-  BezierSpline<parametric_dimension, ScalarType, ScalarType> weight_function_;
+  PolynomialScalarBezier weight_function_;
 
   /**
    * @brief  Wrapper function that checks if the Numerator and Denominator
@@ -58,6 +61,9 @@ class RationalBezierSpline {
   }
 
  public:
+  /// Make ScalarType publicly available
+  using ScalarType_ = ScalarType;
+
   /// Make Parametric dimension publicly available
   static constexpr IndexingType kParametricDimensions = parametric_dimension;
 
@@ -83,8 +89,9 @@ class RationalBezierSpline {
   }
 
   /// Constructor with two spline - weight and weighted spline
-  constexpr RationalBezierSpline(const PolynomialBezier& r_weighted_spline_,
-                                 const PolynomialBezier& r_weight_function_)
+  constexpr RationalBezierSpline(
+      const PolynomialBezier& r_weighted_spline_,
+      const PolynomialScalarBezier& r_weight_function_)
       : weighted_spline_{r_weighted_spline_},
         weight_function_{r_weight_function_} {
     assert(CheckSplineCompatibility());
@@ -137,6 +144,11 @@ class RationalBezierSpline {
 
   // @NOTE These functions all pass arguments and perform very limited
   // operations
+
+  // Get the weight function spline as const reference
+  constexpr const PolynomialScalarBezier& GetWeightFunctionSpline() const {
+    return weight_function_;
+  }
 
   /// Retrieve single control point from local indices
   template <typename... T>
@@ -250,32 +262,7 @@ class RationalBezierSpline {
   constexpr RationalBezierSpline DerivativeWRTParametricDimension(
       const IndexingType par_dim) const;
 
-  /*!
-   * Functional Composition between two splines
-   *
-   * Compose two splines, taking the (*this) spline as the outer funtion and
-   * the function argument as the inner function. This works so long as the
-   * parametric dimension of the outer function matches the physical dimension
-   * of the inner function.
-   */
-  template <std::size_t parametric_dimension_inner_spline,
-            typename PointTypeRHS, typename ScalarRHS>
-  constexpr RationalBezierSpline<parametric_dimension_inner_spline,
-                                 PhysicalPointType,
-                                 decltype(ScalarType_{} * ScalarRHS{})>
-  Compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
-                             ScalarRHS>& inner_function) const;
-
-  /// Extract single coordinate spline
-  constexpr RationalBezierSpline<parametric_dimension, ScalarType, ScalarType>
-  ExtractDimension(unsigned int dimension) const;
-
-  /// Check if can be used for composition
-  constexpr bool FitsIntoUnitCube() const;
-
-  //-------------------
-
-  // @NOTE Operator overloads
+  //-------------------  Operator overloads
 
   /// Multiplication with scalar
   constexpr RationalBezierSpline& operator*=(const ScalarType& scalar);
@@ -315,28 +302,110 @@ class RationalBezierSpline {
   /// Inversion
   constexpr RationalBezierSpline operator-() const;
 
-  //   /// Addition of Two Splines resulting in a new spline that describes
-  //   the
-  //   /// pointwise addition of the two Beziers
-  //   template <typename PointTypeRHS, typename ScalarRHS>
-  //   constexpr BezierSpline<parametric_dimension,
-  //                          decltype(PhysicalPointType{} + PointTypeRHS{}),
-  //                          decltype(ScalarType_{} + ScalarRHS{})>
-  //   operator+(const BezierSpline<parametric_dimension, PointTypeRHS,
-  //   ScalarRHS>&
-  //                 rhs) const;
+  /// Addition of Two Splines resulting in a new spline that describes the
+  /// pointwise addition of the two Beziers
+  template <typename PointTypeRHS, typename ScalarRHS>
+  constexpr RationalBezierSpline<parametric_dimension,
+                                 decltype(PhysicalPointType{} + PointTypeRHS{}),
+                                 decltype(ScalarType_{} * ScalarRHS{})>
+  operator+(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
+                                       ScalarRHS>& rhs) const;
 
-  //   /// Add two splines of same type
-  //   constexpr BezierSpline& operator+=(BezierSpline rhs);
+  /// Add two splines of same type
+  constexpr RationalBezierSpline& operator+=(const RationalBezierSpline& rhs);
 
-  //   /// Multiplication of two splines similar to pointwise product
-  //   template <typename PointTypeRHS, typename ScalarRHS>
-  //   constexpr BezierSpline<parametric_dimension,
-  //                          decltype(PhysicalPointType{} * PointTypeRHS{}),
-  //                          decltype(ScalarType_{} * ScalarRHS{})>
-  //   operator*(const BezierSpline<parametric_dimension, PointTypeRHS,
-  //   ScalarRHS>&
-  //                 rhs) const;
+  /// Substraction of Two Splines resulting in a new spline that describes the
+  /// pointwise addition of the two Beziers
+  template <typename PointTypeRHS, typename ScalarRHS>
+  constexpr RationalBezierSpline<parametric_dimension,
+                                 decltype(PhysicalPointType{} - PointTypeRHS{}),
+                                 decltype(ScalarType_{} * ScalarRHS{})>
+  operator-(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
+                                       ScalarRHS>& rhs) const;
+
+  /// Subtract two splines of same type
+  constexpr RationalBezierSpline& operator-=(const RationalBezierSpline& rhs);
+
+  /// Multiplication of two splines similar to pointwise product
+  template <typename PointTypeRHS, typename ScalarRHS>
+  constexpr RationalBezierSpline<parametric_dimension,
+                                 decltype(PhysicalPointType{} * PointTypeRHS{}),
+                                 decltype(ScalarType_{} * ScalarRHS{})>
+  operator*(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
+                                       ScalarRHS>& rhs) const;
+
+  //------------------- IRIT-related operations
+
+  /// Extract single coordinate spline
+  constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
+  ExtractDimension(const std::size_t& dimension) const;
+
+  /*!
+   * Functional Composition between two splines
+   *
+   * Compose two splines, taking the (*this) spline as the outer funtion and
+   * the function argument as the inner function. This works so long as the
+   * parametric dimension of the outer function matches the physical dimension
+   * of the inner function.
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr RationalBezierSpline<parametric_dimension_inner_spline,
+                                 PhysicalPointType,
+                                 decltype(ScalarType_{} * ScalarRHS{})>
+  Compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
+                             ScalarRHS>& inner_function) const {
+    return RationalBezierSpline<parametric_dimension_inner_spline,
+                                PhysicalPointType,
+                                decltype(ScalarType_{} * ScalarRHS{})>{
+        // Numerator composition
+        weighted_spline_.Compose(inner_function),
+        // Denominator composition
+        weight_function_.Compose(inner_function)};
+  }
+
+  /*!
+   * Functional Composition between two rational
+   *
+   * Compose two splines, taking the (*this) spline as the outer funtion and
+   * the function argument as the inner function. This works so long as the
+   * parametric dimension of the outer function matches the physical dimension
+   * of the inner function.
+   *
+   * For two rational splines, the weight function cancels out, see
+   * BezierSpline::ComposeDenominator
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr RationalBezierSpline<parametric_dimension_inner_spline,
+                                 PhysicalPointType,
+                                 decltype(ScalarType_{} * ScalarRHS{})>
+  Compose(const RationalBezierSpline<parametric_dimension_inner_spline,
+                                     PointTypeRHS, ScalarRHS>& inner_function)
+      const {
+    return RationalBezierSpline<parametric_dimension_inner_spline,
+                                PhysicalPointType,
+                                decltype(ScalarType_{} * ScalarRHS{})>{
+        // Numerator composition
+        weighted_spline_.ComposeNumeratorSpline(inner_function),
+        // Denominator composition
+        weight_function_.ComposeNumeratorSpline(inner_function)};
+  }
+
+  /// Check if can be used for composition
+  constexpr bool FitsIntoUnitCube() const {
+    return weighted_spline_.FitsIntoUnitCube();
+  };
+
+  /// Get maximum restricting corner of spline
+  constexpr PhysicalPointType MaximumCorner() const {
+    return weighted_spline_.MaximumCorner();
+  };
+
+  /// Get minimum restricting corner of spline
+  constexpr PhysicalPointType MinimumCorner() const {
+    return weighted_spline_.MinimumCorner();
+  };
 };
 
 #include "bezman/src/rational_bezier_spline.inc"

@@ -668,10 +668,14 @@ BezierSpline<parametric_dimension, PhysicalPointType,
         "Spline is non-defined or has no control-points");
   }
   PhysicalPointType maximum{control_points[0]};
-  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
-       i_dim++) {
-    for (IndexingType i{1}; i < NumberOfControlPoints; i++) {
-      maximum[i_dim] = std::max(maximum[i_dim], control_points[i][i_dim]);
+  for (IndexingType i{1}; i < NumberOfControlPoints; i++) {
+    if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+      maximum = std::max(maximum, control_points[i]);
+    } else {
+      for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+           i_dim++) {
+        maximum[i_dim] = std::max(maximum[i_dim], control_points[i][i_dim]);
+      }
     }
   }
   return maximum;
@@ -687,10 +691,14 @@ BezierSpline<parametric_dimension, PhysicalPointType,
         "Spline is non-defined or has no control-points");
   }
   PhysicalPointType minimum{control_points[0]};
-  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
-       i_dim++) {
-    for (IndexingType i{1}; i < NumberOfControlPoints; i++) {
-      minimum[i_dim] = std::min(minimum[i_dim], control_points[i][i_dim]);
+  for (IndexingType i{1}; i < NumberOfControlPoints; i++) {
+    if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+      minimum = std::min(minimum, control_points[i]);
+    } else {
+      for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+           i_dim++) {
+        minimum[i_dim] = std::min(minimum[i_dim], control_points[i][i_dim]);
+      }
     }
   }
   return minimum;
@@ -736,11 +744,14 @@ constexpr bool BezierSpline<parametric_dimension, PhysicalPointType,
                             ScalarType>::FitsIntoUnitCube() const {
   const auto maximum_corner = MaximumCorner();
   const auto minimum_corner = MinimumCorner();
-  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
-       i_dim++) {
-    if ((maximum_corner[i_dim] > static_cast<ScalarType>(1)) ||
-        (minimum_corner[i_dim] < static_cast<ScalarType>(0))) {
+  if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+    if ((maximum_corner > static_cast<ScalarType>(1)) ||
+        (minimum_corner < static_cast<ScalarType>(0))) {
       return false;
+    }
+  } else {
+    for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+         i_dim++) {
     }
   }
   return true;
@@ -753,9 +764,9 @@ constexpr BezierSpline<parametric_dimension,
                        decltype(PhysicalPointType{} * PointTypeRHS{}),
                        decltype(ScalarType{} * ScalarRHS{})>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator*(
-    const BezierSpline<parametric_dimension, PointTypeRHS,
-                       ScalarRHS>& rhs)
-    const {  // This multiplication operator is based on the algorithm
+    const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs)
+    const {
+  // This multiplication operator is based on the algorithm
   // presented in the thesis from G. Elber (1992)
 
   // Initialize return value

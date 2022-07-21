@@ -173,8 +173,8 @@ class BezierSpline {
 
   /// Constructor with control point list
   constexpr BezierSpline(
-      const std::array<std::size_t, parametric_dimension> deg,
-      const std::vector<PointTypePhysical_> points)
+      const std::array<std::size_t, parametric_dimension>& deg,
+      const std::vector<PhysicalPointType>& points)
       : degrees{deg}, control_points{points} {
     NumberOfControlPoints = 1u;
     for (unsigned int i{}; i < parametric_dimension; i++)

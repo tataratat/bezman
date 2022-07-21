@@ -1,3 +1,27 @@
+/*
+MIT License
+
+Copyright (c) 2022 zwar@ilsb.tuwien.ac.at
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 #ifndef SRC_RATIONAL_BEZIER_SPLINE_HPP
 #define SRC_RATIONAL_BEZIER_SPLINE_HPP
 
@@ -60,6 +84,14 @@ class RationalBezierSpline {
     return compatible;
   }
 
+  // Friend declarations
+  template <std::size_t parent_parametric_dimension,
+            typename ParentPhysicalPointType, typename ParentScalarType>
+  friend class BezierSpline;
+  template <std::size_t parent_parametric_dimension,
+            typename ParentPhysicalPointType, typename ParentScalarType>
+  friend class RationalBezierSpline;
+
  public:
   /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
@@ -76,15 +108,17 @@ class RationalBezierSpline {
       const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
           bezier_spline)
       : weighted_spline_{bezier_spline} {
-    weight_function_(
-        // Degrees can be taken from weighted spline
-        weighted_spline_.GetDegrees(),
-        // Generate control weights (just 1 for every point)
-        std::move(std::vector(
-            // Size of control-point vector
-            weighted_spline_.NumberOfControlPoints,
-            // Value
-            static_cast<ScalarType>(1.))));
+    // Initialize new weight function spline
+    weight_function_ =
+        BezierSpline<parametric_dimension, ScalarType, ScalarType>{
+            // Degrees can be taken from weighted spline
+            weighted_spline_.GetDegrees(),
+            // Generate control weights (just 1 for every point)
+            std::vector<ScalarType>(
+                // Size of control-point vector
+                weighted_spline_.NumberOfControlPoints,
+                // Value
+                static_cast<ScalarType>(1.))};
     assert(CheckSplineCompatibility());
   }
 
@@ -132,6 +166,27 @@ class RationalBezierSpline {
   constexpr const std::array<std::size_t, parametric_dimension>& GetDegrees()
       const {
     return weighted_spline_.GetDegrees();
+  }
+
+  /// Access Control Point Vector directly
+  constexpr const std::vector<PhysicalPointType>& GetWeightedControlPoints()
+      const {
+    return weighted_spline_.control_points;
+  }
+
+  /// Access Control Point Vector directly
+  constexpr std::vector<PhysicalPointType>& GetWeightedControlPoints() {
+    return weighted_spline_.control_points;
+  }
+
+  /// Access Weights Vector directly
+  constexpr const std::vector<ScalarType>& GetWeights() const {
+    return weight_function_.control_points;
+  }
+
+  /// Access Weights Vector directly
+  constexpr std::vector<ScalarType>& GetWeights() {
+    return weight_function_.control_points;
   }
 
   /// Set Degrees

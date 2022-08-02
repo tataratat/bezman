@@ -68,7 +68,6 @@ class BezierSpline {
 
  private:
   using IndexingType = std::size_t;
-  using PointTypePhysical_ = PhysicalPointType;
   using PointTypeParametric_ = Point<parametric_dimension, ScalarType>;
 
   constexpr void UpdateIndexOffsets_();
@@ -96,9 +95,7 @@ class BezierSpline {
    * This function composes the Numerator only, so it can be reused to work with
    * rational-rational-spline-compositions
    */
-  template <typename SplineType,
-            std::enable_if_t<
-                utils::type_traits::isBezierSpline_v<SplineType>>* = nullptr>
+  template <typename SplineType>
   constexpr auto ComposeNumeratorSpline(const SplineType& inner_function) const;
 
   /**
@@ -120,6 +117,7 @@ class BezierSpline {
  public:
   /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
+  using PointTypePhysical_ = PhysicalPointType;
 
   /// Offsets in Row based control point storage
   std::array<IndexingType, parametric_dimension> index_offsets{};

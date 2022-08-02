@@ -51,14 +51,6 @@ struct isBezierSpline<
   constexpr static bool value = true;
 };
 
-/// Checker if a template type is an instance of BezierSpline
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-struct isBezierSpline<
-    RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>> {
-  constexpr static bool value = true;
-};
-
 /// Alias std naming conform
 template <typename SplineType>
 constexpr bool isBezierSpline_v = isBezierSpline<SplineType>::value;

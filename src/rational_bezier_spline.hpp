@@ -56,7 +56,6 @@ class RationalBezierSpline {
  private:
   // Aliases
   using IndexingType = std::size_t;
-  using PointTypePhysical_ = PhysicalPointType;
   using PointTypeParametric_ = Point<parametric_dimension, ScalarType>;
   using PolynomialScalarBezier =
       BezierSpline<parametric_dimension, ScalarType, ScalarType>;
@@ -95,6 +94,7 @@ class RationalBezierSpline {
  public:
   /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
+  using PointTypePhysical_ = PhysicalPointType;
 
   /// Make Parametric dimension publicly available
   static constexpr IndexingType kParametricDimensions = parametric_dimension;

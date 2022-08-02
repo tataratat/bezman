@@ -888,20 +888,34 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-template <typename SplineType,
-          std::enable_if_t<utils::type_traits::isBezierSpline_v<SplineType>>*>
+template <typename SplineType>
 constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     ComposeNumeratorSpline(const SplineType& inner_function) const {
+  // Compile only if SplineType is (Rational) Bezier Spline
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "ComposeNumerator only compiles for (rational) Beziers.");
+
   // Deduct Types
-  using ScalarRHS = typename SplineType::ScalarType_;
+  using PointTypeInnerFunction = typename SplineType::PointTypePhysical_;
+  using ScalarTypeInnerFunction = typename SplineType::ScalarType_;
   constexpr const std::size_t parametric_dimension_inner_spline =
       SplineType::kParametricDimensions;
+
+  // Sanity check
+  if constexpr (std::is_arithmetic_v<PointTypeInnerFunction>) {
+    static_assert(parametric_dimension == 1, "Dimension mismatch");
+  } else {
+    static_assert(
+        PointTypeInnerFunction::kSpatialDimension == parametric_dimension,
+        "Dimension mismatch");
+  }
 
   // Function is private assuming all checks have already been performed
   /// Start the composition with the current spline
   // Initialize return value
-  using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
+  using ScalarReturnT = decltype(ScalarType_{} * ScalarTypeInnerFunction{});
   const IndexingType sum_of_degrees_outer_spline =
       std::accumulate(degrees.begin(), degrees.end(), 0);
 
@@ -961,7 +975,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
         return inner_function.GetWeightFunctionSpline() - extracted_dimension;
 
       } else {
-        return static_cast<ScalarRHS>(1.) - extracted_dimension;
+        return static_cast<ScalarTypeInnerFunction>(1.) - extracted_dimension;
       }
     }();
 

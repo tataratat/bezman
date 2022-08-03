@@ -113,7 +113,7 @@ class RationalBezierSpline {
             // Generate control weights (just 1 for every point)
             std::vector<ScalarType>(
                 // Size of control-point vector
-                weighted_spline_.NumberOfControlPoints,
+                weighted_spline_.GetNumberOfControlPoints(),
                 // Value
                 static_cast<ScalarType>(1.))};
     assert(CheckSplineCompatibility());
@@ -143,7 +143,7 @@ class RationalBezierSpline {
       const std::vector<ScalarType> weights)
       : weighted_spline_{deg}, weight_function_{deg, weights} {
     assert(control_point_vector.size() == weights.size());
-    assert(weighted_spline.kNumberOfControlPoints == weights.size());
+    assert(weighted_spline.GetNumberOfControlPoints() == weights.size());
     for (std::size_t i_point{0};
          i_point < weighted_spline_.control_points.size(); i_point++) {
       weighted_spline_.control_points[i_point] =
@@ -164,6 +164,11 @@ class RationalBezierSpline {
       const {
     return weighted_spline_.GetDegrees();
   }
+
+  /// Getter for Number Of Control Points
+  const IndexingType& GetNumberOfControlPoints() const {
+    return weighted_spline_.GetNumberOfControlPoints();
+  };
 
   /// Access Control Point Vector directly
   constexpr const std::vector<PhysicalPointType>& GetWeightedControlPoints()

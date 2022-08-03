@@ -242,7 +242,7 @@ constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator+=(const PhysicalPointType& point_shift) {
   // Add up contributions to control points with weights
-  for (IndexingType i_ctps{}; i_ctps < weighted_spline_.NumberOfControlPoints;
+  for (IndexingType i_ctps{}; i_ctps < weighted_spline_.GetNumberOfControlPoints();
        i_ctps++) {
     weighted_spline_.control_points[i_ctps] +=
         point_shift * weight_function_.control_points[i_ctps];
@@ -269,7 +269,7 @@ constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator-=(const PhysicalPointType& point_shift) {
   // Add up contributions to control points with weights
-  for (IndexingType i_ctps{}; i_ctps < weighted_spline_.NumberOfControlPoints;
+  for (IndexingType i_ctps{}; i_ctps < weighted_spline_.GetNumberOfControlPoints();
        i_ctps++) {
     weighted_spline_.control_points[i_ctps] -=
         point_shift * weight_function_.control_points[i_ctps];

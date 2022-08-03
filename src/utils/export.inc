@@ -40,9 +40,10 @@ template <typename SplineType>
 void Export::format2IRITfile(const SplineType& spline,
                              std::ofstream& export_file) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   // Irit only support 9 dimensional spaces
   static_assert((SplineType::PhysicalPointType_::kSpatialDimension < 10),
@@ -62,14 +63,23 @@ void Export::format2IRITfile(const SplineType& spline,
   }
 
   // Point Type
-  export_file << "E" << SplineType::PhysicalPointType_::kSpatialDimension
-              << "\n";
+  export_file << (isRationalBezierSpline_v<SplineType> ? "P" : "E")
+              << SplineType::PhysicalPointType_::kSpatialDimension << "\n";
 
   // Write All Control Points
-  for (std::size_t i_point{0}; i_point < spline.NumberOfControlPoints;
+  for (std::size_t i_point{0}; i_point < spline.GetNumberOfControlPoints();
        i_point++) {
-    export_file << indentation << indentation << indentation
-                << spline.control_points[i_point] << "\n";
+    export_file << indentation << indentation << indentation;
+    if constexpr (!isRationalBezierSpline_v<SplineType>) {
+      export_file << spline.control_points[i_point] << "\n";
+    } else {
+      export_file << "[" << spline.GetWeights()[i_point];
+      for (std::size_t i_dim{0};
+           i_dim < SplineType::PhysicalPointType_::kSpatialDimension; i_dim++) {
+        export_file << " " << spline.GetWeightedControlPoints()[i_point];
+      }
+      export_file << "]\n";
+    }
   }
 
   // Write Footer
@@ -81,9 +91,10 @@ void Export::format2JSONfile(const SplineType& spline,
                              std::ofstream& export_file,
                              const bool base64encoding) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   // Increase user readability
   const std::string indentation{"      "};
@@ -107,27 +118,59 @@ void Export::format2JSONfile(const SplineType& spline,
 
   // Write All Control Points
   if (base64encoding) {
-    export_file << indentation << "\"control_points\" : \""
-                << utils::Base64::Encode(spline.control_points) << "\"\n";
-  } else {
-    export_file << indentation << "\"control_points\" : [\n"
-                << indentation << "  " << spline.control_points[0];
-    for (std::size_t i_point{1}; i_point < spline.NumberOfControlPoints;
-         i_point++) {
-      export_file << ",\n"
-                  << indentation << "  " << spline.control_points[i_point];
+    if constexpr (!isRationalBezierSpline_v<SplineType>) {
+      export_file << indentation << "\"control_points\" : \""
+                  << utils::Base64::Encode(spline.control_points) << "\"\n";
+    } else {
+      export_file << indentation << "\"weighted_control_points\" : \""
+                  << utils::Base64::Encode(spline.GetWeightedControlPoints())
+                  << "\"\n";
+      export_file << indentation << "\"weights\" : \""
+                  << utils::Base64::Encode(spline.GetWeights()) << "\"\n";
     }
-    export_file << "\n" << indentation << "]\n";
+  } else {
+    if constexpr (!isRationalBezierSpline_v<SplineType>) {
+      export_file << indentation << "\"control_points\" : [\n"
+                  << indentation << "  " << spline.control_points[0];
+      for (std::size_t i_point{1}; i_point < spline.GetNumberOfControlPoints();
+           i_point++) {
+        export_file << ",\n"
+                    << indentation << "  " << spline.control_points[i_point];
+      }
+      export_file << "\n" << indentation << "]\n";
+    } else {
+      // Write Control Points
+      export_file << indentation << "\"weighted_control_points\" : [\n"
+                  << indentation << "  "
+                  << spline.GetWeightedControlPoints()[0];
+      for (std::size_t i_point{1}; i_point < spline.GetNumberOfControlPoints();
+           i_point++) {
+        export_file << ",\n"
+                    << indentation << "  "
+                    << spline.GetWeightedControlPoints()[i_point];
+      }
+      export_file << "\n" << indentation << "]\n";
+      // Write Weights
+      export_file << indentation << "\"weights\" : [\n"
+                  << indentation << "  " << spline.GetWeights()[0];
+      for (std::size_t i_point{1}; i_point < spline.GetNumberOfControlPoints();
+           i_point++) {
+        export_file << ",\n"
+                    << indentation << "  " << spline.GetWeights()[i_point];
+      }
+      export_file << "\n" << indentation << "]\n";
+    }
   }
 }
 
 template <typename SplineType>
 void Export::format2XMLfile(const SplineType& spline,
                             std::ofstream& export_file) {
+  // @TODO: Implement for rational types
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(isBezierSpline_v<SplineType>,
+                "Implemented only for bezier spline-types.");
 
   // Increase user readability
   const std::string indentation{"  "};
@@ -138,7 +181,7 @@ void Export::format2XMLfile(const SplineType& spline,
               << SplineType::PhysicalPointType_::kSpatialDimension
               << "\" numOfCntrlPntVars=\""
               << SplineType::PhysicalPointType_ ::kSpatialDimension
-              << "\" numCntrlPnts=\"" << spline.NumberOfControlPoints
+              << "\" numCntrlPnts=\"" << spline.GetNumberOfControlPoints()
               << "\" numOfEleVars=\"" << 0 << "\">\n";
 
   // Write ControlPoint Variable Names
@@ -151,7 +194,7 @@ void Export::format2XMLfile(const SplineType& spline,
 
   // Write Points
   export_file << indentation << "<cntrlPntVars>";
-  for (std::size_t i_point{}; i_point < spline.NumberOfControlPoints;
+  for (std::size_t i_point{}; i_point < spline.GetNumberOfControlPoints();
        i_point++) {
     // Spacing
     export_file << "\n" << indentation << indentation;
@@ -165,7 +208,7 @@ void Export::format2XMLfile(const SplineType& spline,
 
   // Write Weights
   export_file << indentation << "<wght>\n" << indentation << indentation;
-  for (std::size_t i_point{}; i_point < spline.NumberOfControlPoints;
+  for (std::size_t i_point{}; i_point < spline.GetNumberOfControlPoints();
        i_point++) {
     export_file << "1.0  ";  // Add \n if required
   }
@@ -205,9 +248,10 @@ template <typename SplineType>
 void Export::GuessByExtension(const SplineType& spline,
                               const std::string& filename) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   BezierGroup<SplineType> spline_group{spline};
   GuessByExtension(spline_group, filename);
@@ -217,9 +261,10 @@ template <typename SplineType>
 void Export::GuessByExtension(const BezierGroup<SplineType>& spline_group,
                               const std::string& filename) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   // In case of a absolute path strip filename
   std::size_t last_found_id = filename.find_last_of("/\\");
@@ -266,9 +311,10 @@ void Export::GuessByExtension(const BezierGroup<SplineType>& spline_group,
 template <typename SplineType>
 void Export::AsIRIT(const SplineType& spline, const std::string& filename) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   BezierGroup<SplineType> spline_group{spline};
   AsIRIT(spline_group, filename);
@@ -278,9 +324,10 @@ template <typename SplineType>
 void Export::AsIRIT(const BezierGroup<SplineType>& spline_group,
                     const std::string& filename) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   Logger::UserInfo("Starting IRIT Export as : " + filename);
   // Create File Stream
@@ -311,9 +358,10 @@ void Export::AsIRIT(const BezierGroup<SplineType>& spline_group,
 template <typename SplineType>
 void Export::AsXML(const SplineType& spline, const std::string& filename) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   BezierGroup<SplineType> spline_group{spline};
   AsXML(spline_group, filename);
@@ -323,9 +371,10 @@ template <typename SplineType>
 void Export::AsXML(const BezierGroup<SplineType>& spline_group,
                    const std::string& filename) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   Logger::UserInfo("Starting XML Export as : " + filename);
   Logger::Warning(
@@ -357,9 +406,10 @@ template <typename SplineType>
 void Export::AsJSON(const SplineType& spline, const std::string& filename,
                     const bool base64encoding) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   BezierGroup<SplineType> spline_group{spline};
   AsJSON(spline_group, filename, base64encoding);
@@ -369,9 +419,10 @@ template <typename SplineType>
 void Export::AsJSON(const BezierGroup<SplineType>& spline_group,
                     const std::string& filename, const bool base64encoding) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   Logger::UserInfo("Starting JSON Export as : " + filename);
   Logger::Logging(base64encoding ? "Exporting using Base64 Encoding"
@@ -395,9 +446,10 @@ void Export::AsJSON(const BezierGroup<SplineType>& spline_group,
   // Write all Splines from Group into new file
   for (std::size_t i{0}; i < spline_group.size(); i++) {
     // ID and Type are set here
-    export_file
-        << "    {\n      \"SplineType\" : \"Bezier\",\n      \"SplineID\" : "
-        << i << ",\n";
+    export_file << "    {\n      \"SplineType\" : \""
+                << (isRationalBezierSpline_v<SplineType> ? "RationalBezier"
+                                                         : "Bezier")
+                << "\",\n      \"SplineID\" : " << i << ",\n";
     // Export individual splines separately
     format2JSONfile(spline_group[i], export_file, base64encoding);
     export_file << "    }";
@@ -417,9 +469,10 @@ void Export::AsJSON(const BezierGroup<SplineType>& spline_group,
 template <typename SplineType>
 void Export::AsMFEM(const SplineType& spline, const std::string& filename) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   BezierGroup<SplineType> spline_group{spline};
   AsMFEM(spline_group, filename);
@@ -429,9 +482,10 @@ template <typename SplineType>
 void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
                     const std::string& filename) {
   // Ensure Call from BezierType
-  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
-                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
-                "Implemented only for (rational) bezier spline-types.");
+  using namespace utils::type_traits;
+  static_assert(
+      isBezierSpline_v<SplineType> || isRationalBezierSpline_v<SplineType>,
+      "Implemented only for (rational) bezier spline-types.");
 
   Logger::UserInfo("Starting MFEM Export as : " + filename);
   Logger::Warning(
@@ -483,10 +537,16 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
     const auto global_vertex_id =
         algorithms::HyperCube<SplineType::kParametricDimensions>::
             VertexIdForDegrees(spline_group[i_spline].GetDegrees());
+    const auto& spline_ctps = [&]() {
+      if constexpr (isRationalBezierSpline_v<SplineType>) {
+        return spline_group[i_spline].GetWeightedControlPoints();
+      } else {
+        return spline_group[i_spline].control_points;
+      }
+    }();
     for (std::size_t i_point{}; i_point < number_of_element_vertices;
          i_point++) {
-      corner_vertices.push_back(
-          spline_group[i_spline].control_points[global_vertex_id[i_point]]);
+      corner_vertices.push_back(spline_ctps[global_vertex_id[i_point]]);
     }
   }
   // Retrieve Vertex enumeration
@@ -585,8 +645,8 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
   Logger::ExtendedInformation("Knotvector assignment successful");
 
   // The boundary count is only valid for 2D elements, as all faces correspond
-  // to exactly one knot_vector dimension. In higher order problems, like 3D the
-  // same face needs to be checked for n_dim-1 knot_vector dimensions, the
+  // to exactly one knot_vector dimension. In higher order problems, like 3D
+  // the same face needs to be checked for n_dim-1 knot_vector dimensions, the
   // number of boundaries therefore needs to be updated accordingly
   assert(number_of_boundaries % (SplineType::kParametricDimensions - 1) == 0);
   number_of_boundaries /= (SplineType::kParametricDimensions - 1);
@@ -742,15 +802,30 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
     // structure of line <x><y>(<z>)<weight>
     export_file << "\n\ncontrolpoints_cartesian\n";
     for (std::size_t i_point{};
-         i_point < spline_group[i_spline].NumberOfControlPoints; i_point++) {
+         i_point < spline_group[i_spline].GetNumberOfControlPoints();
+         i_point++) {
       for (std::size_t i_dim{};
            i_dim < SplineType::PhysicalPointType_ ::kSpatialDimension;
            i_dim++) {
-        export_file << spline_group[i_spline].control_points[i_point][i_dim]
-                    << " ";
+        const auto local_ctp = [&]() {
+          if constexpr (isRationalBezierSpline_v<SplineType>) {
+            return spline_group[i_spline].GetWeightedControlPoints()[i_point] /
+                   spline_group[i_spline].GetWeights()[i_point];
+          } else {
+            return spline_group[i_spline].control_points[i_point];
+          }
+        }();
+        export_file << local_ctp[i_dim] << " ";
       }
+
       // add weights (polynomial splines are always unweighted)
-      export_file << 1. << "\n";
+      export_file << [&]() {
+        if constexpr (isRationalBezierSpline_v<SplineType>) {
+          return spline_group[i_spline].GetWeights()[i_point];
+        } else {
+          return 1.;
+        }
+      }() << "\n";
     }
 
     export_file << "\n";

@@ -68,7 +68,7 @@ TEST_F(BezierTestingSuite, MappingToUnitCube) {
   surface.FitIntoUnitCube();
   EXPECT_TRUE(surface.FitsIntoUnitCube());
   EXPECT_TRUE(reference_surface.FitsIntoUnitCube());
-  for (std::size_t i{}; i < surface.NumberOfControlPoints; i++) {
+  for (std::size_t i{}; i < surface.GetNumberOfControlPoints(); i++) {
     for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
       EXPECT_FLOAT_EQ(surface.control_points[i][i_dim],
                       ref_surface_ctps[i][i_dim]);

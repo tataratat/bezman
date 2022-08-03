@@ -30,13 +30,15 @@ SOFTWARE.
 #include <stdexcept>
 #include <string>
 
-#include "bezman/src/bezier_spline.hpp"
 #include "bezman/src/bezier_group.hpp"
+#include "bezman/src/bezier_spline.hpp"
 #include "bezman/src/point.hpp"
 #include "bezman/src/utils/algorithms/int_power.hpp"
 #include "bezman/src/utils/algorithms/point_uniquifier.hpp"
 #include "bezman/src/utils/base64.hpp"
 #include "bezman/src/utils/logger.hpp"
+#include "bezman/src/utils/type_traits/is_bezier_spline.hpp"
+#include "bezman/src/utils/type_traits/is_rational_bezier_spline.hpp"
 
 namespace bezman::utils {
 

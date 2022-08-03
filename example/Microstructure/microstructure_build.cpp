@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include <cmath>
 
+#include "bezman/src/rational_bezier_spline.hpp"
 #include "bezman/src/bezier_group.hpp"
 #include "bezman/src/utils/export.hpp"
 
@@ -31,13 +32,15 @@ using namespace bezman;
 
 // Define aliases
 using Point2D = Point<2, double>;
-using BezierGroup = BezierSplineGroup<2, Point2D, double>;
-using Bezier = BezierSpline<2, Point2D, double>;
+using PolynomialBezier = BezierSpline<2, Point2D, double>;
+using RationalBezier = RationalBezierSpline<2, Point2D, double>;
+using PolynomialBezierGroup = BezierGroup<PolynomialBezier>;
+using RationalBezierGroup = BezierGroup<RationalBezier>;
 
 /**
  * @brief Creates a simple linear crosstile with constant thickness
  */
-BezierGroup SimpleCrossTile(const double thickness) {
+PolynomialBezierGroup SimpleCrossTile(const double thickness) {
   std::array<std::size_t, 2> degrees{1, 1};
   std::vector<Point2D> ctps_center{
       Point2D{0.5 - 0.5 * thickness, 0.5 - 0.5 * thickness},
@@ -63,22 +66,24 @@ BezierGroup SimpleCrossTile(const double thickness) {
       Point2D{0.5 + 0.5 * thickness, 0.5 + 0.5 * thickness},
       Point2D{0.5 - 0.5 * thickness, 1.}, Point2D{0.5 + 0.5 * thickness, 1.}};
 
-  return BezierGroup{Bezier{degrees, ctps_center}, Bezier{degrees, ctps_left},
-                     Bezier{degrees, ctps_right}, Bezier{degrees, ctps_down},
-                     Bezier{degrees, ctps_up}};
+  return PolynomialBezierGroup{PolynomialBezier{degrees, ctps_center}, PolynomialBezier{degrees, ctps_left},
+                     PolynomialBezier{degrees, ctps_right}, PolynomialBezier{degrees, ctps_down},
+                     PolynomialBezier{degrees, ctps_up}};
 }
 
 /**
  * @brief Creates a segmented ring to be filled with tiles
  */
-BezierGroup CircleGroup(const double innerR, const double outerR,
+RationalBezierGroup CircleGroup(const double innerR, const double outerR,
                         const int segments, const double arc_degrees) {
   ///
-  BezierGroup ringsegments{segments};
+  RationalBezierGroup ringsegments{segments};
   constexpr double PI = acos(-1);
   const double degrees_per_segment = arc_degrees / segments;
-  const double outdor_fact = 1. / std::sin(PI / 2. - degrees_per_segment / 2.);
+  const double single_weight{std::sin(PI / 2. - degrees_per_segment / 2.)};
+  const double outdor_fact = 1. / single_weight; 
   const std::array<std::size_t, 2> degrees{2, 1};
+  std::vector<double> weights {1, single_weight, 1, 1, single_weight, 1};
   for (int i_segment{}; i_segment < segments; i_segment++) {
     const double startsin = std::sin(degrees_per_segment * i_segment);
     const double startcos = std::cos(degrees_per_segment * i_segment);
@@ -95,14 +100,14 @@ BezierGroup CircleGroup(const double innerR, const double outerR,
                                       middlesin * outdor_fact * innerR},
                               Point2D{endcos * innerR, endsin * innerR}};
 
-    ringsegments[i_segment] = Bezier{degrees, ctps};
+    ringsegments[i_segment] = RationalBezier{degrees, ctps, weights};
   }
   return ringsegments;
 }
 
 int main() {
   // Parameters for the outer function
-  const int n_segments = 20;
+  const int n_segments = 4;
   const double innerRadius{1.}, outerRadius{2.};
   const double arc_segment{2 * std::acos(-1)};
 
@@ -123,6 +128,5 @@ int main() {
   utils::Export::AsJSON(test_composition, "composed_microstructure");
   utils::Export::AsMFEM(test_composition, "composed_microstructure");
   utils::Export::AsIRIT(test_composition, "composed_microstructure");
-  utils::Export::AsXML(test_composition, "composed_microstructure");
   return 0;
 }

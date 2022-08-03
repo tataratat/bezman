@@ -87,6 +87,8 @@ class BezierSpline {
 
   /// Polynomial degrees
   std::array<IndexingType, parametric_dimension> degrees{};
+  /// Number of control points
+  IndexingType number_of_control_points{};
 
   /**
    * @brief Compose the Numerator Function of a polynomial and rational spline
@@ -114,14 +116,16 @@ class BezierSpline {
       const;
 
  public:
+  /// Make Number Of Control Points available
+  const IndexingType& GetNumberOfControlPoints() const {
+    return number_of_control_points;
+  };
   /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
   using PhysicalPointType_ = PhysicalPointType;
 
   /// Offsets in Row based control point storage
   std::array<IndexingType, parametric_dimension> index_offsets{};
-  /// Number of control points
-  IndexingType NumberOfControlPoints{};
   /// List of all control points in "Row-based" order
   std::vector<PhysicalPointType_> control_points{};
 
@@ -161,10 +165,10 @@ class BezierSpline {
   constexpr BezierSpline(
       const std::array<std::size_t, parametric_dimension> deg)
       : degrees{deg} {
-    NumberOfControlPoints = 1u;
+    number_of_control_points = 1u;
     for (unsigned int i{}; i < parametric_dimension; i++)
-      NumberOfControlPoints *= degrees[i] + 1;
-    control_points.resize(NumberOfControlPoints);
+      number_of_control_points *= degrees[i] + 1;
+    control_points.resize(number_of_control_points);
     UpdateIndexOffsets_();
   };
 
@@ -173,12 +177,12 @@ class BezierSpline {
       const std::array<std::size_t, parametric_dimension>& deg,
       const std::vector<PhysicalPointType>& points)
       : degrees{deg}, control_points{points} {
-    NumberOfControlPoints = 1u;
+    number_of_control_points = 1u;
     for (unsigned int i{}; i < parametric_dimension; i++)
-      NumberOfControlPoints *= degrees[i] + 1;
+      number_of_control_points *= degrees[i] + 1;
 
     UpdateIndexOffsets_();
-    assert(NumberOfControlPoints == points.size());
+    assert(number_of_control_points == points.size());
   };
 
   /// Move operator
@@ -202,10 +206,10 @@ class BezierSpline {
   constexpr void UpdateDegrees(
       const std::array<std::size_t, parametric_dimension>& new_degrees) {
     degrees = new_degrees;
-    NumberOfControlPoints = 1u;
+    number_of_control_points = 1u;
     for (unsigned int i{}; i < parametric_dimension; i++)
-      NumberOfControlPoints *= degrees[i] + 1;
-    control_points.resize(NumberOfControlPoints);
+      number_of_control_points *= degrees[i] + 1;
+    control_points.resize(number_of_control_points);
     UpdateIndexOffsets_();
   }
 

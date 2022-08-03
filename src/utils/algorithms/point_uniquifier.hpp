@@ -316,9 +316,8 @@ auto GetConnectivityForSplineGroup(
   // Start Function
   Logger::Logging("Determining connectivity");
   // Current implementation is only made for bi- and trivariates
-  static_assert(
-      (kParametricDimensions_ == 3 || kParametricDimensions_ == 2),
-      "High-Dimensional and Line Patches are not supported");
+  static_assert((kParametricDimensions_ == 3 || kParametricDimensions_ == 2),
+                "High-Dimensional and Line Patches are not supported");
 
   // Array that stores opposite faces
   constexpr auto opposite_faces =
@@ -343,14 +342,20 @@ auto GetConnectivityForSplineGroup(
         HyperCube<kParametricDimensions_>::VertexIdForDegrees(
             spline_group[i_spline].GetDegrees());
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
+      const auto& ctps = [&]() {
+        if constexpr (utils::type_traits::isRationalBezierSpline_v<
+                          SplineType>) {
+          return spline_group[i_spline].GetWeightedControlPoints();
+        } else {
+          return spline_group[i_spline].control_points;
+        }
+      }();
       face_edges[i_spline * number_of_element_faces + i_face] =
-          spline_group[i_spline].control_points
-              [global_vertex_id[subelement_vertex_ids[i_face][0]]];
+          ctps[global_vertex_id[subelement_vertex_ids[i_face][0]]];
       for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
            i_point++) {
         face_edges[i_spline * number_of_element_faces + i_face] +=
-            spline_group[i_spline].control_points
-                [global_vertex_id[subelement_vertex_ids[i_face][i_point]]];
+            ctps[global_vertex_id[subelement_vertex_ids[i_face][i_point]]];
       }
     }
   }

@@ -25,7 +25,7 @@ SOFTWARE.
 #ifndef SRC_BEZIER_SPLINE_GROUP_INC
 #define SRC_BEZIER_SPLINE_GROUP_INC
 
-template <SplineType>
+template <typename SplineType>
 constexpr bool BezierGroup<SplineType>::FitsIntoUnitCube() const {
   for (auto spline : (*this)) {
     if (!spline.FitsIntoUnitCube()) {
@@ -37,7 +37,7 @@ constexpr bool BezierGroup<SplineType>::FitsIntoUnitCube() const {
   return true;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr typename BezierGroup<SplineType>::PhysicalPointType_
 BezierGroup<SplineType>::MaximumCorner() const {
   PhysicalPointType_ maximum_corner = (*this)[0].MaximumCorner();
@@ -54,7 +54,7 @@ BezierGroup<SplineType>::MaximumCorner() const {
   return maximum_corner;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr typename BezierGroup<SplineType>::PhysicalPointType_
 BezierGroup<SplineType>::MinimumCorner() const {
   PhysicalPointType_ minimum_corner = (*this)[0].MinimumCorner();
@@ -72,7 +72,7 @@ BezierGroup<SplineType>::MinimumCorner() const {
   return minimum_corner;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::FitIntoUnitCube() {
   const auto maximum_corner = MaximumCorner();
   const auto minimum_corner = MinimumCorner();
@@ -87,9 +87,9 @@ constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::FitIntoUnitCube() {
   return (*this);
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType> BezierGroup<SplineType>::Compose(
-    const SplineBaseType &inner_function) const {
+    const SplineType &inner_function) const {
   // Initiate return value
   const auto number_of_splines_in_group = this->size();
   BezierGroup composed_group{number_of_splines_in_group};
@@ -105,7 +105,7 @@ constexpr BezierGroup<SplineType> BezierGroup<SplineType>::Compose(
   return composed_group;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType> BezierGroup<SplineType>::Compose(
     const BezierGroup &inner_function_group) const {
   // Initiate return value
@@ -126,7 +126,7 @@ constexpr BezierGroup<SplineType> BezierGroup<SplineType>::Compose(
   return composed_group;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType>
 BezierGroup<SplineType>::DerivativeWRTParametricDimension(
     const IndexingType par_dim) const {
@@ -140,7 +140,7 @@ BezierGroup<SplineType>::DerivativeWRTParametricDimension(
   return derived_group;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::AddComponentwise(
     const BezierGroup &rhs) {
   utils::Logger::Logging(
@@ -157,7 +157,7 @@ constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::AddComponentwise(
   return (*this);
 }
 
-template <SplineType>
+template <typename SplineType>
 template <typename SplineTypeRHS>
 constexpr BezierGroup<decltype(SplineType{} * SplineTypeRHS{})>
 BezierGroup<SplineType>::MultiplyComponentwise(
@@ -178,7 +178,7 @@ BezierGroup<SplineType>::MultiplyComponentwise(
   return return_group;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType> BezierGroup<SplineType>::operator+(
     const BezierGroup &rhs) const {
   BezierGroup combination{(*this)};
@@ -186,14 +186,14 @@ constexpr BezierGroup<SplineType> BezierGroup<SplineType>::operator+(
   return combination;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::operator+=(
     const BezierGroup &rhs) {
   (*this).insert(this->end(), rhs.begin(), rhs.end());
   return (*this);
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType> BezierGroup<SplineType>::operator+(
     const PhysicalPointType_ &translation) const {
   BezierGroup combination{(*this)};
@@ -201,7 +201,7 @@ constexpr BezierGroup<SplineType> BezierGroup<SplineType>::operator+(
   return combination;
 }
 
-template <SplineType>
+template <typename SplineType>
 constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::operator+=(
     const PhysicalPointType_ &translation) {
   for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {

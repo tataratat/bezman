@@ -265,7 +265,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
    */
 
   // Work on copy of ControlPoint
-  std::vector<PointTypePhysical_> ctps_copy{control_points};
+  std::vector<PhysicalPointType_> ctps_copy{control_points};
   IndexingType ctps_to_consider = NumberOfControlPoints;
 
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
@@ -346,7 +346,7 @@ constexpr PhysicalPointType BezierSpline<
    * Now that all values have been precomputed we have to sum up the
    * individual contributions using (compile-time) recursion
    */
-  PointTypePhysical_ evaluation_point{};
+  PhysicalPointType_ evaluation_point{};
 
   return AddUpContributionsToControlPointVector_(evaluation_point, factors,
                                                  static_cast<ScalarType>(1.));
@@ -615,7 +615,7 @@ BezierSpline<parametric_dimension, PhysicalPointType,
     }
     return (*this);
   } else {
-    if (dimension >= PointTypePhysical_::kSpatialDimension) {
+    if (dimension >= PhysicalPointType_::kSpatialDimension) {
       utils::Logger::TerminatingError(
           "Dimension out of range for Scalar extraction");
     }
@@ -855,9 +855,9 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
                               ComposeDenominatorSpline(inner_function)};
 }
 
-template <typename SplineType>
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+template <typename SplineType>
 constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     const BezierGroup<SplineType>& inner_function_group) const {
@@ -868,10 +868,11 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
   /// Start the composition with the current spline
   // Initialize return value
-  using ScalarReturnT = decltype(ScalarType{} * SplineType::ScalarType_{});
+  using ScalarReturnT =
+      decltype(ScalarType{} * typename SplineType::ScalarType_{});
   const IndexingType number_of_splines{inner_function_group.size()};
   using ReturnType = BezierGroup<std::conditional_t<
-      utils::type_trais::isRationalBezierSpline_v<SplineType>,
+      utils::type_traits::isRationalBezierSpline_v<SplineType>,
       RationalBezierSpline<SplineType::kParametricDimensions, PhysicalPointType,
                            ScalarReturnT>,
       BezierSpline<SplineType::kParametricDimensions, PhysicalPointType,
@@ -908,7 +909,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                 "ComposeNumerator only compiles for (rational) Beziers.");
 
   // Deduct Types
-  using PointTypeInnerFunction = typename SplineType::PointTypePhysical_;
+  using PointTypeInnerFunction = typename SplineType::PhysicalPointType_;
   using ScalarTypeInnerFunction = typename SplineType::ScalarType_;
   constexpr const std::size_t parametric_dimension_inner_spline =
       SplineType::kParametricDimensions;
@@ -1208,7 +1209,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   // Init return value
   using ReturnType = BezierGroup<
       BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>;
-  ReturnTypereturn_value(splitting_planes.size() + 1);
+  ReturnType return_value(splitting_planes.size() + 1);
 
   // Check if the split plane vector has increasing values
   if (!std::is_sorted(splitting_planes.begin(), splitting_planes.end())) {

@@ -65,13 +65,11 @@ class BezierGroup : public std::vector<SplineType> {
 
  public:
   using SplineType_ = SplineType;
-  using PhysicalPointType_ = typename SplineType::PhysicalPoinType;
+  using PhysicalPointType_ = typename SplineType::PhysicalPointType_;
   using ScalarType_ = typename SplineType::ScalarType_;
 
  private:
   using IndexingType = std::size_t;
-  using SplineBaseType =
-      BezierSpline<parametric_dimension, PhysicalPointType_, ScalarType>;
   using BaseVector = std::vector<SplineType>;
 
  public:
@@ -115,8 +113,8 @@ class BezierGroup : public std::vector<SplineType> {
   constexpr BezierGroup &AddComponentwise(const BezierGroup &rhs);
 
   /// Add two Bezier Spline Groups Component wise to the current Group
-  template <SplineTypeRHS>
-  constexpr BezierGroup<decltype(SplineTypeRHS{} * SplineType_{})>
+  template <typename SplineTypeRHS>
+  constexpr BezierGroup<decltype(SplineType_{} * SplineTypeRHS{})>
   MultiplyComponentwise(const BezierGroup<SplineTypeRHS> &rhs) const;
 
   /// Calculate the derivative of all components and return in a new group

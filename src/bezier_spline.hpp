@@ -116,14 +116,14 @@ class BezierSpline {
  public:
   /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
-  using PointTypePhysical_ = PhysicalPointType;
+  using PhysicalPointType_ = PhysicalPointType;
 
   /// Offsets in Row based control point storage
   std::array<IndexingType, parametric_dimension> index_offsets{};
   /// Number of control points
   IndexingType NumberOfControlPoints{};
   /// List of all control points in "Row-based" order
-  std::vector<PointTypePhysical_> control_points{};
+  std::vector<PhysicalPointType_> control_points{};
 
   /// Make Parametric dimension publicly available
   static constexpr IndexingType kParametricDimensions = parametric_dimension;
@@ -211,18 +211,18 @@ class BezierSpline {
 
   /// Retrieve single control point from local indices
   template <typename... T>
-  constexpr const PointTypePhysical_& ControlPoint(const T... index) const;
+  constexpr const PhysicalPointType_& ControlPoint(const T... index) const;
 
   /// Retrieve single control point from local indices
   template <typename... T>
-  constexpr PointTypePhysical_& ControlPoint(const T... index);
+  constexpr PhysicalPointType_& ControlPoint(const T... index);
 
   /// Retrieve single control point from local indices (as array)
-  constexpr const PointTypePhysical_& ControlPoint(
+  constexpr const PhysicalPointType_& ControlPoint(
       const std::array<IndexingType, parametric_dimension>& index) const;
 
   /// Retrieve single control point from local indices (as array)
-  constexpr PointTypePhysical_& ControlPoint(
+  constexpr PhysicalPointType_& ControlPoint(
       const std::array<IndexingType, parametric_dimension>& index);
 
   /// Order elevation along a specific parametric dimension
@@ -235,12 +235,12 @@ class BezierSpline {
 
   /// Evaluate the spline using the de Casteljau algorithm
   template <typename... T>
-  constexpr PointTypePhysical_ Evaluate(const T&... par_coords) const {
+  constexpr PhysicalPointType_ Evaluate(const T&... par_coords) const {
     return Evaluate(PointTypeParametric_{par_coords...});
   }
 
   /// Evaluate the spline via the deCasteljau algorithm
-  constexpr PointTypePhysical_ Evaluate(
+  constexpr PhysicalPointType_ Evaluate(
       const PointTypeParametric_& par_coords) const;
 
   /// Evaluate Basis Functions
@@ -256,12 +256,12 @@ class BezierSpline {
 
   /// Evaluate the spline via the explicit precomputation of bernstein
   /// values
-  constexpr PointTypePhysical_ ForwardEvaluate(
+  constexpr PhysicalPointType_ ForwardEvaluate(
       const PointTypeParametric_& par_coords) const;
 
   /// Evaluate the spline using explicit precomputation of bernstein values
   template <typename... T>
-  constexpr PointTypePhysical_ ForwardEvaluate(const T&... par_coords) const {
+  constexpr PhysicalPointType_ ForwardEvaluate(const T&... par_coords) const {
     return ForwardEvaluate(PointTypeParametric_{par_coords...});
   }
 

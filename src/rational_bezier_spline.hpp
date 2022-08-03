@@ -91,7 +91,7 @@ class RationalBezierSpline {
  public:
   /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
-  using PointTypePhysical_ = PhysicalPointType;
+  using PhysicalPointType_ = PhysicalPointType;
 
   /// Make Parametric dimension publicly available
   static constexpr IndexingType kParametricDimensions = parametric_dimension;
@@ -139,7 +139,7 @@ class RationalBezierSpline {
   /// Constructor with control point list
   constexpr RationalBezierSpline(
       const std::array<std::size_t, parametric_dimension> deg,
-      const std::vector<PointTypePhysical_> control_point_vector,
+      const std::vector<PhysicalPointType_> control_point_vector,
       const std::vector<ScalarType> weights)
       : weighted_spline_{deg}, weight_function_{deg, weights} {
     assert(control_point_vector.size() == weights.size());
@@ -204,27 +204,27 @@ class RationalBezierSpline {
 
   /// Retrieve single control point from local indices
   template <typename... T>
-  constexpr PointTypePhysical_ ControlPoint(const T... index) const;
+  constexpr PhysicalPointType_ ControlPoint(const T... index) const;
 
   /// Retrieve single control point from local indices (as array)
-  constexpr PointTypePhysical_ ControlPoint(
+  constexpr PhysicalPointType_ ControlPoint(
       const std::array<IndexingType, parametric_dimension>& index) const;
 
   /// Retrieve single weighted eighted control point from local indices
   template <typename... T>
-  constexpr const PointTypePhysical_& WeightedControlPoint(
+  constexpr const PhysicalPointType_& WeightedControlPoint(
       const T... index) const;
 
   /// Retrieve single weighted control point from local indices
   template <typename... T>
-  constexpr PointTypePhysical_& WeightedControlPoint(const T... index);
+  constexpr PhysicalPointType_& WeightedControlPoint(const T... index);
 
   /// Retrieve single weighted control point from local indices (as array)
-  constexpr const PointTypePhysical_& WeightedControlPoint(
+  constexpr const PhysicalPointType_& WeightedControlPoint(
       const std::array<IndexingType, parametric_dimension>& index) const;
 
   /// Retrieve single weighted control point from local indices (as array)
-  constexpr PointTypePhysical_& WeightedControlPoint(
+  constexpr PhysicalPointType_& WeightedControlPoint(
       const std::array<IndexingType, parametric_dimension>& index);
 
   /// Retrieve single weight from local indices
@@ -246,12 +246,12 @@ class RationalBezierSpline {
   //------------------- Essential Operations
 
   /// Evaluate the spline via the deCasteljau algorithm
-  constexpr PointTypePhysical_ Evaluate(
+  constexpr PhysicalPointType_ Evaluate(
       const PointTypeParametric_& par_coords) const;
 
   /// Evaluate the spline using the de Casteljau algorithm
   template <typename... T>
-  constexpr PointTypePhysical_ Evaluate(const T&... par_coords) const {
+  constexpr PhysicalPointType_ Evaluate(const T&... par_coords) const {
     return Evaluate(PointTypeParametric_{par_coords...});
   }
 
@@ -278,12 +278,12 @@ class RationalBezierSpline {
   PolynomialBasisFunctions(const PointTypeParametric_& par_coords) const;
 
   /// Evaluate the spline via the explicit precomputation of bernstein values
-  constexpr PointTypePhysical_ ForwardEvaluate(
+  constexpr PhysicalPointType_ ForwardEvaluate(
       const PointTypeParametric_& par_coords) const;
 
   /// Evaluate the spline using explicit precomputation of bernstein values
   template <typename... T>
-  constexpr PointTypePhysical_ ForwardEvaluate(const T&... par_coords) const {
+  constexpr PhysicalPointType_ ForwardEvaluate(const T&... par_coords) const {
     return ForwardEvaluate(PointTypeParametric_{par_coords...});
   }
 

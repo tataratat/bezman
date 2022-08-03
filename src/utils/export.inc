@@ -45,7 +45,7 @@ void Export::format2IRITfile(const SplineType& spline,
                 "Implemented only for (rational) bezier spline-types.");
 
   // Irit only support 9 dimensional spaces
-  static_assert((PhysicalPointType::kSpatialDimension < 10),
+  static_assert((SplineType::PhysicalPointType_::kSpatialDimension < 10),
                 "IRIT natively only supports up to 9D spaces");
 
   // Increase user readability
@@ -62,7 +62,8 @@ void Export::format2IRITfile(const SplineType& spline,
   }
 
   // Point Type
-  export_file << "E" << PhysicalPointType::kSpatialDimension << "\n";
+  export_file << "E" << SplineType::PhysicalPointType_::kSpatialDimension
+              << "\n";
 
   // Write All Control Points
   for (std::size_t i_point{0}; i_point < spline.NumberOfControlPoints;
@@ -88,8 +89,8 @@ void Export::format2JSONfile(const SplineType& spline,
   const std::string indentation{"      "};
 
   // Write Dimensionality
-  export_file << indentation
-              << "\"dim\" : " << PhysicalPointType::kSpatialDimension << ",\n";
+  export_file << indentation << "\"dim\" : "
+              << SplineType::PhysicalPointType_::kSpatialDimension << ",\n";
 
   // Write Parametric Dimensionality
   export_file << indentation
@@ -134,15 +135,16 @@ void Export::format2XMLfile(const SplineType& spline,
   // Write Header
   export_file << indentation << "<SplineEntry splDim=\""
               << SplineType::kParametricDimensions << "\" spaceDim=\""
-              << PhysicalPointType::kSpatialDimension
+              << SplineType::PhysicalPointType_::kSpatialDimension
               << "\" numOfCntrlPntVars=\""
-              << PhysicalPointType ::kSpatialDimension << "\" numCntrlPnts=\""
-              << spline.NumberOfControlPoints << "\" numOfEleVars=\"" << 0
-              << "\">\n";
+              << SplineType::PhysicalPointType_ ::kSpatialDimension
+              << "\" numCntrlPnts=\"" << spline.NumberOfControlPoints
+              << "\" numOfEleVars=\"" << 0 << "\">\n";
 
   // Write ControlPoint Variable Names
   export_file << indentation << "<cntrlPntVarNames>\n";
-  for (std::size_t i{}; i < PhysicalPointType ::kSpatialDimension; i++) {
+  for (std::size_t i{}; i < SplineType::PhysicalPointType_ ::kSpatialDimension;
+       i++) {
     export_file << indentation << "  x" << i << " ";
   }
   export_file << "\n" << indentation << "</cntrlPntVarNames>\n";
@@ -153,8 +155,8 @@ void Export::format2XMLfile(const SplineType& spline,
        i_point++) {
     // Spacing
     export_file << "\n" << indentation << indentation;
-    for (std::size_t i_dim{}; i_dim < PhysicalPointType ::kSpatialDimension;
-         i_dim++) {
+    for (std::size_t i_dim{};
+         i_dim < SplineType::PhysicalPointType_ ::kSpatialDimension; i_dim++) {
       export_file << std::setw(12) << std::setprecision(10)
                   << spline.control_points[i_point][i_dim] << indentation;
     }
@@ -171,8 +173,8 @@ void Export::format2XMLfile(const SplineType& spline,
 
   // Write Degrees
   export_file << indentation << "<deg>\n" << indentation << indentation;
-  for (std::size_t i_par_dim{};
-       i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
+  for (std::size_t i_par_dim{}; i_par_dim < SplineType::kParametricDimensions;
+       i_par_dim++) {
     export_file << spline.GetDegrees()[i_par_dim]
                 << indentation;  // Add \n if required
   }
@@ -180,8 +182,8 @@ void Export::format2XMLfile(const SplineType& spline,
 
   // Knotvectors (required)
   export_file << indentation << "<kntVecs>\n";
-  for (std::size_t i_par_dim{};
-       i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
+  for (std::size_t i_par_dim{}; i_par_dim < SplineType::kParametricDimensions;
+       i_par_dim++) {
     export_file << indentation << indentation << "<kntVec>\n"
                 << indentation << indentation;
     // Write All Control Points
@@ -246,7 +248,7 @@ void Export::GuessByExtension(const BezierGroup<SplineType>& spline_group,
     Logger::Logging("Identified MFEM export format");
     // Export as MFEM
     if constexpr (SplineType::kParametricDimensions ==
-                      PhysicalPointType::kSpatialDimension &&
+                      SplineType::PhysicalPointType_::kSpatialDimension &&
                   (SplineType::kParametricDimensions ==
                        static_cast<std::size_t>(2) ||
                    SplineType::kParametricDimensions ==
@@ -268,9 +270,7 @@ void Export::AsIRIT(const SplineType& spline, const std::string& filename) {
                     utils::type_traits::isRationalBezierSpline_v<SplineType>,
                 "Implemented only for (rational) bezier spline-types.");
 
-  BezierGroup<SplineType::kParametricDimensions, PhysicalPointType,
-              SplineType::ScalarType_>
-      spline_group{spline};
+  BezierGroup<SplineType> spline_group{spline};
   AsIRIT(spline_group, filename);
 }
 
@@ -315,9 +315,7 @@ void Export::AsXML(const SplineType& spline, const std::string& filename) {
                     utils::type_traits::isRationalBezierSpline_v<SplineType>,
                 "Implemented only for (rational) bezier spline-types.");
 
-  BezierGroup<SplineType::kParametricDimensions, PhysicalPointType,
-              SplineType::ScalarType_>
-      spline_group{spline};
+  BezierGroup<SplineType> spline_group{spline};
   AsXML(spline_group, filename);
 }
 
@@ -363,9 +361,7 @@ void Export::AsJSON(const SplineType& spline, const std::string& filename,
                     utils::type_traits::isRationalBezierSpline_v<SplineType>,
                 "Implemented only for (rational) bezier spline-types.");
 
-  BezierGroup<SplineType::kParametricDimensions, PhysicalPointType,
-              SplineType::ScalarType_>
-      spline_group{spline};
+  BezierGroup<SplineType> spline_group{spline};
   AsJSON(spline_group, filename, base64encoding);
 }
 
@@ -425,9 +421,7 @@ void Export::AsMFEM(const SplineType& spline, const std::string& filename) {
                     utils::type_traits::isRationalBezierSpline_v<SplineType>,
                 "Implemented only for (rational) bezier spline-types.");
 
-  BezierGroup<SplineType::kParametricDimensions, PhysicalPointType,
-              SplineType::ScalarType_>
-      spline_group{spline};
+  BezierGroup<SplineType> spline_group{spline};
   AsMFEM(spline_group, filename);
 }
 
@@ -447,9 +441,9 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
   export_file.open(ensureFileExtension(filename, "mesh"));
 
   // MFEM format currently restricted to 2D2D and 3D3D
-  static_assert(
-      SplineType::kParametricDimensions == PhysicalPointType::kSpatialDimension,
-      "Mismatch between parametric and physical dimension");
+  static_assert(SplineType::kParametricDimensions ==
+                    SplineType::PhysicalPointType_::kSpatialDimension,
+                "Mismatch between parametric and physical dimension");
   static_assert(
       SplineType::kParametricDimensions == static_cast<std::size_t>(2) ||
           SplineType::kParametricDimensions == static_cast<std::size_t>(3),
@@ -481,7 +475,7 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
   std::size_t number_of_boundaries{};
 
   // Initialize Vertices to identify their vertex ids
-  std::vector<PhysicalPointType> corner_vertices;
+  std::vector<typename SplineType::PhysicalPointType_> corner_vertices;
   corner_vertices.reserve(number_of_splines * number_of_element_vertices);
 
   // Retrieve all vertices
@@ -709,10 +703,6 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
   // write the number of vertices
   export_file << maximum_vertex_id + 1 << "\n";
 
-  using BezierSplineType =
-      BezierSpline<SplineType::kParametricDimensions, PhysicalPointType,
-                   SplineType::ScalarType_>;
-
   // Export all Splines as patches and their control points
   export_file << "\n\npatches\n";
   // run through all splines/patches and write the knot vector- and control
@@ -721,12 +711,12 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
     export_file << "\nknotvectors"
                 << "\n";
     // write the number of knot vectors
-    export_file << BezierSplineType::kParametricDimensions << "\n";
+    export_file << SplineType::kParametricDimensions << "\n";
 
     // structure of line <degree><number of control points><xi 0>...<xi m>
     // copy code from format2XMLfile  ;)
-    for (std::size_t i_par_dim{};
-         i_par_dim < BezierSplineType::kParametricDimensions; i_par_dim++) {
+    for (std::size_t i_par_dim{}; i_par_dim < SplineType::kParametricDimensions;
+         i_par_dim++) {
       // Write All Control Points
       export_file << spline_group[i_spline].GetDegrees()[i_par_dim]
                   << " "
@@ -746,14 +736,15 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
     // write physical dimension
     export_file << "\ndimension"
                 << "\n";
-    export_file << BezierSplineType::kParametricDimensions << "\n";
+    export_file << SplineType::kParametricDimensions << "\n";
 
     // write the control point segment
     // structure of line <x><y>(<z>)<weight>
     export_file << "\n\ncontrolpoints_cartesian\n";
     for (std::size_t i_point{};
          i_point < spline_group[i_spline].NumberOfControlPoints; i_point++) {
-      for (std::size_t i_dim{}; i_dim < PhysicalPointType ::kSpatialDimension;
+      for (std::size_t i_dim{};
+           i_dim < SplineType::PhysicalPointType_ ::kSpatialDimension;
            i_dim++) {
         export_file << spline_group[i_spline].control_points[i_point][i_dim]
                     << " ";

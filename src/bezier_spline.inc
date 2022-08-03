@@ -828,41 +828,6 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
           typename ScalarRHS>
-constexpr BezierSplineGroup<parametric_dimension_inner_spline,
-                            PhysicalPointType,
-                            decltype(ScalarType{} * ScalarRHS{})>
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
-    const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
-                            ScalarRHS>& inner_function_group) const {
-  /// Start the composition with the current spline
-  // Initialize return value
-  using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
-  const IndexingType number_of_splines{inner_function_group.size()};
-  BezierSplineGroup<parametric_dimension_inner_spline, PhysicalPointType,
-                    ScalarReturnT>
-      composition_group{number_of_splines};
-
-  // Check if the inner function fits into the unit cube
-  if (!inner_function_group.FitsIntoUnitCube()) {
-    utils::Logger::TerminatingError(
-        "Inner function must fit unit cube to "
-        "perform composition");
-  }
-
-  // Check Dimensions
-  static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
-                "Dimension mismatch");
-
-  for (IndexingType i_spline{}; i_spline < number_of_splines; i_spline++) {
-    composition_group[i_spline] = Compose(inner_function_group[i_spline]);
-  }
-  return composition_group;
-}
-
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
-          typename ScalarRHS>
 constexpr RationalBezierSpline<parametric_dimension_inner_spline,
                                PhysicalPointType,
                                decltype(ScalarType{} * ScalarRHS{})>
@@ -888,6 +853,47 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
                               ComposeNumeratorSpline(inner_function),
                               // Denominator
                               ComposeDenominatorSpline(inner_function)};
+}
+
+template <typename SplineType>
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr auto
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
+    const BezierGroup<SplineType>& inner_function_group) const {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
+  /// Start the composition with the current spline
+  // Initialize return value
+  using ScalarReturnT = decltype(ScalarType{} * SplineType::ScalarType_{});
+  const IndexingType number_of_splines{inner_function_group.size()};
+  using ReturnType = BezierGroup<std::conditional_t<
+      utils::type_trais::isRationalBezierSpline_v<SplineType>,
+      RationalBezierSpline<SplineType::kParametricDimensions, PhysicalPointType,
+                           ScalarReturnT>,
+      BezierSpline<SplineType::kParametricDimensions, PhysicalPointType,
+                   ScalarReturnT>>>;
+  ReturnType composition_group{number_of_splines};
+
+  // Check if the inner function fits into the unit cube
+  if (!inner_function_group.FitsIntoUnitCube()) {
+    utils::Logger::TerminatingError(
+        "Inner function must fit unit cube to "
+        "perform composition");
+  }
+
+  // Check Dimensions
+  static_assert(
+      SplineType::PhysicalPointType_::kSpatialDimension == parametric_dimension,
+      "Dimension mismatch");
+
+  for (IndexingType i_spline{}; i_spline < number_of_splines; i_spline++) {
+    composition_group[i_spline] = Compose(inner_function_group[i_spline]);
+  }
+  return composition_group;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -1099,7 +1105,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+constexpr BezierGroup<
+    BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>
 BezierSpline<parametric_dimension, PhysicalPointType,
              ScalarType>::SplitAtPosition(const ScalarType& splitting_plane,
                                           const IndexingType
@@ -1141,8 +1148,9 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 
   // Initialize return values
   BezierSpline first_part{(*this)}, second_part{(*this)};
-  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
-      spline_group_split{first_part, second_part};
+  using ReturnType = BezierGroup<
+      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>;
+  ReturnType spline_group_split{first_part, second_part};
 
   // References for simplified access
   auto& ctps_first = spline_group_split[0].control_points;
@@ -1192,13 +1200,15 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+constexpr BezierGroup<
+    BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     SplitAtPosition(const std::vector<ScalarType>& splitting_planes,
                     const IndexingType splitting_dimension) const {
   // Init return value
-  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
-      return_value(splitting_planes.size() + 1);
+  using ReturnType = BezierGroup<
+      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>;
+  ReturnTypereturn_value(splitting_planes.size() + 1);
 
   // Check if the split plane vector has increasing values
   if (!std::is_sorted(splitting_planes.begin(), splitting_planes.end())) {

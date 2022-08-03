@@ -306,19 +306,23 @@ std::vector<std::size_t> IndexUniquePointList(
  * Calculates the face points and uses FindConnectivity to identify
  * neighbors
  */
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
+template <typename SplineType>
 auto GetConnectivityForSplineGroup(
-    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                            ScalarType>& spline_group) {
+    const BezierGroup<SplineType>& spline_group) {
+  // Make Spline Parameters available
+  constexpr std::size_t kParametricDimensions_ =
+      SplineType::kParametricDimensions;
+  using PhysicalPointType = typename SplineType::PhysicalPointType_;
+  // Start Function
   Logger::Logging("Determining connectivity");
   // Current implementation is only made for bi- and trivariates
-  static_assert((parametric_dimension == 3 || parametric_dimension == 2),
-                "High-Dimensional and Line Patches are not supported");
+  static_assert(
+      (kParametricDimensions_ == 3 || kParametricDimensions_ == 2),
+      "High-Dimensional and Line Patches are not supported");
 
   // Array that stores opposite faces
   constexpr auto opposite_faces =
-      HyperCube<parametric_dimension>::GetOppositeFaces();
+      HyperCube<kParametricDimensions_>::GetOppositeFaces();
 
   // Create Face-Center-Point Vector
   std::vector<PhysicalPointType> face_edges(spline_group.size() *
@@ -332,11 +336,11 @@ auto GetConnectivityForSplineGroup(
   // Retrieve SubElementFace-Vertex Ids in local system to start calculating
   // face-mid-point
   constexpr auto subelement_vertex_ids =
-      HyperCube<parametric_dimension>::SubElementVerticesToFace();
+      HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
 
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     const auto global_vertex_id =
-        HyperCube<parametric_dimension>::VertexIdForDegrees(
+        HyperCube<kParametricDimensions_>::VertexIdForDegrees(
             spline_group[i_spline].GetDegrees());
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
       face_edges[i_spline * number_of_element_faces + i_face] =

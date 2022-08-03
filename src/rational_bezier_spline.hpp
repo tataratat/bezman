@@ -36,9 +36,6 @@ namespace bezman {
 // Forward declaration for later use
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-class RationalBezierSplineGroup;
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
 class BezierSpline;
 
 /*
@@ -304,10 +301,11 @@ class RationalBezierSpline {
    *
    * @attention Not Implemented
    */
-  constexpr RationalBezierSplineGroup<parametric_dimension, PhysicalPointType,
-                                      ScalarType>
-  SplitAtPosition(const ScalarType& splitting_plane,
-                  const IndexingType splitting_dimension = 0) const;
+  // constexpr RationalBezierSplineGroup<parametric_dimension,
+  // PhysicalPointType,
+  //                                     ScalarType>
+  // SplitAtPosition(const ScalarType& splitting_plane,
+  //                 const IndexingType splitting_dimension = 0) const;
 
   /**
    * @brief  Derivative along a specific parametric dimension

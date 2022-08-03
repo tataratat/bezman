@@ -30,9 +30,6 @@ namespace bezman {
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 class BezierSpline;
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-class RationalBezierSpline;
 }  // namespace bezman
 
 namespace bezman::utils::type_traits {

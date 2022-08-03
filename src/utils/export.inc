@@ -36,12 +36,14 @@ std::string Export::ensureFileExtension(const std::string& filename,
   }
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::format2IRITfile(
-    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
-        spline,
-    std::ofstream& export_file) {
+template <typename SplineType>
+void Export::format2IRITfile(const SplineType& spline,
+                             std::ofstream& export_file) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
   // Irit only support 9 dimensional spaces
   static_assert((PhysicalPointType::kSpatialDimension < 10),
                 "IRIT natively only supports up to 9D spaces");
@@ -51,10 +53,10 @@ void Export::format2IRITfile(
 
   // Write Header
   export_file << indentation << indentation << "[MULTIVAR BEZIER "
-              << parametric_dimension << " ";
+              << SplineType::kParametricDimensions << " ";
 
   // Write different degrees
-  for (std::size_t i{}; i < parametric_dimension; i++) {
+  for (std::size_t i{}; i < SplineType::kParametricDimensions; i++) {
     // IRIT expects order not degrees
     export_file << spline.GetDegrees()[i] + 1 << " ";
   }
@@ -73,12 +75,15 @@ void Export::format2IRITfile(
   export_file << indentation << indentation << "]";
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::format2JSONfile(
-    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
-        spline,
-    std::ofstream& export_file, const bool base64encoding) {
+template <typename SplineType>
+void Export::format2JSONfile(const SplineType& spline,
+                             std::ofstream& export_file,
+                             const bool base64encoding) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
   // Increase user readability
   const std::string indentation{"      "};
 
@@ -87,12 +92,13 @@ void Export::format2JSONfile(
               << "\"dim\" : " << PhysicalPointType::kSpatialDimension << ",\n";
 
   // Write Parametric Dimensionality
-  export_file << indentation << "\"para_dim\" : " << parametric_dimension
+  export_file << indentation
+              << "\"para_dim\" : " << SplineType::kParametricDimensions
               << ",\n";
 
   // Write degrees
   export_file << indentation << "\"degrees\" : [" << spline.GetDegrees()[0];
-  for (std::size_t i{1}; i < parametric_dimension; i++) {
+  for (std::size_t i{1}; i < SplineType::kParametricDimensions; i++) {
     // IRIT expexts order not degrees
     export_file << ", " << spline.GetDegrees()[i];
   }
@@ -114,21 +120,21 @@ void Export::format2JSONfile(
   }
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::format2XMLfile(
-    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
-        spline,
-    std::ofstream& export_file) {
-  // Handy alias
-  using BezierSplineType =
-      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>;
+template <typename SplineType>
+void Export::format2XMLfile(const SplineType& spline,
+                            std::ofstream& export_file) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
   // Increase user readability
   const std::string indentation{"  "};
 
   // Write Header
-  export_file << indentation << "<SplineEntry splDim=\"" << parametric_dimension
-              << "\" spaceDim=\"" << PhysicalPointType::kSpatialDimension
+  export_file << indentation << "<SplineEntry splDim=\""
+              << SplineType::kParametricDimensions << "\" spaceDim=\""
+              << PhysicalPointType::kSpatialDimension
               << "\" numOfCntrlPntVars=\""
               << PhysicalPointType ::kSpatialDimension << "\" numCntrlPnts=\""
               << spline.NumberOfControlPoints << "\" numOfEleVars=\"" << 0
@@ -193,23 +199,26 @@ void Export::format2XMLfile(
   export_file << indentation << "</SplineEntry>\n";
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::GuessByExtension(
-    const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
-        spline,
-    const std::string& filename) {
-  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
-      spline_group{spline};
+template <typename SplineType>
+void Export::GuessByExtension(const SplineType& spline,
+                              const std::string& filename) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
+  BezierGroup<SplineType> spline_group{spline};
   GuessByExtension(spline_group, filename);
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::GuessByExtension(
-    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                            ScalarType>& spline_group,
-    const std::string& filename) {
+template <typename SplineType>
+void Export::GuessByExtension(const BezierGroup<SplineType>& spline_group,
+                              const std::string& filename) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
   // In case of a absolute path strip filename
   std::size_t last_found_id = filename.find_last_of("/\\");
   const std::string file_without_path = filename.substr(last_found_id + 1);
@@ -236,10 +245,12 @@ void Export::GuessByExtension(
   } else if (extension_str == "mesh") {
     Logger::Logging("Identified MFEM export format");
     // Export as MFEM
-    if constexpr (parametric_dimension ==
+    if constexpr (SplineType::kParametricDimensions ==
                       PhysicalPointType::kSpatialDimension &&
-                  (parametric_dimension == static_cast<std::size_t>(2) ||
-                   parametric_dimension == static_cast<std::size_t>(3))) {
+                  (SplineType::kParametricDimensions ==
+                       static_cast<std::size_t>(2) ||
+                   SplineType::kParametricDimensions ==
+                       static_cast<std::size_t>(3))) {
       AsMFEM(spline_group, filename);
     } else {
       Logger::Error("MFEM only supports 2D->2D or 3D->3D Splines");
@@ -250,22 +261,27 @@ void Export::GuessByExtension(
   }
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::AsIRIT(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                       ScalarType>& spline,
-                    const std::string& filename) {
-  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+template <typename SplineType>
+void Export::AsIRIT(const SplineType& spline, const std::string& filename) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
+  BezierGroup<SplineType::kParametricDimensions, PhysicalPointType,
+              SplineType::ScalarType_>
       spline_group{spline};
   AsIRIT(spline_group, filename);
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::AsIRIT(
-    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                            ScalarType>& spline_group,
-    const std::string& filename) {
+template <typename SplineType>
+void Export::AsIRIT(const BezierGroup<SplineType>& spline_group,
+                    const std::string& filename) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
   Logger::UserInfo("Starting IRIT Export as : " + filename);
   // Create File Stream
   std::ofstream export_file;
@@ -292,22 +308,27 @@ void Export::AsIRIT(
   Logger::UserInfo("Finished IRIT Export");
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::AsXML(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                      ScalarType>& spline,
-                   const std::string& filename) {
-  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+template <typename SplineType>
+void Export::AsXML(const SplineType& spline, const std::string& filename) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
+  BezierGroup<SplineType::kParametricDimensions, PhysicalPointType,
+              SplineType::ScalarType_>
       spline_group{spline};
   AsXML(spline_group, filename);
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::AsXML(
-    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                            ScalarType>& spline_group,
-    const std::string& filename) {
+template <typename SplineType>
+void Export::AsXML(const BezierGroup<SplineType>& spline_group,
+                   const std::string& filename) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
   Logger::UserInfo("Starting XML Export as : " + filename);
   Logger::Warning(
       "XML Export inefficient (export as NURBS) and not standardized.");
@@ -334,22 +355,28 @@ void Export::AsXML(
   Logger::UserInfo("Finished XML Export");
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::AsJSON(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                       ScalarType>& spline,
-                    const std::string& filename, const bool base64encoding) {
-  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+template <typename SplineType>
+void Export::AsJSON(const SplineType& spline, const std::string& filename,
+                    const bool base64encoding) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
+  BezierGroup<SplineType::kParametricDimensions, PhysicalPointType,
+              SplineType::ScalarType_>
       spline_group{spline};
   AsJSON(spline_group, filename, base64encoding);
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::AsJSON(
-    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                            ScalarType>& spline_group,
-    const std::string& filename, const bool base64encoding) {
+template <typename SplineType>
+void Export::AsJSON(const BezierGroup<SplineType>& spline_group,
+                    const std::string& filename, const bool base64encoding) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
   Logger::UserInfo("Starting JSON Export as : " + filename);
   Logger::Logging(base64encoding ? "Exporting using Base64 Encoding"
                                  : "Exporting as Text-Only");
@@ -358,7 +385,7 @@ void Export::AsJSON(
   export_file.open(ensureFileExtension(filename, "json"));
 
   // Write Header
-  export_file << "{\n  \"Name\" : \"BezierSplineGroup\",\n";
+  export_file << "{\n  \"Name\" : \"BezierGroup\",\n";
 
   // Number of Splines
   export_file << "  \"NumberOfSplines\" : " << spline_group.size() << ",\n";
@@ -391,22 +418,27 @@ void Export::AsJSON(
   Logger::UserInfo("Finished XML Export");
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::AsMFEM(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                       ScalarType>& spline,
-                    const std::string& filename) {
-  BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
+template <typename SplineType>
+void Export::AsMFEM(const SplineType& spline, const std::string& filename) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
+  BezierGroup<SplineType::kParametricDimensions, PhysicalPointType,
+              SplineType::ScalarType_>
       spline_group{spline};
   AsMFEM(spline_group, filename);
 }
 
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-void Export::AsMFEM(
-    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                            ScalarType>& spline_group,
-    const std::string& filename) {
+template <typename SplineType>
+void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
+                    const std::string& filename) {
+  // Ensure Call from BezierType
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "Implemented only for (rational) bezier spline-types.");
+
   Logger::UserInfo("Starting MFEM Export as : " + filename);
   Logger::Warning(
       "MFEM Exports of derivatives will result in different enumerations!");
@@ -415,30 +447,31 @@ void Export::AsMFEM(
   export_file.open(ensureFileExtension(filename, "mesh"));
 
   // MFEM format currently restricted to 2D2D and 3D3D
-  static_assert(parametric_dimension == PhysicalPointType::kSpatialDimension,
-                "Mismatch between parametric and physical dimension");
-  static_assert(parametric_dimension == static_cast<std::size_t>(2) ||
-                    parametric_dimension == static_cast<std::size_t>(3),
-                "MFEM export limited to 2D and 3D meshes");
+  static_assert(
+      SplineType::kParametricDimensions == PhysicalPointType::kSpatialDimension,
+      "Mismatch between parametric and physical dimension");
+  static_assert(
+      SplineType::kParametricDimensions == static_cast<std::size_t>(2) ||
+          SplineType::kParametricDimensions == static_cast<std::size_t>(3),
+      "MFEM export limited to 2D and 3D meshes");
 
   // -- Auxiliary values --
   const std::size_t number_of_splines{spline_group.size()};
-  constexpr auto subelement_vertex_ids =
-      algorithms::HyperCube<parametric_dimension>::SubElementVerticesToFace();
+  constexpr auto subelement_vertex_ids = algorithms::HyperCube<
+      SplineType::kParametricDimensions>::SubElementVerticesToFace();
   constexpr std::size_t number_of_relevant_element_faces{
-      2 * parametric_dimension - 2};
+      2 * SplineType::kParametricDimensions - 2};
   constexpr std::size_t number_of_vertices_per_subelement{algorithms::IntPower(
-      static_cast<std::size_t>(2), parametric_dimension - 1)};
-  constexpr std::size_t number_of_element_vertices{
-      algorithms::IntPower(static_cast<std::size_t>(2), parametric_dimension)};
+      static_cast<std::size_t>(2), SplineType::kParametricDimensions - 1)};
+  constexpr std::size_t number_of_element_vertices{algorithms::IntPower(
+      static_cast<std::size_t>(2), SplineType::kParametricDimensions)};
   constexpr auto faces_orthogonal_to_parametric_dimension =
-      algorithms::HyperCube<
-          parametric_dimension>::GetNormalFaceIndicesToParametricDimension();
+      algorithms::HyperCube<SplineType::kParametricDimensions>::
+          GetNormalFaceIndicesToParametricDimension();
 
   // Retrieve Connectivity
   const auto connectivity =
-      bezman::utils::algorithms::GetConnectivityForSplineGroup(
-          spline_group);
+      bezman::utils::algorithms::GetConnectivityForSplineGroup(spline_group);
   if (connectivity.size() == 0) {
     Logger::TerminatingError("Creating connectivity failed.");
   }
@@ -454,8 +487,8 @@ void Export::AsMFEM(
   // Retrieve all vertices
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     const auto global_vertex_id =
-        algorithms::HyperCube<parametric_dimension>::VertexIdForDegrees(
-            spline_group[i_spline].GetDegrees());
+        algorithms::HyperCube<SplineType::kParametricDimensions>::
+            VertexIdForDegrees(spline_group[i_spline].GetDegrees());
     for (std::size_t i_point{}; i_point < number_of_element_vertices;
          i_point++) {
       corner_vertices.push_back(
@@ -470,14 +503,15 @@ void Export::AsMFEM(
 
   // Continue with 2.
   // Enumerate knot vectors
-  std::vector<std::array<std::size_t, parametric_dimension>> knot_vector_ids(
-      number_of_splines,
-      // Fill with array created by lambda function
-      []() {
-        std::array<std::size_t, parametric_dimension> init_{};
-        init_.fill(static_cast<std::size_t>(-1));
-        return init_;
-      }());
+  std::vector<std::array<std::size_t, SplineType::kParametricDimensions>>
+      knot_vector_ids(
+          number_of_splines,
+          // Fill with array created by lambda function
+          []() {
+            std::array<std::size_t, SplineType::kParametricDimensions> init_{};
+            init_.fill(static_cast<std::size_t>(-1));
+            return init_;
+          }());
 
   // Initialize knot_vector_counter
   std::size_t n_assigned_knot_vectors{};
@@ -488,7 +522,8 @@ void Export::AsMFEM(
   // loop over all splines
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     // loop over all dimensions
-    for (std::size_t i_dim{}; i_dim < parametric_dimension; i_dim++) {
+    for (std::size_t i_dim{}; i_dim < SplineType::kParametricDimensions;
+         i_dim++) {
       // check if spline has already a knot vector id
       if (knot_vector_ids[i_spline][i_dim] != static_cast<size_t>(-1)) {
         continue;
@@ -559,23 +594,24 @@ void Export::AsMFEM(
   // to exactly one knot_vector dimension. In higher order problems, like 3D the
   // same face needs to be checked for n_dim-1 knot_vector dimensions, the
   // number of boundaries therefore needs to be updated accordingly
-  assert(number_of_boundaries % (parametric_dimension - 1) == 0);
-  number_of_boundaries /= (parametric_dimension - 1);
+  assert(number_of_boundaries % (SplineType::kParametricDimensions - 1) == 0);
+  number_of_boundaries /= (SplineType::kParametricDimensions - 1);
 
   // map for the edges -> key is the edge with the vertices | value is the
   // knot vector id
   std::map<std::pair<std::size_t, std::size_t>, std::size_t>
       edge_uniquify_map{};
 
-  constexpr auto local_face_vertex_index =
-      algorithms::HyperCube<parametric_dimension>::EdgeVertexIndices();
+  constexpr auto local_face_vertex_index = algorithms::HyperCube<
+      SplineType::kParametricDimensions>::EdgeVertexIndices();
   constexpr std::size_t number_of_edges_per_element =
       local_face_vertex_index.size();
 
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     for (std::size_t i_edge{}; i_edge < number_of_edges_per_element; i_edge++) {
       // Edges are ordered by dimension using integer division
-      std::size_t i_dim{i_edge / (parametric_dimension == 2 ? 2 : 4)};
+      std::size_t i_dim{i_edge /
+                        (SplineType::kParametricDimensions == 2 ? 2 : 4)};
       // Add element to edge
       edge_uniquify_map[
           // Create Pair of vertex ids as key
@@ -595,7 +631,7 @@ void Export::AsMFEM(
   export_file << "MFEM NURBS mesh v1.0\n";
 
   // Write dimension
-  export_file << "\ndimension \n" << parametric_dimension << "\n";
+  export_file << "\ndimension \n" << SplineType::kParametricDimensions << "\n";
 
   // Write segment element
   export_file << "\nelements\n";
@@ -611,7 +647,8 @@ void Export::AsMFEM(
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     // write the first two entries of the line:
     // geometric type: 3 = square | 5 = cube
-    export_file << 1 << " " << ((parametric_dimension == 2) ? 3 : 5);
+    export_file << 1 << " "
+                << ((SplineType::kParametricDimensions == 2) ? 3 : 5);
     // run through all vertex inside the current line
     for (std::size_t i_vertex{}; i_vertex < number_of_element_vertices;
          i_vertex++) {
@@ -632,11 +669,13 @@ void Export::AsMFEM(
   // write the number of boundaries
   export_file << number_of_boundaries << "\n";
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    for (std::size_t i_face{}; i_face < 2 * parametric_dimension; i_face++) {
+    for (std::size_t i_face{}; i_face < 2 * SplineType::kParametricDimensions;
+         i_face++) {
       if (connectivity[i_spline][i_face] == static_cast<std::size_t>(-1)) {
         // write the first two entries of the line:
         // geometric type: 1 = line | 3 = square
-        export_file << 1 << " " << ((parametric_dimension == 2) ? 1 : 3);
+        export_file << 1 << " "
+                    << ((SplineType::kParametricDimensions == 2) ? 1 : 3);
         // write the vertices
         const auto& local_face_vertices = subelement_vertex_ids[i_face];
         for (std::size_t i_local_vertex_on_face{};
@@ -671,7 +710,8 @@ void Export::AsMFEM(
   export_file << maximum_vertex_id + 1 << "\n";
 
   using BezierSplineType =
-      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>;
+      BezierSpline<SplineType::kParametricDimensions, PhysicalPointType,
+                   SplineType::ScalarType_>;
 
   // Export all Splines as patches and their control points
   export_file << "\n\npatches\n";

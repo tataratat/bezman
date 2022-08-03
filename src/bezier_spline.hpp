@@ -40,9 +40,8 @@ SOFTWARE.
 namespace bezman {
 
 // Forward declaration for later use
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-class BezierSplineGroup;
+template <typename SplineType>
+class BezierGroup;
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 class RationalBezierSpline;
@@ -402,14 +401,9 @@ class BezierSpline {
    * construct microstructures. After the return group is instantiated, the
    * composition is performed elementwise.
    */
-  template <std::size_t parametric_dimension_inner_spline,
-            typename PointTypeRHS, typename ScalarRHS>
-  constexpr BezierSplineGroup<parametric_dimension_inner_spline,
-                              PhysicalPointType,
-                              decltype(ScalarType_{} * ScalarRHS{})>
-  Compose(
-      const BezierSplineGroup<parametric_dimension_inner_spline, PointTypeRHS,
-                              ScalarRHS>& inner_function_group) const;
+  template <typename SplineType>
+  constexpr auto Compose(
+      const BezierGroup<SplineType>& inner_function_group) const;
 
   /*
    * Functional Composition between a polynomial and rational spline
@@ -434,10 +428,9 @@ class BezierSpline {
    * Splits the Spline along a specific dimension and returns a group
    * representing the same domain over two splines.
    */
-  constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                              ScalarType>
-  SplitAtPosition(const ScalarType& splitting_plane,
-                  const IndexingType splitting_dimension = 0) const;
+  constexpr BezierGroup<BezierSpline> SplitAtPosition(
+      const ScalarType& splitting_plane,
+      const IndexingType splitting_dimension = 0) const;
 
   /*
    * Split the Bezier Spline into several subdivisions
@@ -445,10 +438,9 @@ class BezierSpline {
    * Splits the Spline along a specific dimension and returns a group
    * representing the same domain over several splines.
    */
-  constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                              ScalarType>
-  SplitAtPosition(const std::vector<ScalarType>& splitting_planes,
-                  const IndexingType splitting_dimension = 0) const;
+  constexpr BezierGroup<BezierSpline> SplitAtPosition(
+      const std::vector<ScalarType>& splitting_planes,
+      const IndexingType splitting_dimension = 0) const;
 };
 
 #include "bezman/src/bezier_spline.inc"

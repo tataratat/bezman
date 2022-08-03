@@ -31,6 +31,8 @@ SOFTWARE.
 #include "bezman/src/bezier_spline.hpp"
 #include "bezman/src/point.hpp"
 #include "bezman/src/utils/logger.hpp"
+#include "bezman/src/utils/type_traits/is_bezier_spline.hpp"
+#include "bezman/src/utils/type_traits/is_rational_bezier_spline.hpp"
 
 namespace bezman {
 
@@ -45,93 +47,93 @@ namespace bezman {
  * Class inherits from std::vector. This facilitates the use of its methods in
  * later applications. No operator[] overload required etc.
  *
- * In the microstructure use case, BezierSplineGroup can be used both ways,
+ * In the microstructure use case, BezierGroup can be used both ways,
  * either as the Microtile, or as the deformation function patches, that form
  * the
  *
- * @tparam parametric_dimension parametric dimension of spline
- * @tparam PhysicalPointType Physical Mapping space
- * @tparam ScalarType Scalar used for interpolation function
+ * @tparam SplineType : BezierSpline or RationalBezierSpline
+ *
+ * All other SplineTypes will fail
  */
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType = typename PhysicalPointType::Scalar>
-class BezierSplineGroup
-    : public std::vector<
-          BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>> {
+template <typename SplineType>
+class BezierGroup : public std::vector<SplineType> {
+  // Make sure that this class is only build using (Rational) Bezier Spline
+  // Types
+  static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
+                    utils::type_traits::isRationalBezierSpline_v<SplineType>,
+                "BezierGroup may only contain (rational) bezier splines.");
+
+ public:
+  using SplineType_ = SplineType;
+  using PhysicalPointType_ = typename SplineType::PhysicalPoinType;
+  using ScalarType_ = typename SplineType::ScalarType_;
+
  private:
   using IndexingType = std::size_t;
   using SplineBaseType =
-      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>;
-  using BaseVector = std::vector<
-      BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>;
+      BezierSpline<parametric_dimension, PhysicalPointType_, ScalarType>;
+  using BaseVector = std::vector<SplineType>;
 
  public:
+  /// Parametric dimension of SplineType
+  constexpr static IndexingType kParametricDimensions =
+      SplineType::kParametricDimensions;
+
   /// Default constructor (to profit from std::vectors implementations)
-  constexpr BezierSplineGroup() = default;
+  constexpr BezierGroup() = default;
 
   /// Default constructor (to profit from std::vectors implementations)
   template <typename IntegralType, typename = typename std::enable_if_t<
                                        std::is_integral_v<IntegralType>>>
-  constexpr BezierSplineGroup(const IntegralType &init_size)
-      : std::vector<SplineBaseType>(init_size){};
+  constexpr BezierGroup(const IntegralType &init_size)
+      : std::vector<SplineType_>(init_size){};
 
   /// Initializer list overload
   template <typename... Splines>
-  constexpr BezierSplineGroup(const Splines &... splines)
-      : BaseVector{splines...} {}
+  constexpr BezierGroup(const Splines &... splines)
+      : BaseVector{static_cast<SplineType>(splines)...} {}
 
   /// Check if group fits unit cube
   constexpr bool FitsIntoUnitCube() const;
 
   /// Maximum
-  constexpr PhysicalPointType MaximumCorner() const;
+  constexpr PhysicalPointType_ MaximumCorner() const;
 
   /// Minimum corner
-  constexpr PhysicalPointType MinimumCorner() const;
+  constexpr PhysicalPointType_ MinimumCorner() const;
 
   /// Fit to unit_cube
-  constexpr BezierSplineGroup &FitIntoUnitCube();
+  constexpr BezierGroup &FitIntoUnitCube();
 
   /// Compose with single Spline
-  constexpr BezierSplineGroup Compose(
-      const SplineBaseType &inner_function) const;
+  constexpr BezierGroup Compose(const SplineType_ &inner_function) const;
 
   /// Compose with Splinegroup
-  constexpr BezierSplineGroup Compose(
-      const BezierSplineGroup &inner_function_group) const;
+  constexpr BezierGroup Compose(const BezierGroup &inner_function_group) const;
 
   /// Add two Bezier Spline Groups Component wise to the current Group
-  constexpr BezierSplineGroup &AddComponentwise(const BezierSplineGroup &rhs);
+  constexpr BezierGroup &AddComponentwise(const BezierGroup &rhs);
 
   /// Add two Bezier Spline Groups Component wise to the current Group
-  template <typename PointTypeRHS, typename ScalarRHS>
-  constexpr BezierSplineGroup<parametric_dimension,
-                              decltype(PhysicalPointType{} * PointTypeRHS{}),
-                              decltype(ScalarType{} * ScalarRHS{})>
-  MultiplyComponentwise(
-      const BezierSplineGroup<parametric_dimension, PointTypeRHS, ScalarRHS>
-          &rhs) const;
+  template <SplineTypeRHS>
+  constexpr BezierGroup<decltype(SplineTypeRHS{} * SplineType_{})>
+  MultiplyComponentwise(const BezierGroup<SplineTypeRHS> &rhs) const;
 
   /// Calculate the derivative of all components and return in a new group
-  constexpr BezierSplineGroup DerivativeWRTParametricDimension(
+  constexpr BezierGroup DerivativeWRTParametricDimension(
       const IndexingType par_dim) const;
 
-  /// Extract a specific component of the physical spline (e.g. the x dimension)
-  constexpr BezierSplineGroup<parametric_dimension, ScalarType, ScalarType>
-  ExtractDimension(unsigned int dimension) const;
+  /// + Operator for concatenation
+  constexpr BezierGroup operator+(const BezierGroup &rhs) const;
 
   /// + Operator for concatenation
-  constexpr BezierSplineGroup operator+(const BezierSplineGroup &rhs) const;
+  constexpr BezierGroup &operator+=(const BezierGroup &rhs);
 
-  /// + Operator for concatenation
-  constexpr BezierSplineGroup &operator+=(const BezierSplineGroup &rhs);
+  /// + Operator for translation
+  constexpr BezierGroup operator+(const PhysicalPointType_ &translation) const;
 
-  /// + Operator for concatenation
-  constexpr BezierSplineGroup operator+(
-      const PhysicalPointType &translation) const;
-
-  /// + Operator for concatenation
-  constexpr BezierSplineGroup &operator+=(const PhysicalPointType &translation);
+  /// + Operator for translation
+  constexpr BezierGroup &operator+=(const PhysicalPointType_ &translation);
 };  // namespace bezman
 
 #include "bezman/src/bezier_spline_group.inc"

@@ -372,7 +372,7 @@ class BezierSpline {
    * Takes spline and fits it into the unit cuboid (important for spline
    * composition)
    */
-  constexpr BezierSpline& FitToUnitCube();
+  constexpr BezierSpline& FitIntoUnitCube();
 
   /// Friend injection Substraction
   friend constexpr BezierSpline operator-(const PhysicalPointType& point_shift,

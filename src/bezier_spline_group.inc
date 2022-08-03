@@ -82,7 +82,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSplineGroup<parametric_dimension, PhysicalPointType, ScalarType>
     &BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                       ScalarType>::FitToUnitCube() {
+                       ScalarType>::FitIntoUnitCube() {
   const auto maximum_corner = MaximumCorner();
   const auto minimum_corner = MinimumCorner();
   auto scale_vector = maximum_corner - minimum_corner;

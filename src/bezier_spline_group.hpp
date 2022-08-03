@@ -90,7 +90,7 @@ class BezierSplineGroup
   constexpr PhysicalPointType MinimumCorner() const;
 
   /// Fit to unit_cube
-  constexpr BezierSplineGroup &FitToUnitCube();
+  constexpr BezierSplineGroup &FitIntoUnitCube();
 
   /// Compose with single Spline
   constexpr BezierSplineGroup Compose(

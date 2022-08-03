@@ -727,7 +727,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
 BezierSpline<parametric_dimension, PhysicalPointType,
-             ScalarType>::FitToUnitCube() {
+             ScalarType>::FitIntoUnitCube() {
   const auto maximum_corner = MaximumCorner();
   const auto minimum_corner = MinimumCorner();
   auto scale_vector = maximum_corner - minimum_corner;
@@ -752,6 +752,10 @@ constexpr bool BezierSpline<parametric_dimension, PhysicalPointType,
   } else {
     for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
          i_dim++) {
+      if ((maximum_corner[i_dim] > static_cast<ScalarType>(1)) ||
+          (minimum_corner[i_dim] < static_cast<ScalarType>(0))) {
+        return false;
+      }
     }
   }
   return true;

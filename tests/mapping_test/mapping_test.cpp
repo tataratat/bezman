@@ -65,7 +65,7 @@ class BezierTestingSuite : public ::testing::Test {
 TEST_F(BezierTestingSuite, MappingToUnitCube) {
   // Expect equality.
   EXPECT_FALSE(surface.FitsIntoUnitCube());
-  surface.FitToUnitCube();
+  surface.FitIntoUnitCube();
   EXPECT_TRUE(surface.FitsIntoUnitCube());
   EXPECT_TRUE(reference_surface.FitsIntoUnitCube());
   for (std::size_t i{}; i < surface.NumberOfControlPoints; i++) {

@@ -30,6 +30,7 @@ SOFTWARE.
 
 #include "bezman/src/bezier_spline.hpp"
 #include "bezman/src/point.hpp"
+#include "bezman/src/rational_bezier_spline.hpp"
 #include "bezman/src/utils/logger.hpp"
 #include "bezman/src/utils/type_traits/is_bezier_spline.hpp"
 #include "bezman/src/utils/type_traits/is_rational_bezier_spline.hpp"
@@ -67,6 +68,14 @@ class BezierGroup : public std::vector<SplineType> {
   using SplineType_ = SplineType;
   using PhysicalPointType_ = typename SplineType::PhysicalPointType_;
   using ScalarType_ = typename SplineType::ScalarType_;
+
+  template <typename SplineTypeRHS>
+  using ComposedType = decltype(SplineType{}.Compose(SplineTypeRHS{}));
+  //   std::conditional_t <
+  //   utils::type_traits::isRationalBezierSpline_v<SplineType> ||
+  //       utils::type_traits::isRationalBezierSpline_v<SplineTypeRHS>,
+  //       RationalBezierSpline < SplineTypeRHS::kParametricDimensions, typename
+  //       SplineType
 
  private:
   using IndexingType = std::size_t;
@@ -107,10 +116,14 @@ class BezierGroup : public std::vector<SplineType> {
   constexpr BezierGroup &FitIntoUnitCube();
 
   /// Compose with single Spline
-  constexpr BezierGroup Compose(const SplineType_ &inner_function) const;
+  template <typename SplineTypeRHS>
+  constexpr BezierGroup<ComposedType<SplineTypeRHS>> Compose(
+      const SplineTypeRHS &inner_function) const;
 
   /// Compose with Splinegroup
-  constexpr BezierGroup Compose(const BezierGroup &inner_function_group) const;
+  template <typename SplineTypeRHS>
+  constexpr BezierGroup<ComposedType<SplineTypeRHS>> Compose(
+      const BezierGroup<SplineTypeRHS> &inner_function_group) const;
 
   /// Add two Bezier Spline Groups Component wise to the current Group
   constexpr BezierGroup &AddComponentwise(const BezierGroup &rhs);

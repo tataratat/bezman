@@ -114,47 +114,24 @@ TEST_F(BezierGroupTest, TestComposeSplineGroupFunction) {
   BezierGroup<BezierLine> line_pol{bezierLine};
 
   EXPECT_NO_FATAL_FAILURE(surface_pol.Compose(line_pol));
-  //   EXPECT_NO_FATAL_FAILURE(surface_rat.Compose(line_rat));
-  //   EXPECT_NO_FATAL_FAILURE(surface_pol.Compose(line_rat));
-  //   EXPECT_NO_FATAL_FAILURE(surface_rat.Compose(line_pol));
+  EXPECT_NO_FATAL_FAILURE(surface_rat.Compose(line_rat));
+  EXPECT_NO_FATAL_FAILURE(surface_pol.Compose(line_rat));
+  EXPECT_NO_FATAL_FAILURE(surface_rat.Compose(line_pol));
+
+  // Test Results
+  for (int i{}; i < 2; i++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    for (unsigned int i_dim{}; i_dim < 2; i_dim++) {
+      EXPECT_FLOAT_EQ(surface_pol.Compose(line_pol)[0].Evaluate(x)[i_dim],
+                      surface_pol[0].Evaluate(line_pol[0].Evaluate(x))[i_dim]);
+      EXPECT_FLOAT_EQ(surface_rat.Compose(line_rat)[0].Evaluate(x)[i_dim],
+                      surface_rat[0].Evaluate(line_rat[0].Evaluate(x))[i_dim]);
+      EXPECT_FLOAT_EQ(surface_pol.Compose(line_rat)[0].Evaluate(x)[i_dim],
+                      surface_pol[0].Evaluate(line_rat[0].Evaluate(x))[i_dim]);
+      EXPECT_FLOAT_EQ(surface_rat.Compose(line_pol)[0].Evaluate(x)[i_dim],
+                      surface_rat[0].Evaluate(line_pol[0].Evaluate(x))[i_dim]);
+    }
+  }
 }
-
-// TEST_F(BezierGroupTest, TestAddComponentwiseFunction){
-
-// }
-
-// TEST_F(BezierGroupTest, TestMuliplyComonentwiseFunction){
-
-// }
-
-// TEST_F(BezierGroupTest, TestDerivativeWRTParametricDimensionFunction){
-//   rational_spline_.DerivativeWRTParametricDimension(1);
-// }
-
-// TEST_F(BezierGroupTest, TestExtractDimensionFunction){
-
-// }
-
-// TEST_F(BezierGroupTest, TestOperatorFunctions){
-
-//       using RationalBezier = RationalBezierSpline<1, Point3D, double>;
-
-//       RationalBezierSpline<1, Point3D, double> rational_spline_1 =
-//               RationalBezierSpline<1, Point3D, double>(bezier_spline);
-//       RationalBezierSpline<1, Point3D, double> rational_spline_2 =
-//               RationalBezierSpline<1, Point3D, double>(bezier_spline);
-
-//       BezierGroup<RationalBezier> group_1{
-//               rational_spline_1
-//       };
-
-//       BezierGroup<RationalBezier> group_2{
-//               rational_spline_1
-//       };
-
-//       BezierGroup<RationalBezier> spline_plus = group_1 + group_2;
-//       BezierGroup<RationalBezier>& spline_address = group_1 += group_2;
-
-// }
 
 }  // namespace bezman::tests::bezier_group_test

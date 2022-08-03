@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef SRC_BEZIER_SPLINE_GROUP_HPP
-#define SRC_BEZIER_SPLINE_GROUP_HPP
+#ifndef SRC_BEZIER_GROUP_HPP
+#define SRC_BEZIER_GROUP_HPP
 
 #include <cassert>
 #include <vector>
@@ -86,6 +86,9 @@ class BezierGroup : public std::vector<SplineType> {
   constexpr BezierGroup(const IntegralType &init_size)
       : std::vector<SplineType_>(init_size){};
 
+  /// Copy constructor
+  constexpr BezierGroup(const BezierGroup &) = default;
+
   /// Initializer list overload
   template <typename... Splines>
   constexpr BezierGroup(const Splines &... splines)
@@ -134,8 +137,8 @@ class BezierGroup : public std::vector<SplineType> {
   constexpr BezierGroup &operator+=(const PhysicalPointType_ &translation);
 };  // namespace bezman
 
-#include "bezman/src/bezier_spline_group.inc"
+#include "bezman/src/bezier_group.inc"
 
 }  // namespace bezman
 
-#endif  // SRC_BEZIER_SPLINE_GROUP_HPP
+#endif  // SRC_BEZIER_GROUP_HPP

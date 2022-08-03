@@ -28,7 +28,7 @@ SOFTWARE.
 #include <algorithm>
 #include <vector>
 
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/utils/computational_differentiation/algo_diff_type.hpp"
 
 using namespace bezman;

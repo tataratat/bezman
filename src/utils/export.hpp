@@ -31,7 +31,7 @@ SOFTWARE.
 #include <string>
 
 #include "bezman/src/bezier_spline.hpp"
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/point.hpp"
 #include "bezman/src/utils/algorithms/int_power.hpp"
 #include "bezman/src/utils/algorithms/point_uniquifier.hpp"

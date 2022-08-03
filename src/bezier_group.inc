@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef SRC_BEZIER_SPLINE_GROUP_INC
-#define SRC_BEZIER_SPLINE_GROUP_INC
+#ifndef SRC_BEZIER_GROUP_INC
+#define SRC_BEZIER_GROUP_INC
 
 template <typename SplineType>
 constexpr bool BezierGroup<SplineType>::FitsIntoUnitCube() const {
@@ -210,4 +210,4 @@ constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::operator+=(
   return (*this);
 }
 
-#endif  // SRC_BEZIER_SPLINE_GROUP_INC
+#endif  // SRC_BEZIER_GROUP_INC

@@ -29,7 +29,7 @@ SOFTWARE.
 #include <cassert>
 #include <vector>
 
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/point.hpp"
 #include "bezman/src/utils/algorithms/hypercube.hpp"
 #include "bezman/src/utils/algorithms/sort.hpp"

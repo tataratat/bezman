@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 // Load Bezier
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/utils/export.hpp"
 
 using namespace bezman;

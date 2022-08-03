@@ -1,5 +1,6 @@
 add_subdirectory(algo_diff_type)
 add_subdirectory(basic_operations)
+add_subdirectory(bezier_group)
 add_subdirectory(composition)
 add_subdirectory(composition_group)
 add_subdirectory(io)

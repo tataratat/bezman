@@ -27,7 +27,7 @@ SOFTWARE.
 #include <array>
 
 #define MAX_BINOMIAL_DEGREE 62u  // Required for second test set
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 
 using namespace bezman;
 

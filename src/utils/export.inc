@@ -76,7 +76,7 @@ void Export::format2IRITfile(const SplineType& spline,
       export_file << "[" << spline.GetWeights()[i_point];
       for (std::size_t i_dim{0};
            i_dim < SplineType::PhysicalPointType_::kSpatialDimension; i_dim++) {
-        export_file << " " << spline.GetWeightedControlPoints()[i_point];
+        export_file << " " << spline.GetWeightedControlPoints()[i_point][i_dim];
       }
       export_file << "]\n";
     }
@@ -117,19 +117,11 @@ void Export::format2JSONfile(const SplineType& spline,
   export_file << "],\n";
 
   // Write All Control Points
-  if (base64encoding) {
-    if constexpr (!isRationalBezierSpline_v<SplineType>) {
+  if constexpr (!isRationalBezierSpline_v<SplineType>) {
+    if (base64encoding) {
       export_file << indentation << "\"control_points\" : \""
                   << utils::Base64::Encode(spline.control_points) << "\"\n";
     } else {
-      export_file << indentation << "\"weighted_control_points\" : \""
-                  << utils::Base64::Encode(spline.GetWeightedControlPoints())
-                  << "\"\n";
-      export_file << indentation << "\"weights\" : \""
-                  << utils::Base64::Encode(spline.GetWeights()) << "\"\n";
-    }
-  } else {
-    if constexpr (!isRationalBezierSpline_v<SplineType>) {
       export_file << indentation << "\"control_points\" : [\n"
                   << indentation << "  " << spline.control_points[0];
       for (std::size_t i_point{1}; i_point < spline.GetNumberOfControlPoints();
@@ -138,18 +130,30 @@ void Export::format2JSONfile(const SplineType& spline,
                     << indentation << "  " << spline.control_points[i_point];
       }
       export_file << "\n" << indentation << "]\n";
+    }
+  } else {
+    // JSON expects non-weighted control-points
+    std::vector<typename SplineType::PhysicalPointType_> ctps{};
+    ctps.reserve(spline.GetNumberOfControlPoints());
+    for (std::size_t i_point{}; i_point < spline.GetNumberOfControlPoints();
+         i_point++) {
+      ctps.push_back(spline.GetWeightedControlPoints()[i_point] /
+                     spline.GetWeights()[i_point]);
+    }
+    if (base64encoding) {
+      export_file << indentation << "\"control_points\" : \""
+                  << utils::Base64::Encode(ctps) << "\",\n";
+      export_file << indentation << "\"weights\" : \""
+                  << utils::Base64::Encode(spline.GetWeights()) << "\"\n";
     } else {
       // Write Control Points
-      export_file << indentation << "\"weighted_control_points\" : [\n"
-                  << indentation << "  "
-                  << spline.GetWeightedControlPoints()[0];
+      export_file << indentation << "\"control_points\" : [\n"
+                  << indentation << "  " << ctps[0];
       for (std::size_t i_point{1}; i_point < spline.GetNumberOfControlPoints();
            i_point++) {
-        export_file << ",\n"
-                    << indentation << "  "
-                    << spline.GetWeightedControlPoints()[i_point];
+        export_file << ",\n" << indentation << "  " << ctps[i_point];
       }
-      export_file << "\n" << indentation << "]\n";
+      export_file << "\n" << indentation << "],\n";
       // Write Weights
       export_file << indentation << "\"weights\" : [\n"
                   << indentation << "  " << spline.GetWeights()[0];

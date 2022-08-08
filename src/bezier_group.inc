@@ -90,11 +90,11 @@ constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::FitIntoUnitCube() {
 template <typename SplineType>
 template <typename SplineTypeRHS>
 constexpr BezierGroup<
-    typename BezierGroup<SplineType>::ComposedType<SplineTypeRHS>>
+    typename BezierGroup<SplineType>::template ComposedType<SplineTypeRHS>>
 BezierGroup<SplineType>::Compose(const SplineTypeRHS &inner_function) const {
   // Alias for ReturnType
   using ReturnType =
-      BezierGroup<typename BezierGroup::ComposedType<SplineTypeRHS>>;
+      BezierGroup<typename BezierGroup::template ComposedType<SplineTypeRHS>>;
   // Initiate return value
   const auto number_of_splines_in_group = this->size();
   ReturnType composed_group{number_of_splines_in_group};
@@ -113,7 +113,7 @@ BezierGroup<SplineType>::Compose(const SplineTypeRHS &inner_function) const {
 template <typename SplineType>
 template <typename SplineTypeRHS>
 constexpr BezierGroup<
-    typename BezierGroup<SplineType>::ComposedType<SplineTypeRHS>>
+    typename BezierGroup<SplineType>::template ComposedType<SplineTypeRHS>>
 BezierGroup<SplineType>::Compose(
     const BezierGroup<SplineTypeRHS> &inner_function_group) const {
   // Alias for ReturnType

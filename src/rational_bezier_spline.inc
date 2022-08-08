@@ -199,6 +199,64 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr BezierGroup<
+    RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    SplitAtPosition(const ScalarType& splitting_planes,
+                    const IndexingType splitting_dimension) const {
+  const auto weighted_splines =
+      weighted_spline_.SplitAtPosition(splitting_planes, splitting_dimension);
+  const auto weight_functions =
+      weight_function_.SplitAtPosition(splitting_planes, splitting_dimension);
+  return BezierGroup<RationalBezierSpline>{
+      RationalBezierSpline{weighted_splines[0], weight_functions[0]},
+      RationalBezierSpline{weighted_splines[1], weight_functions[1]}};
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr BezierGroup<
+    RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    SplitAtPosition(const std::vector<ScalarType>& splitting_planes,
+                    const IndexingType splitting_dimension) const {
+  // Init return value
+  using ReturnType = BezierGroup<RationalBezierSpline>;
+  ReturnType return_value;
+  return_value.reserve(splitting_planes.size() + 1);
+
+  // Check if the split plane vector has increasing values
+  if (!std::is_sorted(splitting_planes.begin(), splitting_planes.end())) {
+    utils::Logger::TerminatingError("Split Plane values must be increasing");
+  }
+
+  // If vector is empty return empty group containing only the Spline itself
+  if (splitting_planes.size() == 0) {
+    return_value.push_back(*this);
+    return return_value;
+  }
+
+  // Loop over all split planes and assign the first part to the vector,
+  // then split the remaining part at the relative required position
+  auto split_spline = SplitAtPosition(splitting_planes[0], splitting_dimension);
+  return_value.push_back(split_spline[0]);
+  for (std::size_t i_split{1}; i_split < splitting_planes.size(); i_split++) {
+    // Calculate the position of the split position in the remaining spline
+    const double split_in_remaining_part =
+        (splitting_planes[i_split] - splitting_planes[i_split - 1]) /
+        (1. - splitting_planes[i_split - 1]);
+    // Split remainder
+    split_spline = split_spline[1].SplitAtPosition(split_in_remaining_part,
+                                                   splitting_dimension);
+    return_value.push_back(split_spline[0]);
+  }
+  // Assign last section to last element
+  return_value.push_back(split_spline[1]);
+  return return_value;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
                                ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
@@ -242,8 +300,8 @@ constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator+=(const PhysicalPointType& point_shift) {
   // Add up contributions to control points with weights
-  for (IndexingType i_ctps{}; i_ctps < weighted_spline_.GetNumberOfControlPoints();
-       i_ctps++) {
+  for (IndexingType i_ctps{};
+       i_ctps < weighted_spline_.GetNumberOfControlPoints(); i_ctps++) {
     weighted_spline_.control_points[i_ctps] +=
         point_shift * weight_function_.control_points[i_ctps];
   }
@@ -269,8 +327,8 @@ constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator-=(const PhysicalPointType& point_shift) {
   // Add up contributions to control points with weights
-  for (IndexingType i_ctps{}; i_ctps < weighted_spline_.GetNumberOfControlPoints();
-       i_ctps++) {
+  for (IndexingType i_ctps{};
+       i_ctps < weighted_spline_.GetNumberOfControlPoints(); i_ctps++) {
     weighted_spline_.control_points[i_ctps] -=
         point_shift * weight_function_.control_points[i_ctps];
   }

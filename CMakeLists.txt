@@ -21,7 +21,7 @@ set(MY_FANCY_TARGET_NAME "${PROJECT_NAME}")
 option(GOOGLETEST "Build with GoogleTest" ON)
 
 # Allow Logging
-option(LOGGING "Enable Logging" ON)
+option(LOGGING "Enable Logging" OFF)
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -107,10 +107,6 @@ endif()
 if(GOOGLETEST)
     message(STATUS "Build tests!")
     
-    # Allow Logging
-    set(LOGGING OFF)
-    
-
     # The following 10 lines are from the google docs documentation to ensure version compatibility
     # Fetch the newest gtest version and make it locally available
     include(FetchContent)

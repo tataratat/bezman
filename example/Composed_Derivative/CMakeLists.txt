@@ -8,6 +8,7 @@ set(CMAKE_PREFIX_PATH ../../install)
 message(STATUS "Searching for install directory in ${CMAKE_PREFIX_PATH}!")
 
 set(CMAKE_CXX_STANDARD 17)
+set(LGGING ON)
 
 find_package(bezman)
 

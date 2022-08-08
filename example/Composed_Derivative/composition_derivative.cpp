@@ -27,8 +27,13 @@ SOFTWARE.
 #include "bezman/src/utils/export.hpp"
 
 using namespace bezman;
+using Logger = utils::Logger;
 
 int main() {
+  // Output DebugInformation and write output file
+  Logger::SetOutputLevel({Logger::OutputLevel::all});
+  Logger::Logging("This is a test");
+
   // Define aliases
   using Point2D = Point<2, double>;
 

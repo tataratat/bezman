@@ -981,6 +981,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     // function is a polynomial spline, the weight function is just 1. In order
     // to keep the variable constant, we use a lamda expression for assignment
     // here
+    // For a polynomial inner funciton c(t)
+    // $$ \sum (1 - c(t))^i c(t)^{n-i} $$
+    // else for rational splines (c(t) / w(t)) the numerator reads
+    // $$ \sum (w(t) - c(t)) ^i (c(t)) ^{n-i}$$
     const auto inverse_extracted_dimension = [&]() {
       if constexpr (utils::type_traits::isRationalBezierSpline_v<SplineType>) {
         return inner_function.GetWeightFunctionSpline() - extracted_dimension;

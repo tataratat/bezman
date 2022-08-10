@@ -62,8 +62,8 @@ auto FindConnectivity(
     const ScalarType tolerance = 1e-5) {
   // Check if number of faces is a divisor of the point list length
   Logger::Logging("Determining connectivity by analyzing face centers");
-  assert(("Wrong number of faces and center points",
-          face_center_points.size() % number_of_element_faces == 0));
+  // Check for Wrong number of faces and center points
+  assert(face_center_points.size() % number_of_element_faces == 0));
 
   // Assure Metric is normed and non-zero
   if (orientation_metric.EuclidianNorm() < 1e-20) {

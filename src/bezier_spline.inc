@@ -1071,7 +1071,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
     // Check if the bernstein_basis_tensor_product has the degrees (and number
     // of control_points) as expected
-    assert(new_degrees == bernstein_basis_tensor_product.GetDegrees()));
+    assert(new_degrees == bernstein_basis_tensor_product.GetDegrees());
     // Now that all factors have been precomputed we can determine the
     // control-points of the resulting spline
     for (IndexingType i_control_point_composition{};

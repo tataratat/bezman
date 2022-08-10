@@ -58,6 +58,6 @@ class BinomialCoefficientLookupTableCreator {
   }
 };
 
-}
+}  // namespace bezman::utils
 
 #endif  // SRC_UTILS_BINOMIALCOEFFICIENTLOOKUPTABLECREATOR_HPP

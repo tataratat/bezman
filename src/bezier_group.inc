@@ -182,9 +182,38 @@ BezierGroup<SplineType>::MultiplyComponentwise(
         "Size Mismatch for Entry-wise Multiplication between two groups");
   }
   using ReturnType = BezierGroup<decltype(SplineType{} * SplineTypeRHS{})>;
-  ReturnType return_group{this->size()};
+  ReturnType return_group;
+  return_group.reserve(this->size());
   for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
-    return_group[i_spline] = (*this)[i_spline] * rhs[i_spline];
+    return_group.push_back((*this)[i_spline] * rhs[i_spline]);
+  }
+  return return_group;
+}
+
+template <typename SplineType>
+constexpr BezierGroup<typename BezierGroup<SplineType>::ScalarSplineType>
+BezierGroup<SplineType>::ExtractDimension(
+    const typename BezierGroup<SplineType>::IndexingType &par_dim) const {
+#ifndef NDEBUG
+  if constexpr (std::is_arithmetic_v<PhysicalPointType_>) {
+    if (par_dim > 0) {
+      utils::Logger::TerminatingError(
+          "Dimension cannot be extracted as it exceeds splines dimensionality");
+    }
+  } else {
+    if (PhysicalPointType_::kSpatialDimension < par_dim) {
+      utils::Logger::TerminatingError(
+          "Dimension cannot be extracted as it exceeds splines dimensionality");
+    }
+  }
+#endif
+  // Initializing ReturnType
+  using ReturnType =
+      BezierGroup<typename BezierGroup<SplineType>::ScalarSplineType>;
+  ReturnType return_group{};
+  return_group.reserve(this->size());
+  for (IndexingType i_spline{}; i_spline < this->size(); i_spline++) {
+    return_group.push_back((*this)[i_spline].ExtractDimension(par_dim));
   }
   return return_group;
 }

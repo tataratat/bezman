@@ -24,8 +24,8 @@ SOFTWARE.
 
 #include <cmath>
 
-#include "bezman/src/rational_bezier_spline.hpp"
 #include "bezman/src/bezier_group.hpp"
+#include "bezman/src/rational_bezier_spline.hpp"
 #include "bezman/src/utils/export.hpp"
 
 using namespace bezman;
@@ -66,24 +66,26 @@ PolynomialBezierGroup SimpleCrossTile(const double thickness) {
       Point2D{0.5 + 0.5 * thickness, 0.5 + 0.5 * thickness},
       Point2D{0.5 - 0.5 * thickness, 1.}, Point2D{0.5 + 0.5 * thickness, 1.}};
 
-  return PolynomialBezierGroup{PolynomialBezier{degrees, ctps_center}, PolynomialBezier{degrees, ctps_left},
-                     PolynomialBezier{degrees, ctps_right}, PolynomialBezier{degrees, ctps_down},
-                     PolynomialBezier{degrees, ctps_up}};
+  return PolynomialBezierGroup{PolynomialBezier{degrees, ctps_center},
+                               PolynomialBezier{degrees, ctps_left},
+                               PolynomialBezier{degrees, ctps_right},
+                               PolynomialBezier{degrees, ctps_down},
+                               PolynomialBezier{degrees, ctps_up}};
 }
 
 /**
  * @brief Creates a segmented ring to be filled with tiles
  */
 RationalBezierGroup CircleGroup(const double innerR, const double outerR,
-                        const int segments, const double arc_degrees) {
+                                const int segments, const double arc_degrees) {
   ///
   RationalBezierGroup ringsegments{segments};
   constexpr double PI = acos(-1);
   const double degrees_per_segment = arc_degrees / segments;
   const double single_weight{std::sin(PI / 2. - degrees_per_segment / 2.)};
-  const double outdor_fact = 1. / single_weight; 
+  const double outdor_fact = 1. / single_weight;
   const std::array<std::size_t, 2> degrees{2, 1};
-  std::vector<double> weights {1, single_weight, 1, 1, single_weight, 1};
+  std::vector<double> weights{1, single_weight, 1, 1, single_weight, 1};
   for (int i_segment{}; i_segment < segments; i_segment++) {
     const double startsin = std::sin(degrees_per_segment * i_segment);
     const double startcos = std::cos(degrees_per_segment * i_segment);

@@ -38,8 +38,8 @@ class RingSegments3D {
   using ADT = utils::computational_differentiation::AlgoDiffType<double>;
   using PointADT3D = Point<3, ADT>;
   using Point3D = Point<3, double>;
-  using BezierGroup = BezierSplineGroup<3, Point3D, double>;
   using Bezier = BezierSpline<3, Point3D, double>;
+  using PolyBezierGroup = BezierGroup<Bezier>;
 
   /// Precalculated values
   constexpr static const double PI = std::acos(-1.);
@@ -96,7 +96,7 @@ class RingSegments3D {
    * @brief Create Circle Deformation function with given number of segments
    * per parametric dimension
    */
-  BezierGroup Create() const {
+  PolyBezierGroup Create() const {
     // split planes to segment circle in radial direction (even samples)
     std::vector<double> y_knot_lines(numberOfSegments[1] - 1);
     const double y_seg_length = 1. / static_cast<double>(numberOfSegments[1]);
@@ -106,7 +106,7 @@ class RingSegments3D {
     }
 
     // Initialize return value
-    BezierGroup ringsegments{numberOfSegments[0] * numberOfSegments[1] *
+    PolyBezierGroup ringsegments{numberOfSegments[0] * numberOfSegments[1] *
                              numberOfSegments[2]};
 
     // Precompute values that are required multiple times

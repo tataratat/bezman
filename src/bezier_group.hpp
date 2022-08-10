@@ -71,6 +71,7 @@ class BezierGroup : public std::vector<SplineType> {
 
   template <typename SplineTypeRHS>
   using ComposedType = decltype(SplineType{}.Compose(SplineTypeRHS{}));
+  using ScalarSplineType = decltype(SplineType{}.ExtractDimension(0));
   //   std::conditional_t <
   //   utils::type_traits::isRationalBezierSpline_v<SplineType> ||
   //       utils::type_traits::isRationalBezierSpline_v<SplineTypeRHS>,
@@ -136,6 +137,10 @@ class BezierGroup : public std::vector<SplineType> {
   /// Calculate the derivative of all components and return in a new group
   constexpr BezierGroup DerivativeWRTParametricDimension(
       const IndexingType par_dim) const;
+
+  /// Extract Dimensions Component-wise
+  constexpr BezierGroup<ScalarSplineType> ExtractDimension(
+      const IndexingType &par_dim) const;
 
   /// + Operator for concatenation
   constexpr BezierGroup operator+(const BezierGroup &rhs) const;

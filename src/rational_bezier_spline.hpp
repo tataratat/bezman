@@ -149,6 +149,7 @@ class RationalBezierSpline {
       weighted_spline_.control_points[i_point] =
           control_point_vector[i_point] * weights[i_point];
     }
+    assert(CheckSplineCompatibility());
   }
 
   /// Move operator
@@ -196,6 +197,7 @@ class RationalBezierSpline {
       const std::array<std::size_t, parametric_dimension>& new_degrees) {
     weight_function_.UpdateDegrees(new_degrees);
     weighted_spline_.UpdateDegrees(new_degrees);
+    assert(CheckSplineCompatibility());
     return;
   }
 

@@ -64,8 +64,8 @@ using namespace bezman;
 using ADT = utils::computational_differentiation::AlgoDiffType<double>;
 using PointADT2D = Point<2, ADT>;
 using Point2D = Point<2, double>;
-using BezierGroup = BezierSplineGroup<2, Point2D, double>;
 using Bezier = BezierSpline<2, Point2D, double>;
+using PolynomialBezierGroup = BezierGroup<Bezier>;
 
 /**
  * @brief Cross tile with variable thickness
@@ -128,7 +128,7 @@ class MicrotileExample {
                         Point2D{0., 0.5}};
 
   /// Generator Function for Derivatives
-  static std::vector<BezierGroup> GenerateMicrostructureDerivatives(
+  static std::vector<PolynomialBezierGroup> GenerateMicrostructureDerivatives(
       const std::array<ADT, kNumberOfEvaluationPoints>& evaluations) {
     // Check if all evaluations have the same number of derivatives
     const auto number_of_derivatives = evaluations[0].GetNumberOfDerivatives();
@@ -233,10 +233,11 @@ class MicrotileExample {
                    0.5 * (1. + thickness_right)}};
 
     // Initialize return value (with one additional spline for the value)
-    std::vector<BezierGroup> return_value_group(number_of_derivatives + 1);
+    std::vector<PolynomialBezierGroup> return_value_group(
+        number_of_derivatives + 1);
 
     // Construct the Microtile as first component of the group
-    return_value_group[0] = BezierGroup{
+    return_value_group[0] = PolynomialBezierGroup{
         Bezier{center_degrees, ExtractValuesFromPointCloud(ctps_center)},
         Bezier{vertical_degrees, ExtractValuesFromPointCloud(ctps_low)},
         Bezier{vertical_degrees, ExtractValuesFromPointCloud(ctps_up)},
@@ -244,7 +245,7 @@ class MicrotileExample {
         Bezier{horizontal_degrees, ExtractValuesFromPointCloud(ctps_right)}};
 
     for (std::size_t i_deriv{}; i_deriv < number_of_derivatives; i_deriv++) {
-      return_value_group[i_deriv + 1ul] = BezierGroup{
+      return_value_group[i_deriv + 1ul] = PolynomialBezierGroup{
           Bezier{center_degrees,
                  ExtractDerivativeFromPointCloud(ctps_center, i_deriv)},
           Bezier{vertical_degrees,
@@ -274,7 +275,7 @@ class MicrotileExample {
                                    Point2D{.5, 1.}, Point2D{0., 0.5}};
 
   /// Generator Function for Derivatives
-  static std::vector<BezierGroup> GenerateMicrostructureClosingTile(
+  static std::vector<PolynomialBezierGroup> GenerateMicrostructureClosingTile(
       const ClosingFace& closing_face,
       const std::array<ADT, kNumberOfEvaluationPointsClosingTile>&
           evaluations) {
@@ -396,17 +397,18 @@ class MicrotileExample {
         assert(("Unknown Case", false));
     }
     // Initialize return value (with one additional spline for the value)
-    std::vector<BezierGroup> return_value_group(number_of_derivatives + 1);
+    std::vector<PolynomialBezierGroup> return_value_group(
+        number_of_derivatives + 1);
 
     // Construct the Microtile as first component of the group
-    return_value_group[0] = BezierGroup{
+    return_value_group[0] = PolynomialBezierGroup{
         Bezier{connector_degrees, ExtractValuesFromPointCloud(ctps_connector)},
         Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base)},
         Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base_lhs)},
         Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base_rhs)}};
 
     for (std::size_t i_deriv{}; i_deriv < number_of_derivatives; i_deriv++) {
-      return_value_group[i_deriv + 1ul] = BezierGroup{
+      return_value_group[i_deriv + 1ul] = PolynomialBezierGroup{
           Bezier{connector_degrees,
                  ExtractDerivativeFromPointCloud(ctps_connector, i_deriv)},
           Bezier{base_degrees,
@@ -435,7 +437,8 @@ class DeformationFunctionExample {
 
  public:
   // Quarter Circle Dimensions
-//  static constexpr const double innerR{8.}, outerR{20.}, arc_degrees{2 * PI};
+  //  static constexpr const double innerR{8.}, outerR{20.}, arc_degrees{2 *
+  //  PI};
   static constexpr const double innerR{8.}, outerR{20.}, arc_degrees{0.5 * PI};
 
   /// Number of segments in each parametric dimension
@@ -450,7 +453,7 @@ class DeformationFunctionExample {
    * @brief Create Circle Deformation function with given number of segments
    * per parametric dimension
    */
-  static BezierGroup Create() {
+  static PolynomialBezierGroup Create() {
     // split planes to segment circle in radial direction (even samples)
     std::vector<double> y_knot_lines(kNumberOfYSegments - 1);
     const double y_seg_length = 1. / static_cast<double>(kNumberOfYSegments);
@@ -460,7 +463,7 @@ class DeformationFunctionExample {
     }
 
     // Initialize return value
-    BezierGroup ringsegments{kNumberOfXSegments * kNumberOfYSegments};
+    PolynomialBezierGroup ringsegments{kNumberOfXSegments * kNumberOfYSegments};
 
     // Precompute values that are required multiple times
     const std::array<std::size_t, 2> degrees{2, 1};
@@ -557,7 +560,7 @@ class ValueFieldExample {
  * Constructs the parametrized microstructure along with its derivatives
  *
  * @tparam Microtile            Microtile Example (Parametrized function)
- * @tparam DeformationFunction  Deformation function as a BezierGroup
+ * @tparam DeformationFunction  Deformation function as a PolynomialBezierGroup
  * @tparam ValueField           Value function that is used to determine the
  * local Microtileparameters
  */
@@ -590,14 +593,16 @@ class ParametrizedComposition {
 
  public:
   // Compose microstructure
-  std::vector<BezierGroup> ComposeMicrostructureAndDerivatives() const {
+  std::vector<PolynomialBezierGroup> ComposeMicrostructureAndDerivatives()
+      const {
     // Loop over the externnal splines in the group
-    const BezierGroup deformation_function = DeformationFunction::Create();
+    const PolynomialBezierGroup deformation_function =
+        DeformationFunction::Create();
     utils::Export::GuessByExtension(deformation_function,
                                     "deformation_function.xml");
 
     // Initialize return value
-    std::vector<BezierGroup> return_value(
+    std::vector<PolynomialBezierGroup> return_value(
         ValueFieldExample::kNumberOfSuperParameters + 1u);
 
     // Every spline in the mirostructure defines a specific range of the
@@ -616,7 +621,7 @@ class ParametrizedComposition {
       for (std::size_t i_def_y{};
            i_def_y < DeformationFunction::kSegmentsPerParametricDimension[1];
            i_def_y++) {
-        std::vector<BezierGroup> microtile_vector;
+        std::vector<PolynomialBezierGroup> microtile_vector;
         if constexpr (Microtile::HAS_CLOSING_TILE_DEFINITION) {
           // If a closing tile is defined we can create watertight structures
           if (i_def_y == 0) {

@@ -137,6 +137,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr std::array<std::vector<ScalarType>, parametric_dimension>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     BasisFunctions(const PointTypeParametric_& par_coords) const {
+  // Check sanity
+  assert(CheckSplineCompatibility());
   // Evaluiere Basis Functions
   std::array<std::vector<ScalarType>, parametric_dimension> factors =
       weighted_spline_.BasisFunctions(par_coords);
@@ -172,6 +174,9 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType RationalBezierSpline<
     parametric_dimension, PhysicalPointType,
     ScalarType>::ForwardEvaluate(const PointTypeParametric_& par_coords) const {
+  // Check sanity
+  assert(CheckSplineCompatibility());
+
   // Evaluiere Basis Functions
   const auto factors = weighted_spline_.BasisFunctions(par_coords);
 
@@ -194,6 +199,8 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     OrderElevateAlongParametricDimension(const IndexingType par_dim) {
   weighted_spline_.OrderElevateAlongParametricDimension(par_dim);
   weight_function_.OrderElevateAlongParametricDimension(par_dim);
+  // Check sanity
+  assert(CheckSplineCompatibility());
   return (*this);
 }
 
@@ -262,12 +269,15 @@ constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     DerivativeWRTParametricDimension(const IndexingType par_dim) const {
   // Implemented using Quotient-rule
+  // Note that the numerator spline needs to be order elevated to match
+  // denominator's order
   return RationalBezierSpline(
       // u' * w - w' * u
-      weighted_spline_.DerivativeWRTParametricDimension(par_dim) *
-              weight_function_ -
-          weight_function_.DerivativeWRTParametricDimension(par_dim) *
-              weighted_spline_,
+      (weighted_spline_.DerivativeWRTParametricDimension(par_dim) *
+           weight_function_ -
+       weight_function_.DerivativeWRTParametricDimension(par_dim) *
+           weighted_spline_)
+          .OrderElevateAlongParametricDimension(par_dim),
       // v^2
       weight_function_ * weight_function_);
 }
@@ -280,6 +290,8 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType,
                      ScalarType>::operator*=(const ScalarType& scalar) {
   // Multiplication only reflects in the weighted spline
   weighted_spline_ *= scalar;
+  // Check sanity
+  assert(CheckSplineCompatibility());
   return (*this);
 }
 
@@ -305,6 +317,8 @@ operator+=(const PhysicalPointType& point_shift) {
     weighted_spline_.control_points[i_ctps] +=
         point_shift * weight_function_.control_points[i_ctps];
   }
+  // Check sanity
+  assert(CheckSplineCompatibility());
   return (*this);
 }
 
@@ -391,6 +405,8 @@ operator+=(const RationalBezierSpline<parametric_dimension, PhysicalPointType,
     weighted_spline_ = weighted_spline_ * rhs.weight_function_;
     weighted_spline_ += weight_function_ * rhs.weighted_spline_;
     weight_function_ = weight_function_ * rhs.weight_function_;
+    // Check sanity
+    assert(CheckSplineCompatibility());
     return (*this);
   }
 }
@@ -428,6 +444,8 @@ operator-=(const RationalBezierSpline<parametric_dimension, PhysicalPointType,
     weighted_spline_ = weighted_spline_ * rhs.weight_function_;
     weighted_spline_ -= weight_function_ * rhs.weighted_spline_;
     weight_function_ = weight_function_ * rhs.weight_function_;
+    // Check sanity
+    assert(CheckSplineCompatibility());
     return (*this);
   }
 }

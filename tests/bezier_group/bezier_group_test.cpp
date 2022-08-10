@@ -102,7 +102,7 @@ TEST_F(BezierGroupTest, TestComposeSplineGroupFunction) {
   using RationalBezierSurface = RationalBezierSpline<2, Point2D, double>;
   using BezierSurface = BezierSpline<2, Point2D, double>;
 
-  const BezierLine bezierLine{degrees, ctps_2D};
+  const BezierLine bezierLine{degrees, ctps_arc};
   const RationalBezierLine rational_line(bezierLine);
   const RationalBezierSurface circle_segment_rat{degrees_2D, ctps_2D,
                                                  weights_2D};

@@ -143,7 +143,7 @@ class RationalBezierSpline {
       const std::vector<ScalarType> weights)
       : weighted_spline_{deg}, weight_function_{deg, weights} {
     assert(control_point_vector.size() == weights.size());
-    assert(weighted_spline.GetNumberOfControlPoints() == weights.size());
+    assert(weighted_spline_.GetNumberOfControlPoints() == weights.size());
     for (std::size_t i_point{0};
          i_point < weighted_spline_.control_points.size(); i_point++) {
       weighted_spline_.control_points[i_point] =

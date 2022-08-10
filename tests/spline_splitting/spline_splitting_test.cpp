@@ -79,9 +79,6 @@ TEST_F(BezierTestingSuite, TestSplittingLineHigherOrder) {
     EXPECT_FLOAT_EQ(splitline.Evaluate(x)[0],
                     lineHO.Evaluate(x * split_position)[0]);
   }
-  utils::Export::GuessByExtension(
-      lineHO.SplitAtPosition(split_position) + (lineHO + Point3D{0., 0., 1.}),
-      "line_combined.xml");
 }
 
 // Compare distinct samples

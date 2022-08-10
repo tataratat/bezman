@@ -364,7 +364,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
         const ScalarType& factor_product, const Indices&... indices) const {
   // Check that all are indices
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    assert(factors[par_dim] == degree + 1);
+    assert(factors[par_dim].size() == degrees[par_dim] + 1);
   }
 
   // Loop over current parametric dimensions

@@ -42,7 +42,7 @@ class RingSegments3D {
   using PolyBezierGroup = BezierGroup<Bezier>;
 
   /// Precalculated values
-  static const double PI = std::acos(-1.);
+  const double PI = std::acos(-1.);
 
   // Default values are set here
   double innerR{1.}, outerR{2.}, arc_degrees{PI * 0.25}, depth{2.};

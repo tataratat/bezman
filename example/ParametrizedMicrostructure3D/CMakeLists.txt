@@ -24,7 +24,7 @@ message(STATUS "Searching for install directory in ${CMAKE_PREFIX_PATH}!")
 find_package(bezman REQUIRED)
 
 add_executable(microstructure_build microstructure_build.cpp)
-target_sources(microstructure_build PRIVATE cross_tile_3d.hpp ring_segments_3d.hpp)
+target_include_directories(microstructure_build PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(microstructure_build PRIVATE bezman::bezman)
 
 if(LOGGING)

@@ -34,11 +34,12 @@ endif()
 
 # Install prefix
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(default_install_dir ${CMAKE_CURRENT_SOURCE_DIR}/install)
     message(STATUS
-            "Setting default install prefix: "
-            "${CMAKE_CURRENT_SOURCE_DIR}/install")
+                "Setting default install prefix: "
+                "${default_install_dir}")
     set(CMAKE_INSTALL_PREFIX
-            ${CMAKE_CURRENT_SOURCE_DIR}/install CACHE PATH "" FORCE)
+            ${default_install_dir} CACHE PATH "" FORCE)
 endif()
 
 # Print out information

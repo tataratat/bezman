@@ -101,7 +101,7 @@ class BezierGroup : public std::vector<SplineType> {
 
   /// Initializer list overload
   template <typename... Splines>
-  constexpr BezierGroup(const Splines &...splines)
+  constexpr BezierGroup(const Splines &... splines)
       : BaseVector{static_cast<SplineType>(splines)...} {}
 
   /// Check if group fits unit cube

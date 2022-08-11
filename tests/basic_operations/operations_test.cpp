@@ -72,7 +72,7 @@ class BezierTestingSuite : public ::testing::Test {
   BezierSpline<2, Point2D, double> surface_spline{surface_degrees,
                                                   surface_ctps};
 
-  const auto CreateRandomSpline(unsigned int degree) {
+  auto CreateRandomSpline(unsigned int degree) {
     BezierSpline<1, double, double> randomSpline{
         std::array<std::size_t, 1>{degree}};
     for (unsigned int i{}; i < degree; i++) {

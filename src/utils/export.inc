@@ -513,8 +513,6 @@ void Export::AsMFEM(const BezierGroup<SplineType>& spline_group,
       SplineType::kParametricDimensions>::SubElementVerticesToFace();
   constexpr std::size_t number_of_relevant_element_faces{
       2 * SplineType::kParametricDimensions - 2};
-  constexpr std::size_t number_of_vertices_per_subelement{algorithms::IntPower(
-      static_cast<std::size_t>(2), SplineType::kParametricDimensions - 1)};
   constexpr std::size_t number_of_element_vertices{algorithms::IntPower(
       static_cast<std::size_t>(2), SplineType::kParametricDimensions)};
   constexpr auto faces_orthogonal_to_parametric_dimension =

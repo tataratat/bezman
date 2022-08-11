@@ -167,7 +167,7 @@ auto FindConnectivity(
       if (opposite_face_list[element_face_id_start] != element_face_id_end) {
         Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
       }
-#ifdef NDEBUG
+#ifndef NDEBUG
       if (opposite_face_list[element_face_id_end] != element_face_id_start) {
         Logger::Error("Orientation Problem for MFEM-mesh output.");
       }

@@ -82,7 +82,7 @@ class RationalSplineTestSuite : public ::testing::Test {
 TEST_F(RationalSplineTestSuite, Constructors) {
   using RationalBezier = RationalBezierSpline<1, Point2D, double>;
   EXPECT_NO_FATAL_FAILURE(RationalBezier());
-  EXPECT_NO_FATAL_FAILURE(RationalBezier(degree));
+  EXPECT_NO_FATAL_FAILURE(RationalBezier{degree});
   EXPECT_NO_FATAL_FAILURE(RationalBezier(degree, ctps, weights));
 }
 

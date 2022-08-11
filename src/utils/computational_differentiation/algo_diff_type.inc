@@ -336,7 +336,7 @@ constexpr AlgoDiffType<Scalar, numberOfDerivatives> log10(
     result_value.d_[i] *= temp;
   }
   return result_value;
-};
+}
 
 /////////
 // Trigonometric functions
@@ -459,40 +459,40 @@ template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr bool operator>(const Scalar& scalar,
                          const AlgoDiffType<Scalar, numberOfDerivatives>& adt) {
   return adt < scalar;
-};
+}
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr bool operator>=(
     const Scalar& scalar,
     const AlgoDiffType<Scalar, numberOfDerivatives>& adt) {
   return adt <= scalar;
-};
+}
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr bool operator<(const Scalar& scalar,
                          const AlgoDiffType<Scalar, numberOfDerivatives>& adt) {
   return adt > scalar;
-};
+}
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr bool operator<=(
     const Scalar& scalar,
     const AlgoDiffType<Scalar, numberOfDerivatives>& adt) {
   return adt >= scalar;
-};
+}
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr bool operator==(
     const Scalar& scalar,
     const AlgoDiffType<Scalar, numberOfDerivatives>& adt) {
   return adt == scalar;
-};
+}
 
 template <typename Scalar, std::size_t numberOfDerivatives>
 constexpr bool operator!=(
     const Scalar& scalar,
     const AlgoDiffType<Scalar, numberOfDerivatives>& adt) {
   return !(adt == scalar);
-};
+}
 
 #endif  // UTILS_COMPUTATIONAL_DIFFERENTIATION_ALGO_DIFF_TYPE_INC

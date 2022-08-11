@@ -173,7 +173,6 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     // Local variables
     const unsigned int first_index_in_group =
         group_index * (starting_point_offset);
-    IndexingType i = degrees[par_dim] - 1;
 
     // Fix the last entry for element in the group
     for (int index_in_group{starting_points_per_group - 1}; index_in_group >= 0;
@@ -383,7 +382,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
 
   return evaluation_point;
-};
+}
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>

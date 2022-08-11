@@ -94,14 +94,14 @@ class BezierGroup : public std::vector<SplineType> {
   template <typename IntegralType, typename = typename std::enable_if_t<
                                        std::is_integral_v<IntegralType>>>
   constexpr BezierGroup(const IntegralType &init_size)
-      : std::vector<SplineType_>(init_size){};
+      : std::vector<SplineType_>{init_size} {}
 
   /// Copy constructor
   constexpr BezierGroup(const BezierGroup &) = default;
 
   /// Initializer list overload
   template <typename... Splines>
-  constexpr BezierGroup(const Splines &... splines)
+  constexpr BezierGroup(const Splines &...splines)
       : BaseVector{static_cast<SplineType>(splines)...} {}
 
   /// Check if group fits unit cube

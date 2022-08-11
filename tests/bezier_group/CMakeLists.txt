@@ -4,11 +4,9 @@ set(
 )
 
 # Search for the library
-set(CMAKE_CXX_STANDARD 17)
 add_executable(bezier_group_test ${TEST_SOURCES})
 
 # Link bezier manipulation library to the executable target
-include_directories(bezier_group_test ${PROJECT_SOURCE_DIR}/..)
 add_dependencies(bezier_group_test ${MY_FANCY_TARGET_NAME})
 target_link_libraries(bezier_group_test
                   PRIVATE ${MY_FANCY_TARGET_NAME}

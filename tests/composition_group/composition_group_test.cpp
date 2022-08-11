@@ -27,7 +27,7 @@ SOFTWARE.
 #include <array>
 
 #define MAX_BINOMIAL_DEGREE 62u  // Required for second test set
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 
 using namespace bezman;
 
@@ -55,13 +55,14 @@ class BezierTestingSuite : public ::testing::Test {
   std::array<std::size_t, 2> deformation_function_degrees{2, 2};
 
   // Create Crosstile Group
+  using BezierSplineGroup = BezierGroup<BezierSpline<2, Point2D, double>>;
   BezierSpline<2, Point2D, double> center_surface{cross_tile_degrees,
                                                   ctps_center};
-  BezierSplineGroup<2, Point2D, double> microtile_cross{
-      center_surface, center_surface + Point2D{one_third, 0.},
-      center_surface + Point2D{0., one_third},
-      center_surface - Point2D{one_third, 0.},
-      center_surface - Point2D{0.3, one_third}};
+  BezierSplineGroup microtile_cross{center_surface,
+                                    center_surface + Point2D{one_third, 0.},
+                                    center_surface + Point2D{0., one_third},
+                                    center_surface - Point2D{one_third, 0.},
+                                    center_surface - Point2D{0.3, one_third}};
   // Create outer Spline
   BezierSpline<2, Point2D, double> deformation_function =
       BezierSpline<2, Point2D, double>(deformation_function_degrees,

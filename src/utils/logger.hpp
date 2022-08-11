@@ -194,7 +194,7 @@ class Logger {
    * The function writes formatted output based on the chosen level of
    * information
    */
-  void Warning_(const std::string& warning_text) {
+  void Warning_([[maybe_unused]] const std::string& warning_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::warnings) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -214,7 +214,7 @@ class Logger {
    * The function writes formatted output based on the chosen level of
    * information
    */
-  void UserInfo_(const std::string& info_text) {
+  void UserInfo_([[maybe_unused]] const std::string& info_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::userinfo) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -234,7 +234,7 @@ class Logger {
    * The function writes formatted output based on the chosen level of
    * information
    */
-  void Logging_(const std::string& log_text) {
+  void Logging_([[maybe_unused]] const std::string& log_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::logging) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -256,7 +256,7 @@ class Logger {
    * The function writes formatted output based on the chosen level of
    * information
    */
-  void ExtendedInformation_(const std::string& log_text) {
+  void ExtendedInformation_([[maybe_unused]] const std::string& log_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::logging_verbose) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)
@@ -276,7 +276,7 @@ class Logger {
    * This function writes formatted output, but also terminates the execution of
    * the problem
    */
-  void Error_(const std::string& error_text) {
+  void Error_([[maybe_unused]] const std::string& error_text) {
 #ifdef ENABLE_LOGGING
     if (static_cast<unsigned>(OutputLevel::errors) & outputlevel_) {
       std::cout << "[" << std::setw(padding_first_col_console)

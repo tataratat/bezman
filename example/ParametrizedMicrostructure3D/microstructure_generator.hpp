@@ -35,7 +35,7 @@ SOFTWARE.
  * Constructs the parametrized microstructure along with its derivatives
  *
  * @tparam Microtile            Microtile Example (Parametrized function)
- * @tparam DeformationFunction  Deformation function as a BezierGroup
+ * @tparam DeformationFunction  Deformation function as a PolyBezierGroup
  * @tparam ValueField           Value function that is used to determine the
  * local Microtileparameters
  */
@@ -46,8 +46,8 @@ class MicrostructureGenerator {
   using ADT = utils::computational_differentiation::AlgoDiffType<double>;
   using PointADT3D = Point<3, ADT>;
   using Point3D = Point<3, double>;
-  using BezierGroup = BezierSplineGroup<3, Point3D, double>;
   using Bezier = BezierSpline<3, Point3D, double>;
+  using PolyBezierGroup = BezierGroup<Bezier>;
 
   // TransformPoints_ transforms the points provided by
   // Microtile::kEvaluationPoints these pints are transformed by a linear
@@ -77,9 +77,9 @@ class MicrostructureGenerator {
   Microtile microtile{};
 
   // Compose microstructure
-  std::vector<BezierGroup> ComposeMicrostructureAndDerivatives() const {
+  std::vector<PolyBezierGroup> ComposeMicrostructureAndDerivatives() const {
     // Loop over the externnal splines in the group
-    const BezierGroup deformation_function =
+    const PolyBezierGroup deformation_function =
         deformation_function_generator.Create();
 
     // Write it out (if required)
@@ -87,9 +87,9 @@ class MicrostructureGenerator {
                                     "deformation_function_generator.xml");
 
     // Initialize return value
-    std::vector<BezierGroup> return_value(
+    std::vector<PolyBezierGroup> return_value(
         ValueField::kNumberOfSuperParameters + 1u,
-        BezierGroup(Microtile::kNumberOfSplines * deformation_function.size()));
+        PolyBezierGroup(Microtile::kNumberOfSplines * deformation_function.size()));
 
     // Every spline in the mirostructure defines a specific range of the
     // total spline group. We consider an even splitting, meaning that that
@@ -117,7 +117,7 @@ class MicrostructureGenerator {
         for (std::size_t i_def_z{};
              i_def_z < deformation_function_generator.GetNumberOfSegments()[2];
              i_def_z++) {
-          std::vector<BezierGroup> microtile_vector;
+          std::vector<PolyBezierGroup> microtile_vector;
           if constexpr (Microtile::HAS_CLOSING_TILE_DEFINITION) {
             // If a closing tile is defined we can create watertight structures
             if (i_def_y == 0) {

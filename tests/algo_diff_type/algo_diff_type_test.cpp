@@ -46,7 +46,7 @@ TEST(AlgoTypeTest, TestValueCorrectnessBasic) {
   EXPECT_FLOAT_EQ((x * y).GetValue(), 3. * 2.);
   EXPECT_FLOAT_EQ((x / y).GetValue(), 3. / 2.);
   EXPECT_FLOAT_EQ((x - y).GetValue(), 3. - 2.);
-};
+}
 
 // Constructors and Basic Operations
 TEST(AlgoTypeTest, TestValueCorrectnessBasicFriends) {
@@ -59,7 +59,7 @@ TEST(AlgoTypeTest, TestValueCorrectnessBasicFriends) {
   EXPECT_FLOAT_EQ((x * y).GetValue(), 3. * 2.);
   EXPECT_FLOAT_EQ((x / y).GetValue(), 3. / 2.);
   EXPECT_FLOAT_EQ((x - y).GetValue(), 3. - 2.);
-};
+}
 
 TEST(AlgoTypeTest, TestDerivCorrectnessBasic) {
   // Define some Variables
@@ -77,7 +77,7 @@ TEST(AlgoTypeTest, TestDerivCorrectnessBasic) {
   EXPECT_FLOAT_EQ((x * y).GetDerivatives()[1], 3.);
   EXPECT_FLOAT_EQ((x / y).GetDerivatives()[1], -3. / 4.);  // -x/y^2
   EXPECT_FLOAT_EQ((x - y).GetDerivatives()[1], -1.);
-};
+}
 
 TEST(AlgoTypeTest, TestDerivCorrectnessBasicFriends) {
   // Define some Variables
@@ -89,7 +89,7 @@ TEST(AlgoTypeTest, TestDerivCorrectnessBasicFriends) {
   EXPECT_FLOAT_EQ((x * y).GetDerivatives()[0], 3.);
   EXPECT_FLOAT_EQ((x / y).GetDerivatives()[0], -3. / 4.);
   EXPECT_FLOAT_EQ((x - y).GetDerivatives()[0], -1.);
-};
+}
 
 TEST(AlgoTypeTest, TestDerivCorrectnessArithmetic) {
   // Define some Variables
@@ -104,7 +104,7 @@ TEST(AlgoTypeTest, TestDerivCorrectnessArithmetic) {
   EXPECT_FLOAT_EQ(sqrt(x).GetDerivatives()[0], 1. / (2 * std::sqrt(3.)));
   EXPECT_FLOAT_EQ(pow(x, 2.).GetDerivatives()[0], 6.);
   EXPECT_FLOAT_EQ(pow(x, y).GetDerivatives()[0], 2. * 3.);  // y * x^(y-1)
-};
+}
 
 TEST(AlgoTypeTest, TestValueCorrectnessArithmetic) {
   // Define some Variables
@@ -118,7 +118,7 @@ TEST(AlgoTypeTest, TestValueCorrectnessArithmetic) {
   EXPECT_FLOAT_EQ(sqrt(x).GetValue(), std::sqrt(3.));
   EXPECT_FLOAT_EQ(pow(x, 2.).GetValue(), std::pow(3., 2.));
   EXPECT_FLOAT_EQ(pow(x, y).GetValue(), std::pow(3., 2.));
-};
+}
 
 TEST(AlgoTypeTest, TestValueCorrectnessTrigonometric) {
   // Define some Variables
@@ -130,7 +130,7 @@ TEST(AlgoTypeTest, TestValueCorrectnessTrigonometric) {
   EXPECT_FLOAT_EQ(acos(x).GetValue(), std::acos(.7));
   EXPECT_FLOAT_EQ(asin(x).GetValue(), std::asin(.7));
   EXPECT_FLOAT_EQ(atan(x).GetValue(), std::atan(.7));
-};
+}
 
 TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometric) {
   // Define some Variables
@@ -143,7 +143,7 @@ TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometric) {
   EXPECT_FLOAT_EQ(acos(x).GetDerivatives()[0], -1. / std::sqrt(1 - 0.49));
   EXPECT_FLOAT_EQ(asin(x).GetDerivatives()[0], 1. / std::sqrt(1 - 0.49));
   EXPECT_FLOAT_EQ(atan(x).GetDerivatives()[0], 1. / (1. + 0.49));
-};
+}
 
 // Constructors and Basic Operations for static types
 TEST(AlgoTypeTest, TestValueCorrectnessBasicStatic) {
@@ -156,7 +156,7 @@ TEST(AlgoTypeTest, TestValueCorrectnessBasicStatic) {
   EXPECT_FLOAT_EQ((x * y).GetValue(), 3. * 2.);
   EXPECT_FLOAT_EQ((x / y).GetValue(), 3. / 2.);
   EXPECT_FLOAT_EQ((x - y).GetValue(), 3. - 2.);
-};
+}
 
 TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometricStatic) {
   // Define some Variables
@@ -169,6 +169,6 @@ TEST(AlgoTypeTest, TestDerivCorrectnessTrigonometricStatic) {
   EXPECT_FLOAT_EQ(acos(x).GetDerivatives()[0], -1. / std::sqrt(1 - 0.49));
   EXPECT_FLOAT_EQ(asin(x).GetDerivatives()[0], 1. / std::sqrt(1 - 0.49));
   EXPECT_FLOAT_EQ(atan(x).GetDerivatives()[0], 1. / (1. + 0.49));
-};
+}
 
 }  // namespace bezman::tests::algo_diff_type_test

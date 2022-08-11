@@ -54,7 +54,7 @@ SOFTWARE.
 #include <cmath>
 #include <vector>
 
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/utils/computational_differentiation/algo_diff_type.hpp"
 #include "bezman/src/utils/export.hpp"
 #include "cross_tile_3d.hpp"
@@ -145,7 +145,7 @@ int main() {
       MicrostructureGenerator<CrossTile3D, RingSegments3D, ValueFieldExample>{};
   // Modify the deformation function
   micro_structure_generator.deformation_function_generator.SetNumberOfSegments(
-      std::array<int, 3>{4, 4, 4});
+      std::array<std::size_t, 3>{4, 4, 4});
 
   // Construct the composition
   const auto test_composition =

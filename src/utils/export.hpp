@@ -30,13 +30,15 @@ SOFTWARE.
 #include <stdexcept>
 #include <string>
 
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/bezier_spline.hpp"
-#include "bezman/src/bezier_spline_group.hpp"
 #include "bezman/src/point.hpp"
 #include "bezman/src/utils/algorithms/int_power.hpp"
 #include "bezman/src/utils/algorithms/point_uniquifier.hpp"
 #include "bezman/src/utils/base64.hpp"
 #include "bezman/src/utils/logger.hpp"
+#include "bezman/src/utils/type_traits/is_bezier_spline.hpp"
+#include "bezman/src/utils/type_traits/is_rational_bezier_spline.hpp"
 
 namespace bezman::utils {
 
@@ -68,12 +70,9 @@ class Export {
    * Actual implementation of the spline Export to be called for every spline in
    * a group Pipes everything directly into a file
    */
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void format2IRITfile(
-      const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
-          &spline,
-      std::ofstream &export_file);
+  template <typename SplineType>
+  static void format2IRITfile(const SplineType &spline,
+                              std::ofstream &export_file);
 
   /*
    * Formats spline to XML format
@@ -81,12 +80,9 @@ class Export {
    * Actual implementation of the spline Export to be called for every spline in
    * a group Pipes everything directly into a file
    */
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void format2XMLfile(
-      const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
-          &spline,
-      std::ofstream &export_file);
+  template <typename SplineType>
+  static void format2XMLfile(const SplineType &spline,
+                             std::ofstream &export_file);
 
   /**
    * @brief  Formats spline in custom json format
@@ -94,93 +90,63 @@ class Export {
    * Actual implementation of the spline Export to be called for every spline in
    * a group Pipes everything directly into a file
    */
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void format2JSONfile(
-      const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
-          &spline,
-      std::ofstream &export_file, const bool base64encoding);
+  template <typename SplineType>
+  static void format2JSONfile(const SplineType &spline,
+                              std::ofstream &export_file,
+                              const bool base64encoding);
 
  public:
   /// Permit creation of class instance
   Export() = delete;
 
   /// Guess by extension
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void GuessByExtension(
-      const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
-          &spline,
-      const std::string &filename);
+  template <typename SplineType>
+  static void GuessByExtension(const SplineType &spline,
+                               const std::string &filename);
 
   /// Guess by extension
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void GuessByExtension(
-      const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                              ScalarType> &spline_group,
-      const std::string &filename);
+  template <typename SplineType>
+  static void GuessByExtension(const BezierGroup<SplineType> &spline_group,
+                               const std::string &filename);
 
   /// Export as IRIT
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void AsIRIT(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                        ScalarType> &spline,
+  template <typename SplineType>
+  static void AsIRIT(const SplineType &spline, const std::string &filename);
+
+  /// Export as IRIT
+  template <typename SplineType>
+  static void AsIRIT(const BezierGroup<SplineType> &spline_group,
                      const std::string &filename);
 
-  /// Export as IRIT
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void AsIRIT(
-      const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                              ScalarType> &spline_group,
-      const std::string &filename);
-
   /// Export Single Spline as XML
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void AsXML(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                       ScalarType> &spline,
+  template <typename SplineType>
+  static void AsXML(const BezierGroup<SplineType> &spline,
                     const std::string &filename);
 
   /// Export Group as XML
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void AsXML(
-      const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                              ScalarType> &spline_group,
-      const std::string &filename);
+  template <typename SplineType>
+  static void AsXML(const SplineType &spline_group,
+                    const std::string &filename);
 
   /// Export Single Spline as custom JSON
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void AsJSON(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                        ScalarType> &spline,
-                     const std::string &filename,
+  template <typename SplineType>
+  static void AsJSON(const SplineType &spline, const std::string &filename,
                      const bool base64encoding = true);
 
   /// Export Group as  custom JSON
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void AsJSON(
-      const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                              ScalarType> &spline_group,
-      const std::string &filename, const bool base64encoding = true);
+  template <typename SplineType>
+  static void AsJSON(const BezierGroup<SplineType> &spline_group,
+                     const std::string &filename,
+                     const bool base64encoding = true);
 
   /// Export Single Spline MFEM multipatch format
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void AsMFEM(const BezierSpline<parametric_dimension, PhysicalPointType,
-                                        ScalarType> &spline,
-                     const std::string &filename);
+  template <typename SplineType>
+  static void AsMFEM(const SplineType &spline, const std::string &filename);
 
   /// Export Spline-Group in MFEM multipatch format
-  template <std::size_t parametric_dimension, typename PhysicalPointType,
-            typename ScalarType>
-  static void AsMFEM(
-      const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                              ScalarType> &spline_group,
-      const std::string &filename);
+  template <typename SplineType>
+  static void AsMFEM(const BezierGroup<SplineType> &spline_group,
+                     const std::string &filename);
 };
 
 #include "bezman/src/utils/export.inc"

@@ -146,8 +146,7 @@ class Base64_ {
    */
   template <std::size_t dimension, typename Scalar>
   static std::string Encode(
-      const std::vector<bezman::Point<dimension, Scalar>>&
-          data_vector) {
+      const std::vector<bezman::Point<dimension, Scalar>>& data_vector) {
     std::vector<Scalar> ctps_converted(dimension * data_vector.size());
     for (std::size_t i_point{}; i_point < data_vector.size(); i_point++) {
       for (std::size_t i_dim{}; i_dim < dimension; i_dim++) {
@@ -163,7 +162,7 @@ class Base64_ {
       typename OutputType,
       std::enable_if_t<type_traits::isPoint_v<OutputType>, void*> = nullptr>
   static std::vector<bezman::Point<OutputType::kSpatialDimension,
-                                               typename OutputType::ScalarType>>
+                                   typename OutputType::ScalarType>>
   Decode(const std::string& base64string) {
     // Aliases for readability
     using ScalarType = typename OutputType::ScalarType;
@@ -178,8 +177,7 @@ class Base64_ {
     assert(data_vector.size() % dimension == 0);
 
     // Init return type
-    std::vector<bezman::Point<dimension, ScalarType>> ct_points(
-        n_ctps);
+    std::vector<bezman::Point<dimension, ScalarType>> ct_points(n_ctps);
 
     // Transfer data
     for (std::size_t i_point{}; i_point < n_ctps; i_point++) {

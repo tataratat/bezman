@@ -3,32 +3,44 @@ cmake_minimum_required(VERSION 3.16.0)
 # Define local project name
 project(microstructure_build)
 
+option(LOGGING "Show and automatically save logging " ON)
+
 # Check if user wants parallel assembly
 option(OPENMP "Build project with OpenMP support." OFF)
 
 # Prefix Path to install directory
-set(CMAKE_PREFIX_PATH ../../install)
+# This is to help find_package(bezman).
+#
+# You can also set this in commendline with:
+#  cmake -DCMAKE_PREFIX_PATH=<path-to-install-dir> .....
+#
+# <path-to-install-dir> should be the path where you set
+#   `-DCMAKE_INSTALL_PREFIX` for `bezman`
+#
+# Here, we append path that corresponds to default install dir of `bezman`.
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../install)
 message(STATUS "Searching for install directory in ${CMAKE_PREFIX_PATH}!")
 
-set(CMAKE_CXX_STANDARD 17)
-
-find_package(bezman)
+find_package(bezman REQUIRED)
 
 add_executable(microstructure_build microstructure_build.cpp)
+target_include_directories(microstructure_build PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(microstructure_build PRIVATE bezman::bezman)
 
-target_sources(microstructure_build PRIVATE cross_tile_3d.hpp ring_segments_3d.hpp)
-
-set(LINK_LIBRARIES bezman::bezman)
-
+if(LOGGING)
+    # link `bezman::logging` to enable logging.
+    # note that having LOGGING option is not necessary.
+    target_link_libraries(microstructure_build PRIVATE bezman::logging)
+endif()
 
 if (OPENMP)
   # Add OpenMP to the build system
-  find_package(OpenMP REQUIRED QUIET)
+  find_package(OpenMP REQUIRED)
   message("Found OpenMP Version ${OPENMP_CXX_VERSION}")
-  list(APPEND LINK_LIBRARIES OpenMP::OpenMP_CXX)
   # Add Preprocessor flag
   add_compile_definitions(ENABLE_OPEN_MP_PARALLEL)
-  add_compile_options(-fopenmp)
+  target_compile_options(microstructure_build PRIVATE -fopenmp)
+  target_link_libraries(microstructure_build PRIVATE OpenMP::OpenMP_CXX)
 else()
   message("......................\n"
           "This example can be constructed in parallel. To enable it set the \n" 
@@ -37,8 +49,3 @@ else()
           "cmake -DOPENMP=ON ..\n"
           "......................")
 endif()
-
-message(${LINK_LIBRARIES})
-
-target_link_libraries(microstructure_build PRIVATE ${LINK_LIBRARIES})
-

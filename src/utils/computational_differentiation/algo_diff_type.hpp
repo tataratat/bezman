@@ -115,13 +115,13 @@ class AlgoDiffType {
             typename std::enable_if_t<dummy == 0> * = nullptr>
   AlgoDiffType(const Scalar_ &value, const IndexingType_ &n_derivatives)
       : v_{value},
-        d_(n_derivatives, Scalar_{}){};  // d_{size} initializes to Scalar{}
+        d_(n_derivatives, Scalar_{}) {}  // d_{size} initializes to Scalar{}
 
   /// Scalar Constructor without Derivative
   template <std::size_t dummy = numberOfDerivatives,
             typename std::enable_if_t<dummy != 0> * = nullptr>
   AlgoDiffType(const Scalar_ &value)
-      : v_{value}, d_{} {};  // d_{size} initializes to Scalar{}
+      : v_{value}, d_{} {}  // d_{size} initializes to Scalar{}
 
   /// Define a destructor
   ~AlgoDiffType() = default;
@@ -138,8 +138,8 @@ class AlgoDiffType {
   AlgoDiffType(const Scalar &value, const IndexingType_ &n_derivatives,
                const IndexingType_ active_component)
       : v_{value}, d_(n_derivatives, Scalar_{}) {
-    assert(
-        ("Requested derivative out of range.", active_component < d_.size()));
+    // Check if requested derivative is in range
+    assert(active_component < d_.size());
     SetActiveComponent(active_component);
   }
 
@@ -154,8 +154,7 @@ class AlgoDiffType {
             typename std::enable_if_t<dummy != 0> * = nullptr>
   AlgoDiffType(const Scalar &value, const IndexingType_ active_component)
       : v_{value}, d_{} {
-    assert(
-        ("Requested derivative out of range.", active_component < d_.size()));
+    assert(active_component < d_.size());
     SetActiveComponent(active_component);
   }
 
@@ -271,40 +270,40 @@ class AlgoDiffType {
    */
 
   /// Greater operator
-  constexpr bool operator>(const Scalar &b) const { return v_ > b; };
+  constexpr bool operator>(const Scalar &b) const { return v_ > b; }
 
   /// Greater operator
-  constexpr bool operator>(const ADT_ &b) const { return v_ > b.v_; };
+  constexpr bool operator>(const ADT_ &b) const { return v_ > b.v_; }
 
   /// Greater equal operator
-  constexpr bool operator>=(const Scalar &b) const { return v_ >= b; };
+  constexpr bool operator>=(const Scalar &b) const { return v_ >= b; }
 
   /// Greater equal operator
-  constexpr bool operator>=(const ADT_ &b) const { return v_ >= b.v_; };
+  constexpr bool operator>=(const ADT_ &b) const { return v_ >= b.v_; }
 
   /// Smaller operator
-  constexpr bool operator<(const Scalar &b) const { return v_ < b; };
+  constexpr bool operator<(const Scalar &b) const { return v_ < b; }
 
   /// Smaller operator, delegate to operator>=(const ADT_ &adt)
-  constexpr bool operator<(const ADT_ &b) const { return v_ < b; };
+  constexpr bool operator<(const ADT_ &b) const { return v_ < b; }
 
   /// Smaller equal operator
-  constexpr bool operator<=(const Scalar &b) const { return v_ <= b; };
+  constexpr bool operator<=(const Scalar &b) const { return v_ <= b; }
 
   /// Smaller equal operator
-  constexpr bool operator<=(const ADT_ &b) const { return v_ <= b; };
+  constexpr bool operator<=(const ADT_ &b) const { return v_ <= b; }
 
   /// Equal operator
-  constexpr bool operator==(const Scalar &b) const { return v_ == b; };
+  constexpr bool operator==(const Scalar &b) const { return v_ == b; }
 
   /// Equal operator for AlgoDiffType (assuming only value considered)
-  constexpr bool operator==(const ADT_ &b) const { return v_ == b.v_; };
+  constexpr bool operator==(const ADT_ &b) const { return v_ == b.v_; }
 
   /// Inequality operator
-  constexpr bool operator!=(const Scalar &b) const { return v_ != b; };
+  constexpr bool operator!=(const Scalar &b) const { return v_ != b; }
 
   /// Inequality operator for AlgoDiffType (assuming only value considered)
-  constexpr bool operator!=(const ADT_ &b) const { return v_ != b; };
+  constexpr bool operator!=(const ADT_ &b) const { return v_ != b; }
 
   /** @} */  // End of Boolean Operators
 

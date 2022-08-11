@@ -129,6 +129,28 @@ class Point : public std::array<BaseType, spatial_dimension> {
     return point * scale;
   }
 
+  /// Division with a scalar
+  constexpr Point& operator/=(const BaseType& scale) {
+    const BaseType inv_scale{static_cast<BaseType>(1.) / scale};
+    (*this) *= inv_scale;
+    return (*this);
+  }
+
+  /// Division
+  constexpr Point operator/(const BaseType& scale) const {
+    Point<spatial_dimension, BaseType> division{(*this)};
+    division /= scale;
+    return division;
+  }
+
+  /// Friend injection for reversed arguments (facilitates readability)
+  friend constexpr Point operator/(const double& scale, const Point& point) {
+    Point<spatial_dimension, BaseType> division{};
+    for (unsigned int i = 0; i < spatial_dimension; ++i)
+      division[i] = scale / point[i];
+    return division;
+  }
+
   /// Scalar Product with another Point of same size
   template <typename Scalar>
   decltype(Scalar{} * BaseType{}) operator*(

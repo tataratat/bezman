@@ -33,6 +33,7 @@ using namespace bezman;
 namespace bezman::tests::basic_operations {
 
 class BezierTestingSuite : public ::testing::Test {
+ public:
   using Point3D = Point<3, double>;
   using Point2D = Point<2, double>;
 
@@ -71,7 +72,7 @@ class BezierTestingSuite : public ::testing::Test {
   BezierSpline<2, Point2D, double> surface_spline{surface_degrees,
                                                   surface_ctps};
 
-  const auto CreateRandomSpline(unsigned int degree) {
+  auto CreateRandomSpline(unsigned int degree) {
     BezierSpline<1, double, double> randomSpline{
         std::array<std::size_t, 1>{degree}};
     for (unsigned int i{}; i < degree; i++) {
@@ -126,6 +127,32 @@ TEST_F(BezierTestingSuite, TestEvaluationRoutines) {
   }
 }
 
+// Test Basis Function evaluation
+TEST_F(BezierTestingSuite, TestBasisFunctions) {
+  // Elevate dergees
+  surface_spline.OrderElevateAlongParametricDimension(0);
+  surface_spline.OrderElevateAlongParametricDimension(1);
+  const auto degrees = surface_spline.GetDegrees();
+  // Create random evaluation point
+  const double xx{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+  const double xy{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+  const Point2D x{xx, xy};
+  // Retrieve basis functions
+  const auto basis_functions = surface_spline.BasisFunctions(xx, xy);
+
+  // Compare to analytical solution
+  for (std::size_t pdim{}; pdim < 2; pdim++) {
+    for (std::size_t i_basis{}; i_basis < degrees[pdim] + 1; i_basis++) {
+      const double analytical_solution_bernstein_pol =
+          utils::FastBinomialCoefficient::choose(degrees[pdim], i_basis) *
+          std::pow(x[pdim], i_basis) *
+          std::pow(1. - x[pdim], degrees[pdim] - i_basis);
+      EXPECT_FLOAT_EQ(basis_functions[pdim][i_basis],
+                      analytical_solution_bernstein_pol);
+    }
+  }
+}
+
 // Demonstrate Addition at random Points and random lines
 TEST_F(BezierTestingSuite, TestAddition3) {
   // Expect equality.
@@ -158,6 +185,19 @@ TEST_F(BezierTestingSuite, MultiplicationTest2) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
     EXPECT_FLOAT_EQ(spline1.Evaluate(x) * spline2.Evaluate(x),
                     (spline1 * spline2).Evaluate(x));
+  }
+}
+
+// Raise a random spline to some powers and test the results at random points to
+// check for equality
+TEST_F(BezierTestingSuite, RaisingPowersTest) {
+  // Expect equality.
+  const auto spline_base = CreateRandomSpline(2);
+  const std::size_t maximum_power_test{5};
+  for (std::size_t i{}; i < maximum_power_test; i++) {
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    EXPECT_FLOAT_EQ((spline_base.RaisePower(i)).Evaluate(x),
+                    std::pow(spline_base.Evaluate(x), i));
   }
 }
 

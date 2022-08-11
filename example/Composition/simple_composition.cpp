@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 // Load Bezier
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/utils/export.hpp"
 
 using namespace bezman;
@@ -53,13 +53,13 @@ int main() {
   // Create Crosstile Group
   BezierSpline<2, Point2D, double> center_surface{cross_tile_degrees,
                                                   ctps_center};
-  BezierSplineGroup<2, Point2D, double> microtile_cross{
+  BezierGroup<BezierSpline<2, Point2D, double>> microtile_cross{
       center_surface, center_surface + Point2D{one_third, 0.},
       center_surface + Point2D{0., one_third},
       center_surface - Point2D{one_third, 0.},
       center_surface - Point2D{0., one_third}};
   // Create outer Spline
-  BezierSplineGroup<2, Point2D, double> deformation_function{
+  BezierGroup<BezierSpline<2, Point2D, double>> deformation_function{
       BezierSpline<2, Point2D, double>(deformation_function_degrees,
                                        ctps_deformation_function_slim),
       BezierSpline<2, Point2D, double>(deformation_function_degrees,

@@ -3,14 +3,28 @@ cmake_minimum_required(VERSION 3.16.0)
 # Define local project name
 project(composition_derivative)
 
+option(LOGGING "Show and automatically save logging " ON)
+
 # Prefix Path to install directory
-set(CMAKE_PREFIX_PATH ../../install)
+# This is to help find_package(bezman).
+#
+# You can also set this in commendline with:
+#  cmake -DCMAKE_PREFIX_PATH=<path-to-install-dir> .....
+#
+# <path-to-install-dir> should be the path where you set
+#   `-DCMAKE_INSTALL_PREFIX` for `bezman`
+#
+# Here, we append path that corresponds to default install dir of `bezman`.
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../install)
 message(STATUS "Searching for install directory in ${CMAKE_PREFIX_PATH}!")
 
-set(CMAKE_CXX_STANDARD 17)
-
-find_package(bezman)
+find_package(bezman REQUIRED)
 
 add_executable(composition_derivative composition_derivative.cpp)
-
 target_link_libraries(composition_derivative PRIVATE bezman::bezman)
+
+if(LOGGING)
+    # link `bezman::logging` to enable logging.
+    # note that having LOGGING option is not necessary.
+    target_link_libraries(composition_derivative PRIVATE bezman::logging)
+endif()

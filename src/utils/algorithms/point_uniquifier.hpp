@@ -29,7 +29,7 @@ SOFTWARE.
 #include <cassert>
 #include <vector>
 
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/point.hpp"
 #include "bezman/src/utils/algorithms/hypercube.hpp"
 #include "bezman/src/utils/algorithms/sort.hpp"
@@ -62,8 +62,8 @@ auto FindConnectivity(
     const ScalarType tolerance = 1e-5) {
   // Check if number of faces is a divisor of the point list length
   Logger::Logging("Determining connectivity by analyzing face centers");
-  assert(("Wrong number of faces and center points",
-          face_center_points.size() % number_of_element_faces == 0));
+  // Check for Wrong number of faces and center points
+  assert(face_center_points.size() % number_of_element_faces == 0);
 
   // Assure Metric is normed and non-zero
   if (orientation_metric.EuclidianNorm() < 1e-20) {
@@ -167,7 +167,7 @@ auto FindConnectivity(
       if (opposite_face_list[element_face_id_start] != element_face_id_end) {
         Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
       }
-#ifdef NDEBUG
+#ifndef NDEBUG
       if (opposite_face_list[element_face_id_end] != element_face_id_start) {
         Logger::Error("Orientation Problem for MFEM-mesh output.");
       }
@@ -306,19 +306,22 @@ std::vector<std::size_t> IndexUniquePointList(
  * Calculates the face points and uses FindConnectivity to identify
  * neighbors
  */
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
+template <typename SplineType>
 auto GetConnectivityForSplineGroup(
-    const BezierSplineGroup<parametric_dimension, PhysicalPointType,
-                            ScalarType>& spline_group) {
+    const BezierGroup<SplineType>& spline_group) {
+  // Make Spline Parameters available
+  constexpr std::size_t kParametricDimensions_ =
+      SplineType::kParametricDimensions;
+  using PhysicalPointType = typename SplineType::PhysicalPointType_;
+  // Start Function
   Logger::Logging("Determining connectivity");
   // Current implementation is only made for bi- and trivariates
-  static_assert((parametric_dimension == 3 || parametric_dimension == 2),
+  static_assert((kParametricDimensions_ == 3 || kParametricDimensions_ == 2),
                 "High-Dimensional and Line Patches are not supported");
 
   // Array that stores opposite faces
   constexpr auto opposite_faces =
-      HyperCube<parametric_dimension>::GetOppositeFaces();
+      HyperCube<kParametricDimensions_>::GetOppositeFaces();
 
   // Create Face-Center-Point Vector
   std::vector<PhysicalPointType> face_edges(spline_group.size() *
@@ -332,21 +335,27 @@ auto GetConnectivityForSplineGroup(
   // Retrieve SubElementFace-Vertex Ids in local system to start calculating
   // face-mid-point
   constexpr auto subelement_vertex_ids =
-      HyperCube<parametric_dimension>::SubElementVerticesToFace();
+      HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
 
   for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
     const auto global_vertex_id =
-        HyperCube<parametric_dimension>::VertexIdForDegrees(
+        HyperCube<kParametricDimensions_>::VertexIdForDegrees(
             spline_group[i_spline].GetDegrees());
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
+      const auto& ctps = [&]() {
+        if constexpr (utils::type_traits::isRationalBezierSpline_v<
+                          SplineType>) {
+          return spline_group[i_spline].GetWeightedControlPoints();
+        } else {
+          return spline_group[i_spline].control_points;
+        }
+      }();
       face_edges[i_spline * number_of_element_faces + i_face] =
-          spline_group[i_spline].control_points
-              [global_vertex_id[subelement_vertex_ids[i_face][0]]];
+          ctps[global_vertex_id[subelement_vertex_ids[i_face][0]]];
       for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
            i_point++) {
         face_edges[i_spline * number_of_element_faces + i_face] +=
-            spline_group[i_spline].control_points
-                [global_vertex_id[subelement_vertex_ids[i_face][i_point]]];
+            ctps[global_vertex_id[subelement_vertex_ids[i_face][i_point]]];
       }
     }
   }

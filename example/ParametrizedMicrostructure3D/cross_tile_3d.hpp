@@ -28,7 +28,7 @@ SOFTWARE.
 #include <algorithm>
 #include <vector>
 
-#include "bezman/src/bezier_spline_group.hpp"
+#include "bezman/src/bezier_group.hpp"
 #include "bezman/src/utils/computational_differentiation/algo_diff_type.hpp"
 
 using namespace bezman;
@@ -50,8 +50,8 @@ class CrossTile3D {
   using ADT = utils::computational_differentiation::AlgoDiffType<double>;
   using PointADT3D = Point<3, ADT>;
   using Point3D = Point<3, double>;
-  using BezierGroup = BezierSplineGroup<3, Point3D, double>;
   using Bezier = BezierSpline<3, Point3D, double>;
+  using PolyBezierGroup = BezierGroup<Bezier>;
   /**
    * @brief Extracts the Derivatives from the derivative vector of each control
    * point and defines new sets of splines, which  are then used to determine
@@ -105,7 +105,7 @@ class CrossTile3D {
                         Point3D{0.5, 0.5, 1.}};
 
   /// Generator Function for Derivatives
-  static std::vector<BezierGroup> GenerateMicrostructureDerivatives(
+  static std::vector<PolyBezierGroup> GenerateMicrostructureDerivatives(
       const std::array<ADT, kNumberOfEvaluationPoints>& evaluations) {
     // Check if all evaluations have the same number of derivatives
     const auto number_of_derivatives = evaluations[0].GetNumberOfDerivatives();
@@ -359,10 +359,10 @@ class CrossTile3D {
                    ADT(1., number_of_derivatives)}};
 
     // Initialize return value (with one additional spline for the value)
-    std::vector<BezierGroup> return_value_group(number_of_derivatives + 1);
+    std::vector<PolyBezierGroup> return_value_group(number_of_derivatives + 1);
 
     // Construct the Microtile as first component of the group
-    return_value_group[0] = BezierGroup{
+    return_value_group[0] = PolyBezierGroup{
         Bezier{center_degrees, ExtractValuesFromPointCloud(ctps_center)},
         Bezier{vertical_degrees, ExtractValuesFromPointCloud(ctps_low)},
         Bezier{vertical_degrees, ExtractValuesFromPointCloud(ctps_up)},
@@ -372,7 +372,7 @@ class CrossTile3D {
         Bezier{pass_z_degrees, ExtractValuesFromPointCloud(ctps_back)}};
 
     for (std::size_t i_deriv{}; i_deriv < number_of_derivatives; i_deriv++) {
-      return_value_group[i_deriv + 1ul] = BezierGroup{
+      return_value_group[i_deriv + 1ul] = PolyBezierGroup{
           Bezier{center_degrees,
                  ExtractDerivativeFromPointCloud(ctps_center, i_deriv)},
           Bezier{vertical_degrees,
@@ -407,7 +407,7 @@ class CrossTile3D {
           Point3D{0., 0.5, 0.5}, Point3D{0.5, 0.5, 0.}, Point3D{0.5, 0.5, 1.}};
 
   /// Generator Function for Derivatives
-  static std::vector<BezierGroup> GenerateMicrostructureClosingTile(
+  static std::vector<PolyBezierGroup> GenerateMicrostructureClosingTile(
       const ClosingFace& closing_face,
       const std::array<ADT, kNumberOfEvaluationPointsClosingTile>&
           evaluations) {
@@ -515,15 +515,15 @@ class CrossTile3D {
         assert(("Unknown Case", false));
     }
     // Initialize return value (with one additional spline for the value)
-    std::vector<BezierGroup> return_value_group(number_of_derivatives + 1);
+    std::vector<PolyBezierGroup> return_value_group(number_of_derivatives + 1);
 
     // Construct the Microtile as first component of the group
-    return_value_group[0] = BezierGroup{
+    return_value_group[0] = PolyBezierGroup{
         Bezier{connector_degrees, ExtractValuesFromPointCloud(ctps_connector)},
         Bezier{base_degrees, ExtractValuesFromPointCloud(ctps_base)}};
 
     for (std::size_t i_deriv{}; i_deriv < number_of_derivatives; i_deriv++) {
-      return_value_group[i_deriv + 1ul] = BezierGroup{
+      return_value_group[i_deriv + 1ul] = PolyBezierGroup{
           Bezier{connector_degrees,
                  ExtractDerivativeFromPointCloud(ctps_connector, i_deriv)},
           Bezier{base_degrees,

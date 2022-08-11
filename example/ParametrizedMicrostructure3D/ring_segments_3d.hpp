@@ -42,11 +42,11 @@ class RingSegments3D {
   using PolyBezierGroup = BezierGroup<Bezier>;
 
   /// Precalculated values
-  constexpr static const double PI = std::acos(-1.);
+  static const double PI = std::acos(-1.);
 
   // Default values are set here
   double innerR{1.}, outerR{2.}, arc_degrees{PI * 0.25}, depth{2.};
-  std::array<int, 3> numberOfSegments{1, 1, 1};
+  std::array<std::size_t, 3> numberOfSegments{1, 1, 1};
 
  public:
   // All Setter Methods return a reference to the object so that multiple
@@ -79,13 +79,13 @@ class RingSegments3D {
 
   /// Set number of segments
   constexpr RingSegments3D& SetNumberOfSegments(
-      const std::array<int, 3>& number_of_segments) {
+      const std::array<std::size_t, 3>& number_of_segments) {
     numberOfSegments = number_of_segments;
     return (*this);
   }
 
   /// Get number of segments
-  constexpr const std::array<int, 3>& GetNumberOfSegments() const {
+  constexpr const std::array<std::size_t, 3>& GetNumberOfSegments() const {
     return numberOfSegments;
   }
 
@@ -107,7 +107,7 @@ class RingSegments3D {
 
     // Initialize return value
     PolyBezierGroup ringsegments{numberOfSegments[0] * numberOfSegments[1] *
-                             numberOfSegments[2]};
+                                 numberOfSegments[2]};
 
     // Precompute values that are required multiple times
     const std::array<std::size_t, 3> degrees{2, 1, 1};
@@ -116,11 +116,12 @@ class RingSegments3D {
 
     const double excentricity_of_middle_points =
         1. / std::sin(PI / 2. - degrees_per_segment / 2.);
-    for (int i_z_segment{}; i_z_segment < numberOfSegments[2]; i_z_segment++) {
+    for (std::size_t i_z_segment{}; i_z_segment < numberOfSegments[2];
+         i_z_segment++) {
       // Precompute depths
       const double z_start = depth_per_segment * i_z_segment;
       const double z_end = depth_per_segment * (i_z_segment + 1);
-      for (int i_x_segment{}; i_x_segment < numberOfSegments[0];
+      for (std::size_t i_x_segment{}; i_x_segment < numberOfSegments[0];
            i_x_segment++) {
         const double startsin = std::sin(degrees_per_segment * i_x_segment);
         const double startcos = std::cos(degrees_per_segment * i_x_segment);
@@ -162,7 +163,7 @@ class RingSegments3D {
         const int index_offset = i_x_segment + numberOfSegments[0] *
                                                    numberOfSegments[1] *
                                                    i_z_segment;
-        for (int i_y_segment{}; i_y_segment < numberOfSegments[1];
+        for (std::size_t i_y_segment{}; i_y_segment < numberOfSegments[1];
              i_y_segment++) {
           ringsegments[index_offset + numberOfSegments[0] * i_y_segment] =
               CircleWedge[i_y_segment];

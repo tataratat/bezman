@@ -57,9 +57,6 @@ class Point : public std::array<BaseType, spatial_dimension> {
   /// Provide Type for external use
   using ScalarType = BaseType;
 
-  /// Output precision
-  int output_precision{5};
-
   /// Use default copy constructor
   constexpr Point(const Point&) = default;
 
@@ -184,7 +181,7 @@ class Point : public std::array<BaseType, spatial_dimension> {
   }
 
   /// Converts Point into a string object
-  std::string toString() const {
+  std::string toString(const int& output_precision = 6) const {
     std::ostringstream out{};
     out << "[" << std::setw(output_precision + 2)
         << std::setprecision(output_precision) << (*this)[0];

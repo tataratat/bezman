@@ -148,10 +148,6 @@ class Export {
   template <typename SplineType>
   static void AsMFEM(const BezierGroup<SplineType> &spline_group,
                      const std::string &filename);
-
-  template <typename SplineType>
-  static void AsMFEM2(const BezierGroup<SplineType> &spline_group,
-                      const std::string &filename);
 };
 
 #include "bezman/src/utils/export.inc"

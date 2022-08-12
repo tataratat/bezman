@@ -114,10 +114,10 @@ auto FindConnectivity(
     bool found_duplicate = false;
     // Now check allowed range for duplicates
     unsigned int upper_limit = lower_limit + 1;
-    while (scalar_metric[metric_order_indices[upper_limit]] -
+    while (upper_limit < n_total_points &&
+           scalar_metric[metric_order_indices[upper_limit]] -
                    scalar_metric[metric_order_indices[lower_limit]] <
-               tolerance &&
-           upper_limit < n_total_points) {
+               tolerance) {
       // Check if the two points are duplicates
       found_duplicate = (face_center_points[metric_order_indices[lower_limit]] -
                          face_center_points[metric_order_indices[upper_limit]])
@@ -264,10 +264,10 @@ std::vector<std::size_t> IndexUniquePointList(
 
     // Now check allowed range for duplicates
     unsigned int upper_limit = lower_limit + 1;
-    while (scalar_metric[metric_order_indices[upper_limit]] -
+    while (upper_limit < n_total_points &&
+           scalar_metric[metric_order_indices[upper_limit]] -
                    scalar_metric[metric_order_indices[lower_limit]] <
-               tolerance &&
-           upper_limit < n_total_points) {
+               tolerance) {
       const bool found_duplicate =
           (original_point_list[metric_order_indices[lower_limit]] -
            original_point_list[metric_order_indices[upper_limit]])
@@ -300,72 +300,242 @@ std::vector<std::size_t> IndexUniquePointList(
   return unique_indices;
 }
 
-/**
- * @brief Get the Connectivity between splines in a SplineGroup
+/**!
+ * Provide all necessary data for mfem export
  *
- * Calculates the face points and uses FindConnectivity to identify
- * neighbors
+ * @attention This function is to be used with caution, as it makes several
+ * assumptions about the underlying structure. It always assumes that the
+ * parametric dimension matches the physical dimension of the problem
+ *
+ * @tparam PhysicalPointType array-type for coordinates
+ * @param std::vector<PhysicalPointType> vector of corner vertices
  */
-template <typename SplineType>
-auto GetConnectivityForSplineGroup(
-    const BezierGroup<SplineType>& spline_group) {
-  // Make Spline Parameters available
-  constexpr std::size_t kParametricDimensions_ =
-      SplineType::kParametricDimensions;
-  using PhysicalPointType = typename SplineType::PhysicalPointType_;
-  // Start Function
-  Logger::Logging("Determining connectivity");
-  // Current implementation is only made for bi- and trivariates
-  static_assert((kParametricDimensions_ == 3 || kParametricDimensions_ == 2),
-                "High-Dimensional and Line Patches are not supported");
+template <typename PhysicalPointType>
+constexpr auto ExtractMFEMInformation(
+    const std::vector<PhysicalPointType>& corner_vertices,
+    const PhysicalPointType& metric) {
+  // Inform user in debug build with extensive export, that the function is
+  // using strong assumptions
+  Logger::Logging(
+      "MFEM-data-extraction assumes Parametric dimension and spatial dimension "
+      "to be equal");
+  Logger::Logging("Start MFEM-data extraction");
 
-  // Array that stores opposite faces
-  constexpr auto opposite_faces =
-      HyperCube<kParametricDimensions_>::GetOppositeFaces();
-
-  // Create Face-Center-Point Vector
-  std::vector<PhysicalPointType> face_edges(spline_group.size() *
-                                            opposite_faces.size());
-
-  // Start Loop
-  // (Instead of using the mean of the face vertices, using the sum)
-  const std::size_t number_of_splines = spline_group.size();
-  const std::size_t number_of_element_faces = opposite_faces.size();
-
-  // Retrieve SubElementFace-Vertex Ids in local system to start calculating
-  // face-mid-point
+  // -- Auxiliary data --
+  constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
   constexpr auto subelement_vertex_ids =
       HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
+  constexpr auto opposite_faces =
+      HyperCube<kParametricDimensions_>::GetOppositeFaces();
+  constexpr std::size_t number_of_element_faces = opposite_faces.size();
+  constexpr std::size_t number_of_element_vertices{algorithms::IntPower(
+      static_cast<std::size_t>(2), kParametricDimensions_)};
+  constexpr std::size_t number_of_vertices_per_face{algorithms::IntPower(
+      static_cast<std::size_t>(2), kParametricDimensions_ - 1)};
+  const std::size_t number_of_patches =
+      corner_vertices.size() / number_of_element_vertices;
+  constexpr auto faces_orthogonal_to_parametric_dimension =
+      algorithms::HyperCube<
+          kParametricDimensions_>::GetNormalFaceIndicesToParametricDimension();
 
-  for (std::size_t i_spline{}; i_spline < number_of_splines; i_spline++) {
-    const auto global_vertex_id =
-        HyperCube<kParametricDimensions_>::VertexIdForDegrees(
-            spline_group[i_spline].GetDegrees());
+  constexpr std::size_t number_of_element_faces_with_same_knotvectors{
+      2 * kParametricDimensions_ - 2};
+
+  // Consistency check
+  assert(corner_vertices.size() % number_of_element_vertices == 0);
+
+  // -- Determine connectivity --
+  // Calculate face centers
+  std::vector<PhysicalPointType> face_center_vertices;
+  face_center_vertices.reserve(number_of_patches * number_of_element_faces);
+
+  // Start the actual loop
+  // (Instead of using the mean of the face vertices, using the sum)
+  for (std::size_t i_spline{}; i_spline < number_of_patches; i_spline++) {
+    const std::size_t patch_vertex_index_offset =
+        i_spline * number_of_element_vertices;
+    const std::size_t patch_face_index_offset =
+        i_spline * number_of_element_faces;
     for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
-      const auto& ctps = [&]() {
-        if constexpr (utils::type_traits::isRationalBezierSpline_v<
-                          SplineType>) {
-          return spline_group[i_spline].GetWeightedControlPoints();
-        } else {
-          return spline_group[i_spline].control_points;
-        }
-      }();
-      face_edges[i_spline * number_of_element_faces + i_face] =
-          ctps[global_vertex_id[subelement_vertex_ids[i_face][0]]];
+      face_center_vertices.push_back(
+          corner_vertices[patch_vertex_index_offset +
+                          subelement_vertex_ids[i_face][0]]);
       for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
            i_point++) {
-        face_edges[i_spline * number_of_element_faces + i_face] +=
-            ctps[global_vertex_id[subelement_vertex_ids[i_face][i_point]]];
+        face_center_vertices[patch_face_index_offset + i_face] +=
+            corner_vertices[patch_vertex_index_offset +
+                            subelement_vertex_ids[i_face][i_point]];
       }
     }
   }
 
-  // Get Connectivity
-  return FindConnectivity(
-      face_edges,
-      // Metric for internal ordering
-      spline_group.MaximumCorner() - spline_group.MinimumCorner(),
-      opposite_faces);
+  // Find connectivity using face centers
+  const auto connectivity =
+      FindConnectivity(face_center_vertices, metric, opposite_faces);
+  Logger::ExtendedInformation("Connectivity determined");
+
+  // -- Enumerate Vertices --
+  const auto vertex_ids =
+      algorithms::IndexUniquePointList(corner_vertices, metric);
+  Logger::ExtendedInformation("Enumerated Vertices using uniquified points");
+
+  // -- Determine and enumerate knot-vectors --// Enumerate knot vectors
+  std::vector<std::array<std::size_t, kParametricDimensions_>> knot_vector_ids(
+      number_of_patches,
+      // Fill with array created by lambda function
+      []() {
+        std::array<std::size_t, kParametricDimensions_> init_{};
+        init_.fill(static_cast<std::size_t>(-1));
+        return init_;
+      }());
+
+  // Initialize knot_vector_counter
+  std::size_t n_assigned_knot_vectors{};
+
+  // index of splines which has to be control if they have neighbors
+  std::vector<std::size_t> splines_to_go{};
+
+  // Count Boundaries at the same time to preallocate boundary vector
+  std::size_t number_of_boundaries{};
+
+  // loop over all splines
+  for (std::size_t i_spline{}; i_spline < number_of_patches; i_spline++) {
+    // loop over all dimensions
+    for (std::size_t i_dim{}; i_dim < kParametricDimensions_; i_dim++) {
+      // check if spline has already a knot vector id
+      if (knot_vector_ids[i_spline][i_dim] != static_cast<size_t>(-1)) {
+        continue;
+      }
+
+      // insert index of start spline
+      splines_to_go.push_back(i_spline);
+
+      // retrieve relevant faces for propagation
+      const auto& faces = faces_orthogonal_to_parametric_dimension[i_dim];
+
+      // Assign knot vector id to current spline
+      knot_vector_ids[i_spline][i_dim] = n_assigned_knot_vectors;
+
+      // run through all splines until the vector splines_to_go is empty
+      while (!splines_to_go.empty()) {
+        // get last spline_id of the vector
+        const std::size_t current_spline_id = splines_to_go.back();
+        // delete the set current_spline_id from the vector
+        splines_to_go.pop_back();
+
+        // run through all neighbors
+        for (std::size_t i_neighbor{};
+             i_neighbor < number_of_element_faces_with_same_knotvectors;
+             i_neighbor++) {
+          const std::size_t& face_to_check = faces[i_neighbor];
+          // Check if boundary
+          if (connectivity[current_spline_id][face_to_check] ==
+              static_cast<std::size_t>(-1)) {
+            number_of_boundaries++;
+            continue;
+          }
+          const std::size_t& current_neighbor =
+              connectivity[current_spline_id][face_to_check];
+
+          // if neighbor spline has the same  knot vector id as the
+          // current spline continue --> Loop is closed
+          if (knot_vector_ids[current_neighbor][i_dim] ==
+              n_assigned_knot_vectors) {
+            continue;
+          }
+
+          // Check if neighbor is different knot_vector_id, if true something
+          // went wrong --> error
+          if (knot_vector_ids[current_neighbor][i_dim] !=
+              static_cast<std::size_t>(-1)) {
+            Logger::TerminatingError(
+                "Connectivity error. Knotvector mismatch between two "
+                "neighboring splines");
+          }
+
+          // set new knot vector
+          knot_vector_ids[current_neighbor][i_dim] = n_assigned_knot_vectors;
+          // Add neighbor spline to splines_to_go
+          splines_to_go.push_back(current_neighbor);
+        }
+      }
+      n_assigned_knot_vectors++;
+    }
+  }
+
+  // The boundary count is only valid for 2D elements, as all faces correspond
+  // to exactly one knot_vector dimension. In higher order problems, like 3D
+  // the same face needs to be checked for n_dim-1 knot_vector dimensions, the
+  // number of boundaries therefore needs to be updated accordingly
+  assert(number_of_boundaries % (kParametricDimensions_ - 1) == 0);
+  number_of_boundaries /= (kParametricDimensions_ - 1);
+
+  // Lastly the knotvectors need exporting only once per edge
+
+  // map for the edges -> key is the edge with the vertices | value is the
+  // knot vector id
+  std::map<std::pair<std::size_t, std::size_t>, std::size_t>
+      edge_uniquify_map{};
+
+  constexpr auto local_face_vertex_index =
+      algorithms::HyperCube<kParametricDimensions_>::EdgeVertexIndices();
+  constexpr std::size_t number_of_edges_per_element =
+      local_face_vertex_index.size();
+
+  for (std::size_t i_spline{}; i_spline < number_of_patches; i_spline++) {
+    for (std::size_t i_edge{}; i_edge < number_of_edges_per_element; i_edge++) {
+      // Edges are ordered by dimension using integer division
+      std::size_t i_dim{i_edge / (kParametricDimensions_ == 2 ? 2 : 4)};
+      // Add element to edge
+      edge_uniquify_map[
+          // Create Pair of vertex ids as key
+          std::make_pair(
+              // First Vertex
+              vertex_ids[i_spline * number_of_element_vertices +
+                         local_face_vertex_index[i_edge][0]],
+              // Second Vertex
+              vertex_ids[i_spline * number_of_element_vertices +
+                         local_face_vertex_index[i_edge][1]])] =
+          // set the value
+          knot_vector_ids[i_spline][i_dim];
+    }
+  }
+
+  // Transform data into vector
+  std::vector<std::array<std::size_t, 3>> edge_information;
+  edge_information.reserve(edge_uniquify_map.size());
+
+  for (const auto& [edge_vertices, i_knot_id] : edge_uniquify_map) {
+    edge_information.push_back(
+        {i_knot_id, edge_vertices.first, edge_vertices.second});
+  }
+  Logger::ExtendedInformation("Knotvector and Edge assignment successful");
+
+  // Last step is to identify all boundary elements
+  std::vector<std::array<std::size_t, number_of_vertices_per_face>> boundaries;
+  boundaries.reserve(number_of_boundaries);
+  // @todo Provide functions to set appropriate boundary id here
+  for (std::size_t i_spline{}; i_spline < number_of_patches; i_spline++) {
+    for (std::size_t i_face{}; i_face < 2 * kParametricDimensions_; i_face++) {
+      if (connectivity[i_spline][i_face] == static_cast<std::size_t>(-1)) {
+        // write the vertices
+        const auto& local_face_vertices = subelement_vertex_ids[i_face];
+        std::array<std::size_t, number_of_vertices_per_face> boundary_element{};
+        for (std::size_t i_local_vertex_on_face{};
+             i_local_vertex_on_face < local_face_vertices.size();
+             i_local_vertex_on_face++) {
+          boundary_element[i_local_vertex_on_face] =
+              vertex_ids[i_spline * number_of_element_vertices +
+                         local_face_vertices[i_local_vertex_on_face]];
+        }
+        boundaries.push_back(boundary_element);
+      }
+    }
+  }
+
+  // Put all data into a tuple for easy access
+  return std::make_tuple(connectivity, vertex_ids, edge_information,
+                         boundaries);
 }
 
 }  // namespace bezman::utils::algorithms

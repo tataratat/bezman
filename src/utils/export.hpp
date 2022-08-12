@@ -29,6 +29,7 @@ SOFTWARE.
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 
 #include "bezman/src/bezier_group.hpp"
 #include "bezman/src/bezier_spline.hpp"
@@ -147,6 +148,10 @@ class Export {
   template <typename SplineType>
   static void AsMFEM(const BezierGroup<SplineType> &spline_group,
                      const std::string &filename);
+
+  template <typename SplineType>
+  static void AsMFEM2(const BezierGroup<SplineType> &spline_group,
+                      const std::string &filename);
 };
 
 #include "bezman/src/utils/export.inc"

@@ -37,91 +37,127 @@ SOFTWARE.
 namespace bezman::utils::algorithms {
 
 /**
- * @brief Takes a set of points and determines point-connectivity using a metric
+ * @brief Determine the connectivity from corner-vertices, assuming nothing of
+ * the underlying grid
  *
- * Duplicate Points are not eliminated, assuming that aa maximum of two points
+ * Duplicate Points are not eliminated, assuming that a maximum of two points
  * are equivalent. If this is not the case an exception is thrown. In theory
  * this has complexity O(nlogn) whereas a KDTree has complexity O(n (logn)^dim).
  *
- * @tparam physical_dimension   Entries in Point
- * @tparam ScalarType           Type of Entry in Point
- * @param face_center_points    List of intersection points (Mid-Point of
- *                              face-vertices)
- * @param orientation_metric    Vector along which the points are ordered
- *                              prior to their uniquification
- * @param tolerance             Tolerance for vector contraction
- * @return Connectivity         Element Connectivity
+ * @tparam PhysicalPointType Type of Point coordinates
+ * @param corner_vertices std::vector<PhysicalPointType> containing all vertices
+ * at spline corners
+ * @param metric Metric used to project coords in order to use sorting
+ * techniques on one dimensional data
+ * @return connectivity
  */
-template <std::size_t physical_dimension, typename ScalarType,
-          std::size_t number_of_element_faces>
-auto FindConnectivity(
-    const std::vector<Point<physical_dimension, ScalarType>>&
-        face_center_points,
-    Point<physical_dimension, ScalarType> orientation_metric,
-    const std::array<std::size_t, number_of_element_faces>& opposite_face_list,
-    const ScalarType tolerance = 1e-5) {
+template <typename PhysicalPointType,
+          typename ScalarType = typename PhysicalPointType::ScalarType_>
+constexpr auto FindConnectivity(
+    const std::vector<PhysicalPointType>& corner_vertices,
+    const PhysicalPointType& metric, const ScalarType tolerance = 1e-5) {
+  // -- Auxiliary data --
+  constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
+  constexpr auto subelement_vertex_ids =
+      HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
+  constexpr auto opposite_face_list =
+      HyperCube<kParametricDimensions_>::GetOppositeFaces();
+  constexpr std::size_t number_of_element_faces = opposite_face_list.size();
+  constexpr std::size_t number_of_element_vertices{algorithms::IntPower(
+      static_cast<std::size_t>(2), kParametricDimensions_)};
+  const std::size_t number_of_patches =
+      corner_vertices.size() / number_of_element_vertices;
+  const ScalarType tolerance_squared{tolerance * tolerance};
+
+  // Consistency check
+  assert(corner_vertices.size() % number_of_element_vertices == 0);
+
+  // -- Determine connectivity --
+  // Calculate face centers
+  std::vector<PhysicalPointType> face_center_vertices;
+  face_center_vertices.reserve(number_of_patches * number_of_element_faces);
+
+  // Start the actual loop
+  // (Instead of using the mean of the face vertices, using the sum)
+  for (std::size_t i_spline{}; i_spline < number_of_patches; i_spline++) {
+    const std::size_t patch_vertex_index_offset =
+        i_spline * number_of_element_vertices;
+    const std::size_t patch_face_index_offset =
+        i_spline * number_of_element_faces;
+    for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
+      face_center_vertices.push_back(
+          corner_vertices[patch_vertex_index_offset +
+                          subelement_vertex_ids[i_face][0]]);
+      for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
+           i_point++) {
+        face_center_vertices[patch_face_index_offset + i_face] +=
+            corner_vertices[patch_vertex_index_offset +
+                            subelement_vertex_ids[i_face][i_point]];
+      }
+    }
+  }
+
   // Check if number of faces is a divisor of the point list length
   Logger::Logging("Determining connectivity by analyzing face centers");
   // Check for Wrong number of faces and center points
-  assert(face_center_points.size() % number_of_element_faces == 0);
+  const std::size_t number_of_center_vertices{face_center_vertices.size()};
+  assert(number_of_center_vertices % number_of_element_faces == 0);
 
   // Assure Metric is normed and non-zero
-  if (orientation_metric.EuclidianNorm() < 1e-20) {
-    Logger::Warning(
-        "Metric has no length. Chose non-zero "
-        "metric for ordering points");
-    Logger::Warning("Fall back to default metric, which is {1., 1., ...}");
-    orientation_metric.fill(1.);
-  }
-  const Point<physical_dimension, ScalarType> normed_orientation_metric =
-      orientation_metric *
-      (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
 
-  // Store information in Auxiliary Values
-  const std::size_t n_total_points{face_center_points.size()};
-  const ScalarType tolerance_squared{tolerance * tolerance};
-
+  const Point<kParametricDimensions_, ScalarType> normed_metric =
+      [](PhysicalPointType metric) {
+        if (metric.EuclidianNorm() < 1e-20) {
+          Logger::Warning(
+              "Metric has no length. Chose non-zero "
+              "metric for ordering points");
+          Logger::Warning(
+              "Fall back to default metric, which is {1., 1., ...}");
+          metric.fill(1.);
+        }
+        return metric * (static_cast<ScalarType>(1.) / metric.EuclidianNorm());
+      }(metric);
   // Init connectivity and metric value
   // (-1 : boundary, -2 : untouched)
-  const std::size_t number_of_elements =
-      face_center_points.size() / number_of_element_faces;
   std::vector<std::array<std::size_t, number_of_element_faces>> connectivity(
       // Size of vector
-      number_of_elements,
-      // Lambda function to initialize an array with constant value in size of
-      // face-number
+      number_of_patches,
+      // Lambda function to initialize an array with constant value in size
+      // of face-number
       []() {
         std::array<std::size_t, number_of_element_faces> a{};
         a.fill(static_cast<std::size_t>(-2));
         return a;
       }());
+
   std::vector<ScalarType> scalar_metric{};
-  scalar_metric.reserve(n_total_points);
+  scalar_metric.reserve(number_of_center_vertices);
 
   // Check Metric Dimension and Vector Size
-  for (unsigned int i{}; i < n_total_points; i++) {
-    scalar_metric.push_back(normed_orientation_metric * face_center_points[i]);
+  for (unsigned int i{}; i < number_of_center_vertices; i++) {
+    scalar_metric.push_back(normed_metric * face_center_vertices[i]);
   }
 
   // Sort Metric Vector
   const auto metric_order_indices = algorithms::IndexListSort(scalar_metric);
 
   // Loop over points
-  for (unsigned int lower_limit = 0; lower_limit < n_total_points - 1;
-       lower_limit++) {
+  for (unsigned int lower_limit = 0;
+       lower_limit < number_of_center_vertices - 1; lower_limit++) {
     // Loop over all points regardless of whether they have been touched or not,
     // and then check the validity of the connection Point already processed
     bool found_duplicate = false;
     // Now check allowed range for duplicates
     unsigned int upper_limit = lower_limit + 1;
-    while (upper_limit < n_total_points &&
+    while (upper_limit < number_of_center_vertices &&
            scalar_metric[metric_order_indices[upper_limit]] -
                    scalar_metric[metric_order_indices[lower_limit]] <
                tolerance) {
       // Check if the two points are duplicates
-      found_duplicate = (face_center_points[metric_order_indices[lower_limit]] -
-                         face_center_points[metric_order_indices[upper_limit]])
-                            .SquaredEuclidianNorm() < tolerance_squared;
+      found_duplicate =
+          (face_center_vertices[metric_order_indices[lower_limit]] -
+           face_center_vertices[metric_order_indices[upper_limit]])
+              .SquaredEuclidianNorm() < tolerance_squared;
       if (found_duplicate) {
         break;
       } else {
@@ -152,9 +188,6 @@ auto FindConnectivity(
       const std::size_t element_face_id_end =
           id_end_point - element_id_end * number_of_element_faces;
       // Check 1. (@todo EXCEPTION)
-      assert(connectivity[element_id_start][element_face_id_start] ==
-             static_cast<std::size_t>(-2));
-
       if (connectivity[element_id_start][element_face_id_start] !=
           static_cast<std::size_t>(-2)) {
         Logger::TerminatingError(
@@ -166,10 +199,13 @@ auto FindConnectivity(
       // TODO check if mfem format is used for the output -> if not do not check
       if (opposite_face_list[element_face_id_start] != element_face_id_end) {
         Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
+        // @todo In order to get the connectivity only, this check needs to be
+        // performed, a boolean value needs to be switched, but the connectivity
+        // is still returned
       }
 #ifndef NDEBUG
       if (opposite_face_list[element_face_id_end] != element_face_id_start) {
-        Logger::Error("Orientation Problem for MFEM-mesh output.");
+        Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
       }
 #endif
       // If both tests passed, update connectivity
@@ -186,7 +222,8 @@ auto FindConnectivity(
   }
 
   // Treat last remaining point in scalar metric vector
-  const std::size_t last_id = metric_order_indices[n_total_points - 1];
+  const std::size_t last_id =
+      metric_order_indices[number_of_center_vertices - 1];
   const std::size_t last_element = last_id / number_of_element_faces;
   const std::size_t last_face =
       last_id - last_element * number_of_element_faces;
@@ -194,7 +231,7 @@ auto FindConnectivity(
     connectivity[last_element][last_face] = static_cast<std::size_t>(-1);
   }
   Logger::Logging("Found " + std::to_string(last_id) + " connections for " +
-                  std::to_string(n_total_points) + " faces");
+                  std::to_string(number_of_center_vertices) + " faces");
   return connectivity;
 }
 
@@ -212,19 +249,18 @@ template <std::size_t physical_dimension, typename ScalarType>
 std::vector<std::size_t> IndexUniquePointList(
     const std::vector<Point<physical_dimension, ScalarType>>&
         original_point_list,
-    const Point<physical_dimension, ScalarType> orientation_metric,
+    const Point<physical_dimension, ScalarType> metric,
     const ScalarType tolerance = 1e-5) {
   Logger::Logging("Indexing unique point list");
   // Assure Metric is normed and non-zero
-  if (orientation_metric.EuclidianNorm() <= 0) {
+  if (metric.EuclidianNorm() <= 0) {
     Logger::TerminatingError("Metric is not normed or zero");
   }
-  const Point<physical_dimension, ScalarType> normed_orientation_metric =
-      orientation_metric *
-      (static_cast<ScalarType>(1.) / orientation_metric.EuclidianNorm());
+  const Point<physical_dimension, ScalarType> normed_metric =
+      metric * (static_cast<ScalarType>(1.) / metric.EuclidianNorm());
 
   // Store information in Auxiliary Values
-  const std::size_t n_total_points{original_point_list.size()};
+  const std::size_t number_of_center_vertices{original_point_list.size()};
   const ScalarType tolerance_squared{tolerance * tolerance};
 
   // Init unique_indices and metric value
@@ -232,17 +268,17 @@ std::vector<std::size_t> IndexUniquePointList(
   // {in c++20 this expression could be constexpr}
   std::vector<std::size_t> unique_indices(
       // Size of vector
-      n_total_points,
+      number_of_center_vertices,
       // default value
       static_cast<std::size_t>(-1));
 
   // Initialize Metric
   std::vector<ScalarType> scalar_metric{};
-  scalar_metric.reserve(n_total_points);
+  scalar_metric.reserve(number_of_center_vertices);
 
   // Check Metric Dimension and Vector Size
-  for (unsigned int i{}; i < n_total_points; i++) {
-    scalar_metric.push_back(normed_orientation_metric * original_point_list[i]);
+  for (unsigned int i{}; i < number_of_center_vertices; i++) {
+    scalar_metric.push_back(normed_metric * original_point_list[i]);
   }
 
   // Sort Metric Vector
@@ -251,7 +287,7 @@ std::vector<std::size_t> IndexUniquePointList(
   // Start Uniquifying
   Logger::ExtendedInformation("Start unique indexing of control points");
   std::size_t number_of_new_points{};
-  for (std::size_t lower_limit{0}; lower_limit < n_total_points - 1;
+  for (std::size_t lower_limit{0}; lower_limit < number_of_center_vertices - 1;
        lower_limit++) {
     // Point already processed
     if (unique_indices[metric_order_indices[lower_limit]] !=
@@ -264,7 +300,7 @@ std::vector<std::size_t> IndexUniquePointList(
 
     // Now check allowed range for duplicates
     unsigned int upper_limit = lower_limit + 1;
-    while (upper_limit < n_total_points &&
+    while (upper_limit < number_of_center_vertices &&
            scalar_metric[metric_order_indices[upper_limit]] -
                    scalar_metric[metric_order_indices[lower_limit]] <
                tolerance) {
@@ -295,8 +331,8 @@ std::vector<std::size_t> IndexUniquePointList(
     unique_indices[metric_order_indices[last_index]] = number_of_new_points;
   }
   Logger::Logging("Found " + std::to_string(number_of_new_points) +
-                  " unique points out of " + std::to_string(n_total_points) +
-                  " points");
+                  " unique points out of " +
+                  std::to_string(number_of_center_vertices) + " points");
   return unique_indices;
 }
 
@@ -325,9 +361,6 @@ constexpr auto ExtractMFEMInformation(
   constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
   constexpr auto subelement_vertex_ids =
       HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
-  constexpr auto opposite_faces =
-      HyperCube<kParametricDimensions_>::GetOppositeFaces();
-  constexpr std::size_t number_of_element_faces = opposite_faces.size();
   constexpr std::size_t number_of_element_vertices{algorithms::IntPower(
       static_cast<std::size_t>(2), kParametricDimensions_)};
   constexpr std::size_t number_of_vertices_per_face{algorithms::IntPower(
@@ -342,36 +375,14 @@ constexpr auto ExtractMFEMInformation(
       2 * kParametricDimensions_ - 2};
 
   // Consistency check
-  assert(corner_vertices.size() % number_of_element_vertices == 0);
-
-  // -- Determine connectivity --
-  // Calculate face centers
-  std::vector<PhysicalPointType> face_center_vertices;
-  face_center_vertices.reserve(number_of_patches * number_of_element_faces);
-
-  // Start the actual loop
-  // (Instead of using the mean of the face vertices, using the sum)
-  for (std::size_t i_spline{}; i_spline < number_of_patches; i_spline++) {
-    const std::size_t patch_vertex_index_offset =
-        i_spline * number_of_element_vertices;
-    const std::size_t patch_face_index_offset =
-        i_spline * number_of_element_faces;
-    for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
-      face_center_vertices.push_back(
-          corner_vertices[patch_vertex_index_offset +
-                          subelement_vertex_ids[i_face][0]]);
-      for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
-           i_point++) {
-        face_center_vertices[patch_face_index_offset + i_face] +=
-            corner_vertices[patch_vertex_index_offset +
-                            subelement_vertex_ids[i_face][i_point]];
-      }
-    }
+  if (corner_vertices.size() % number_of_element_vertices != 0) {
+    Logger::TerminatingError(
+        "Number of corner-vertices invalid. Maybe the spline does not fulfill "
+        "paradim=dim");
   }
 
   // Find connectivity using face centers
-  const auto connectivity =
-      FindConnectivity(face_center_vertices, metric, opposite_faces);
+  const auto connectivity = FindConnectivity(corner_vertices, metric);
   Logger::ExtendedInformation("Connectivity determined");
 
   // -- Enumerate Vertices --

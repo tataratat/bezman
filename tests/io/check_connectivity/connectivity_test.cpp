@@ -48,19 +48,19 @@ class ConnectivityCheckSuite : public ::testing::Test {
    *               |         |
    *              (3)   2   (1)
    *               |         |
-   *               0 --(0)-- 1
+   * origin        0 --(0)-- 1
    */
   using Point2D = ::bezman::Point<2ul, double>;
 
  public:
   // Face center points
-  std::vector<Point2D> face_center_points{
+  std::vector<Point2D> corner_vertices{
       // First Patch
-      Point2D{0.5, 1.}, Point2D{1., 1.5}, Point2D{0.5, 2.}, Point2D{0., 1.5},
+      Point2D{0., 1.}, Point2D{1., 1.}, Point2D{1., 2.}, Point2D{0., 2.},
       // Second Patch
-      Point2D{1.5, 1.}, Point2D{2., 1.5}, Point2D{1.5, 2.}, Point2D{1., 1.5},
+      Point2D{1., 1.}, Point2D{2., 1.}, Point2D{2., 2.}, Point2D{1., 2.},
       // Third Patch
-      Point2D{1.5, 0.}, Point2D{2., 0.5}, Point2D{1.5, 1.}, Point2D{1., 0.5}};
+      Point2D{1., 0.}, Point2D{2., 0.}, Point2D{2., 1.}, Point2D{1., 1.}};
 
   // Expected Connectivity
   std::vector<std::array<std::size_t, 4>> expected_connectivity{
@@ -81,14 +81,11 @@ class ConnectivityCheckSuite : public ::testing::Test {
        static_cast<std::size_t>(-1)}  // 3
   };
 
-  // List of opposite faces
-  std::array<std::size_t, 4> opposite_faces{2, 3, 0, 1};
-
   // Metric
   Point2D metric{1.1, 1.};
 
   // Unique List
-  std::vector<std::size_t> uniquelist{1, 5, 4, 0, 6, 9, 8, 5, 3, 7, 6, 2};
+  std::vector<std::size_t> uniquelist{0, 3, 5, 2, 3, 6, 7, 5, 1, 4, 6, 3};
 };
 
 /*
@@ -97,7 +94,7 @@ class ConnectivityCheckSuite : public ::testing::Test {
 TEST_F(ConnectivityCheckSuite, ConnectivityTest) {
   // Calculate the connectivity
   const auto connectivity =
-      algorithms::FindConnectivity(face_center_points, metric, opposite_faces);
+      algorithms::FindConnectivity(corner_vertices, metric);
 
   EXPECT_EQ(connectivity, expected_connectivity);
 }
@@ -108,7 +105,7 @@ TEST_F(ConnectivityCheckSuite, ConnectivityTest) {
 TEST_F(ConnectivityCheckSuite, UniquifyPointsTest) {
   // Calculate the connectivity
   const auto connectivity =
-      algorithms::IndexUniquePointList(face_center_points, metric);
+      algorithms::IndexUniquePointList(corner_vertices, metric);
 
   EXPECT_EQ(connectivity, uniquelist);
 }

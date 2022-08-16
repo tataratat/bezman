@@ -1,8 +1,8 @@
-name: Build, Test and Check Format
+name: Check Format
 
 on:
   push:
-    branches: [ "main", "ft-change-workflow" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 

@@ -1,8 +1,8 @@
-name: Build, Test and Check Format
+name: Build gcc
 
 on:
   push:
-    branches: [ "main", "ft-change-workflow" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 

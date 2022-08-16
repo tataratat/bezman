@@ -162,10 +162,10 @@ class Base64_ {
       typename OutputType,
       std::enable_if_t<type_traits::isPoint_v<OutputType>, void*> = nullptr>
   static std::vector<bezman::Point<OutputType::kSpatialDimension,
-                                   typename OutputType::ScalarType>>
+                                   typename OutputType::ScalarType_>>
   Decode(const std::string& base64string) {
     // Aliases for readability
-    using ScalarType = typename OutputType::ScalarType;
+    using ScalarType = typename OutputType::ScalarType_;
     constexpr std::size_t dimension = OutputType::kSpatialDimension;
 
     // Convert into Scalar Vector

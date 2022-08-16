@@ -29,6 +29,7 @@ SOFTWARE.
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 
 #include "bezman/src/bezier_group.hpp"
 #include "bezman/src/bezier_spline.hpp"

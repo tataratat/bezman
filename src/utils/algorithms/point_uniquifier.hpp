@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include <array>
 #include <cassert>
+#include <map>
+#include <tuple>
 #include <vector>
 
 #include "bezman/src/bezier_group.hpp"
@@ -104,7 +106,6 @@ constexpr auto FindConnectivity(
   assert(number_of_center_vertices % number_of_element_faces == 0);
 
   // Assure Metric is normed and non-zero
-
   const Point<kParametricDimensions_, ScalarType> normed_metric =
       [](PhysicalPointType metric) {
         if (metric.EuclidianNorm() < 1e-20) {

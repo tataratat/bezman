@@ -94,7 +94,7 @@ class ConnectivityCheckSuite : public ::testing::Test {
 TEST_F(ConnectivityCheckSuite, ConnectivityTest) {
   // Calculate the connectivity
   const auto connectivity =
-      algorithms::FindConnectivity(corner_vertices, metric);
+      algorithms::FindConnectivity(corner_vertices, metric, 1e-5);
 
   EXPECT_EQ(connectivity, expected_connectivity);
 }

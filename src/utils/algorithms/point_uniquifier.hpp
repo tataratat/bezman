@@ -57,7 +57,8 @@ template <typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
 constexpr auto FindConnectivity(
     const std::vector<PhysicalPointType>& corner_vertices,
-    const PhysicalPointType& metric, const ScalarType tolerance = 1e-5) {
+    const PhysicalPointType& metric, const ScalarType tolerance,
+    const bool& check_orientation = true) {
   // -- Auxiliary data --
   constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
   constexpr auto subelement_vertex_ids =
@@ -72,7 +73,11 @@ constexpr auto FindConnectivity(
   const ScalarType tolerance_squared{tolerance * tolerance};
 
   // Consistency check
-  assert(corner_vertices.size() % number_of_element_vertices == 0);
+  if (!(corner_vertices.size() % number_of_element_vertices == 0)) {
+    Logger::TerminatingError(
+        "Number of corner vertices invalid. Must be a multiple of the number "
+        "of vertices per patch");
+  }
 
   // -- Determine connectivity --
   // Calculate face centers
@@ -198,14 +203,16 @@ constexpr auto FindConnectivity(
 
       // Check 2. (@todo EXCEPTION)
       // TODO check if mfem format is used for the output -> if not do not check
-      if (opposite_face_list[element_face_id_start] != element_face_id_end) {
+      if (check_orientation &&
+          opposite_face_list[element_face_id_start] != element_face_id_end) {
         Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
         // @todo In order to get the connectivity only, this check needs to be
         // performed, a boolean value needs to be switched, but the connectivity
         // is still returned
       }
 #ifndef NDEBUG
-      if (opposite_face_list[element_face_id_end] != element_face_id_start) {
+      if (check_orientation &&
+          opposite_face_list[element_face_id_end] != element_face_id_start) {
         Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
       }
 #endif
@@ -347,10 +354,11 @@ std::vector<std::size_t> IndexUniquePointList(
  * @tparam PhysicalPointType array-type for coordinates
  * @param std::vector<PhysicalPointType> vector of corner vertices
  */
-template <typename PhysicalPointType>
+template <typename PhysicalPointType,
+          typename ScalarType = typename PhysicalPointType::ScalarType_>
 constexpr auto ExtractMFEMInformation(
     const std::vector<PhysicalPointType>& corner_vertices,
-    const PhysicalPointType& metric) {
+    const PhysicalPointType& metric, const ScalarType& tolerance = 1e-5) {
   // Inform user in debug build with extensive export, that the function is
   // using strong assumptions
   Logger::Logging(
@@ -383,7 +391,8 @@ constexpr auto ExtractMFEMInformation(
   }
 
   // Find connectivity using face centers
-  const auto connectivity = FindConnectivity(corner_vertices, metric);
+  const auto connectivity =
+      FindConnectivity(corner_vertices, metric, tolerance);
   Logger::ExtendedInformation("Connectivity determined");
 
   // -- Enumerate Vertices --

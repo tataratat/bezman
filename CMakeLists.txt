@@ -7,11 +7,12 @@ cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 # Define Project
 project("bezman"
         VERSION 0.0.1
-        DESCRIPTION "A header library to facilitate the manipulation of Bezier-splines"
+        DESCRIPTION
+            "A header library to facilitate the manipulation of Bezier-splines"
         LANGUAGES CXX)
 
 # Options
-option(GOOGLETEST "Build with GoogleTest" ON)
+option(BEZMAN_GOOGLETEST "Build with GoogleTest" ON)
 
 # Config
 set(namespace "${PROJECT_NAME}::")
@@ -55,7 +56,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:-O3 -march=native>)
     set(RUNTIME_CHECKS_DEBUG -D_GLIBCXX_DEBUG)
     set(WARNING_FLAGS -Wall -Wextra -Wpedantic -Wzero-as-null-pointer-constant
-                      $<$<NOT:$<CONFIG:Debug>>:-Wno-unused>)
+                      -Wno-unused>)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(
         WARNING 
@@ -69,8 +70,9 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(WARNING_FLAGS 
             -Wall -Wextra -Wmost -Wextra -Wpedantic
             -Wunreachable-code -Wshadow -Wfloat-equal -Weffc++
-            $<$<NOT:$<CONFIG:Debug>>:-Wno-unused-parameter -Wno-unused-variable>
-            $<$<BOOL:${GOOGLETEST}>:-Wno-gnu-zero-variadic-macro-arguments>)
+            -Wno-unused-parameter -Wno-unused-variable>
+            $<$<BOOL:${BEZMAN_GOOGLETEST}>:
+                -Wno-gnu-zero-variadic-macro-arguments>)
 else()
     message(ERROR "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}")
 endif()
@@ -97,18 +99,20 @@ target_include_directories(${MY_FANCY_TARGET_NAME}
 target_compile_options(${MY_FANCY_TARGET_NAME}
     INTERFACE
         $<IF:$<CONFIG:Release>,${OPTIMIZATION_FLAGS},
-                               ${RUMTIME_HCECK_DEBUG}>
-        ${WARNING_FLAGS})
+                               ${RUNTIME_CHECK_DEBUG}>
+        $<IF:$<CONFIG:Debug>,${WARNING_FLAGS}>)
 target_compile_features(${MY_FANCY_TARGET_NAME} INTERFACE cxx_std_17)
 
 # 2. logging
 add_library(${MY_FANCY_LOGGER_TARGET} INTERFACE)
-add_library(${namespace}${MY_FANCY_LOGGER_TARGET} ALIAS ${MY_FANCY_LOGGER_TARGET})
+add_library(
+    ${namespace}${MY_FANCY_LOGGER_TARGET} ALIAS ${MY_FANCY_LOGGER_TARGET}
+)
 target_compile_definitions(${MY_FANCY_LOGGER_TARGET} INTERFACE ENABLE_LOGGING)
 
 # Install and provide testing 
 # Always download and build googletest
-if(GOOGLETEST)
+if(BEZMAN_GOOGLETEST)
     message(STATUS "Build tests!")
     message(STATUS "---- downloading and building GoogleTest...")
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddGoogleTest.cmake)

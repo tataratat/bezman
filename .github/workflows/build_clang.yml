@@ -1,4 +1,4 @@
-name: Build gcc
+name: Build clang
 
 on:
   push:
@@ -19,8 +19,8 @@ jobs:
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
       shell: bash
       env:
-        CC:   gcc-10
-        CXX:  g++-10
+        CC:   clang
+        CXX:  clang++
 
     - name: Build
       # Build your program with the given configuration
@@ -42,8 +42,8 @@ jobs:
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug
         shell: bash
         env:
-          CC: gcc-10
-          CXX: g++-10
+          CC: clang
+          CXX: clang++
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config Debug

@@ -55,7 +55,7 @@ namespace bezman::utils::algorithms {
  */
 template <typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
-constexpr auto FindConnectivity(
+auto FindConnectivity(
     const std::vector<PhysicalPointType>& corner_vertices,
     const PhysicalPointType& metric, const ScalarType tolerance,
     const bool& check_orientation = true) {
@@ -356,7 +356,7 @@ std::vector<std::size_t> IndexUniquePointList(
  */
 template <typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
-constexpr auto ExtractMFEMInformation(
+auto ExtractMFEMInformation(
     const std::vector<PhysicalPointType>& corner_vertices,
     const PhysicalPointType& metric, const ScalarType& tolerance = 1e-5) {
   // Inform user in debug build with extensive export, that the function is

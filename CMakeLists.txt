@@ -11,6 +11,8 @@ project("bezman"
             "A header library to facilitate the manipulation of Bezier-splines"
         LANGUAGES CXX)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 # Options
 option(BEZMAN_GOOGLETEST "Build with GoogleTest" ON)
 

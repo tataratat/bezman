@@ -15,6 +15,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Options
 option(BEZMAN_GOOGLETEST "Build with GoogleTest" ON)
+option(BEZMAN_USE_COMPILE_OPTIONS "Populates INTERFACE compile flags" ON)
 
 # Config
 set(namespace "${PROJECT_NAME}::")
@@ -55,7 +56,7 @@ endif()
 
 # Set compile information
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:-O3>)
+    set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:"-O3">)
     set(RUNTIME_CHECKS_DEBUG -D_GLIBCXX_DEBUG)
     set(WARNING_FLAGS -Wall -Wextra -Wpedantic -Wzero-as-null-pointer-constant
                       -Wno-unused>)
@@ -67,7 +68,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             "[github.com/tataratat/bezman] with any problems."
             "Thank you!"
     )
-    set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:-O3>)
+    set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:"-O3">)
     set(RUNTIME_CHECKS_DEBUG)
     set(WARNING_FLAGS 
             -Wall -Wextra -Wmost -Wextra -Wpedantic
@@ -97,10 +98,17 @@ target_include_directories(${MY_FANCY_TARGET_NAME}
     INTERFACE
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/..>
         $<INSTALL_INTERFACE:${incl_dest}>)
-target_compile_options(${MY_FANCY_TARGET_NAME}
-    INTERFACE
-        $<IF:$<CONFIG:Release>,${OPTIMIZATION_FLAGS},
-                               ${RUNTIME_CHECK_DEBUG} ${WARNING_FLAGS}>)
+
+# As a header only library, it does not make sense to populate interface
+# compile options unless it is absolutely necessary.
+# Currently none of the flags are necessary for bezman to work. However,
+# here's option to not disturb previous workflows.
+if(BEZMAN_USE_COMPILE_FLAGS)
+    target_compile_options(${MY_FANCY_TARGET_NAME} INTERFACE
+        $<IF:$<CONFIG:Release>,${OPTIMIZATION_FLAGS},${RUNTIME_CHECK_DEBUG}>
+        ${WARNING_FLAGS})
+endif()
+
 target_compile_features(${MY_FANCY_TARGET_NAME} INTERFACE cxx_std_17)
 
 # 2. logging

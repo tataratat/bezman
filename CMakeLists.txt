@@ -104,7 +104,7 @@ target_include_directories(${MY_FANCY_TARGET_NAME}
 # here's option to not disturb previous workflows.
 if(BEZMAN_USE_COMPILE_OPTIONS)
     target_compile_options(${MY_FANCY_TARGET_NAME} INTERFACE
-        $<IF:$<CONFIG:Release>,"${OPTIMIZATION_FLAGS}","${RUNTIME_CHECK_DEBUG}">
+        "$<IF:$<CONFIG:Release>,${OPTIMIZATION_FLAGS},${RUNTIME_CHECK_DEBUG}>"
         ${WARNING_FLAGS})
 
     string(CONCAT COMPILE_OPTION_WARNING_PHRASE_0

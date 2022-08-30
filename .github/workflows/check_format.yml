@@ -18,4 +18,4 @@ jobs:
         run: sudo apt-get install -y clang-format
 
       - name: Format
-        run: clang-format --dry-run --style=Google -Werror **/*.inc **/*.hpp
+        run: find src -iname *.hpp -o -iname *inc | xargs clang-format --dry-run --style=Google -Werror

@@ -119,7 +119,8 @@ if(BEZMAN_USE_COMPILE_OPTIONS)
     string(CONCAT COMPILE_OPTION_WARNING_PHRASE_2
         "\n-DBEZMAN_USE_COMPILE_FLAGS=OFF.\n"
         "Following options(flags) will be added: "
-        "<IF:$<CONFIG:Release>,${OPTIMIZATION_FLAGS},${RUNTIME_CHECK_DEBUG}>"
+        "$<$<BOOL:$<CONFIG:Release>>:${OPTIMIZATION_FLAGS}>"
+        "$<$<BOOL:$<CONFIG:Debug>>:${RUNTIME_CHECKS_DEBUG}>"
         "${WARNING_FLAGS}\n"
         "****************************************************************"
     )

@@ -11,11 +11,10 @@ project("bezman"
             "A header library to facilitate the manipulation of Bezier-splines"
         LANGUAGES CXX)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
 # Options
 option(BEZMAN_GOOGLETEST "Build with GoogleTest" ON)
 option(BEZMAN_USE_COMPILE_OPTIONS "Populates INTERFACE compile flags" ON)
+
 
 # Config
 set(namespace "${PROJECT_NAME}::")
@@ -56,7 +55,7 @@ endif()
 
 # Set compile information
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:"-O3">)
+    set(OPTIMIZATION_FLAGS -O3>)
     set(RUNTIME_CHECKS_DEBUG -D_GLIBCXX_DEBUG)
     set(WARNING_FLAGS -Wall -Wextra -Wpedantic -Wzero-as-null-pointer-constant
                       -Wno-unused>)
@@ -68,7 +67,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             "[github.com/tataratat/bezman] with any problems."
             "Thank you!"
     )
-    set(OPTIMIZATION_FLAGS $<$<NOT:$<CONFIG:Debug>>:"-O3">)
+    set(OPTIMIZATION_FLAGS -O3)
     set(RUNTIME_CHECKS_DEBUG)
     set(WARNING_FLAGS 
             -Wall -Wextra -Wmost -Wextra -Wpedantic
@@ -103,10 +102,45 @@ target_include_directories(${MY_FANCY_TARGET_NAME}
 # compile options unless it is absolutely necessary.
 # Currently none of the flags are necessary for bezman to work. However,
 # here's option to not disturb previous workflows.
-if(BEZMAN_USE_COMPILE_FLAGS)
+if(BEZMAN_USE_COMPILE_OPTIONS)
     target_compile_options(${MY_FANCY_TARGET_NAME} INTERFACE
         $<IF:$<CONFIG:Release>,${OPTIMIZATION_FLAGS},${RUNTIME_CHECK_DEBUG}>
         ${WARNING_FLAGS})
+
+    string(CONCAT COMPILE_OPTION_WARNING_PHRASE_0
+        "****************************************************************\n"
+        "BEZMAN's default compile options will propagate to all the "
+        "libraries that links BEZMAN. "
+    )
+    set(COMPILE_OPTION_WARNING_PHRASE_1
+        "If you want to DISABLE this behavior, you can RE-INSTALL BEZMAN with"
+    )
+    string(CONCAT COMPILE_OPTION_WARNING_PHRASE_2
+        "\n-DBEZMAN_USE_COMPILE_FLAGS=OFF.\n"
+        "Following options(flags) will be added: "
+        <IF:$<CONFIG:Release>,${OPTIMIZATION_FLAGS},${RUNTIME_CHECK_DEBUG}>
+        "${WARNING_FLAGS}\n"
+        "****************************************************************"
+    )
+endif()
+string(CONCAT BEZMAN_COMPILE_OPTION_WARNING
+    ${COMPILE_OPTION_WARNING_PHRASE_0}
+    ${COMPILE_OPTION_WARNING_PHRASE_1}
+    ${COMPILE_OPTION_WARNING_PHRASE_2}
+)
+
+# Give warning directly, if bezman is likely a dependency in other project
+get_directory_property(BEZMAN_NOT_TOPLEVEL_PROJECT PARENT_DIRECTORY)
+if(BEZMAN_NOT_TOPLEVEL_PROJECT AND BEZMAN_USE_COMPILE_OPTIONS)
+    set(COMPILE_OPTION_WARNING_PHRASE_1
+        "You can DISABLE it by setting"
+
+    )
+    message(WARNING
+        ${COMPILE_OPTION_WARNING_PHRASE_0}
+        ${COMPILE_OPTION_WARNING_PHRASE_1}
+        ${COMPILE_OPTION_WARNING_PHRASE_2}
+    )
 endif()
 
 target_compile_features(${MY_FANCY_TARGET_NAME} INTERFACE cxx_std_17)

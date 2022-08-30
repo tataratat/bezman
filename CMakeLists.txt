@@ -55,7 +55,7 @@ endif()
 
 # Set compile information
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(OPTIMIZATION_FLAGS -O3>)
+    set(OPTIMIZATION_FLAGS -O3)
     set(RUNTIME_CHECKS_DEBUG -D_GLIBCXX_DEBUG)
     set(WARNING_FLAGS -Wall -Wextra -Wpedantic -Wzero-as-null-pointer-constant
                       -Wno-unused>)

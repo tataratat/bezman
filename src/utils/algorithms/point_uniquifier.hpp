@@ -55,10 +55,10 @@ namespace bezman::utils::algorithms {
  */
 template <typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
-auto FindConnectivity(
-    const std::vector<PhysicalPointType>& corner_vertices,
-    const PhysicalPointType& metric, const ScalarType tolerance,
-    const bool& check_orientation = true) {
+auto FindConnectivity(const std::vector<PhysicalPointType>& corner_vertices,
+                      const PhysicalPointType& metric,
+                      const ScalarType tolerance,
+                      const bool& check_orientation = true) {
   // -- Auxiliary data --
   constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
   constexpr auto subelement_vertex_ids =

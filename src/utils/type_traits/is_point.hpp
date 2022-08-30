@@ -27,9 +27,8 @@ SOFTWARE.
 
 #include "bezman/src/point.hpp"
 
-namespace bezman::utils::type_traits
-{
-  
+namespace bezman::utils::type_traits {
+
 /// Checker if a template type is an instance of Point
 template <typename PointType>
 struct isPoint {
@@ -46,7 +45,6 @@ struct isPoint<Point<spatial_dimension, BaseType>> {
 template <typename PointType>
 inline constexpr bool isPoint_v = isPoint<PointType>::value;
 
-} // namespace bezman::utils::type_traits
-
+}  // namespace bezman::utils::type_traits
 
 #endif  // UTILS_TYPE_TRAITS_IS_POINT_HPP

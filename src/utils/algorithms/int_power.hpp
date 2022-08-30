@@ -44,6 +44,6 @@ constexpr IntegralType IntPower(const IntegralType& base,
     return base * tmp * tmp;
   }
 }
-}  // namespace bezman::utils::sort
+}  // namespace bezman::utils::algorithms
 
 #endif  // UTILS_ALGORITHMS_INT_POWER_HPP

@@ -89,7 +89,8 @@ class MicrostructureGenerator {
     // Initialize return value
     std::vector<PolyBezierGroup> return_value(
         ValueField::kNumberOfSuperParameters + 1u,
-        PolyBezierGroup(Microtile::kNumberOfSplines * deformation_function.size()));
+        PolyBezierGroup(Microtile::kNumberOfSplines *
+                        deformation_function.size()));
 
     // Every spline in the mirostructure defines a specific range of the
     // total spline group. We consider an even splitting, meaning that that

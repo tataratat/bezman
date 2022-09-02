@@ -24,12 +24,13 @@ If applicable, a short / one-liner example to highlight the new feature
 
 
 # Check list
-### Test documentation
+### Test documentation (delete if not applicable)
 * [ ]  Build Debug
 * [ ]  Build Release Mode
 * [ ]  Executed Tests
 * [ ]  Build Tests
 * [ ]  Executed Examples
+* [ ]  Added new unit test for new feature
 
 ### Documentation of changes and theory
 * [ ]  I have updated the relevant documentations, as far as necessary.

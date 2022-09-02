@@ -259,10 +259,22 @@ class BezierSpline {
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
   BasisFunctions(const PointTypeParametric_& par_coords) const;
 
+  /// Evaluate Basis Functions Derivatives
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  BasisFunctionsDerivatives(
+      const PointTypeParametric_& par_coords,
+      const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
+
   /// Evaluate the spline via the explicit precomputation of bernstein
   /// values
   constexpr PhysicalPointType_ ForwardEvaluate(
       const PointTypeParametric_& par_coords) const;
+
+  /// Evaluate the derivatives of a spline via the explicit precomputation of
+  /// bernstein polynomial derivativs
+  constexpr PhysicalPointType_ EvaluateDerivative(
+      const PointTypeParametric_& par_coords,
+      const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
 
   /// Evaluate the spline using explicit precomputation of bernstein values
   template <typename... T>

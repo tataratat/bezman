@@ -333,6 +333,48 @@ constexpr PhysicalPointType BezierSpline<
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    BasisFunctionsDerivatives(
+        const PointTypeParametric_& par_coords,
+        const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
+  std::array<std::vector<ScalarType>, parametric_dimension> factors;
+
+  // Preallocate space to vectors
+  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
+    factors[par_dim] =
+        utils::algorithms::BernsteinPolynomial<ScalarType>::EvaluateDerivative(
+            degrees[par_dim], par_coords[par_dim], nth_derivs[par_dim]);
+  }
+
+  return factors;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr PhysicalPointType
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    EvaluateDerivative(
+        const PointTypeParametric_& par_coords,
+        const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
+  /*
+   * Here we avoid Point operations and try to precompute as many values as
+   * possible, this greatly increases the complexity of the necessary code.
+   */
+  const auto factors = BasisFunctionsDerivatives(par_coords, nth_derivs);
+
+  /*
+   * Now that all values have been precomputed we have to sum up the
+   * individual contributions using (compile-time) recursion
+   */
+  PhysicalPointType_ evaluation_point{};
+
+  return AddUpContributionsToControlPointVector_(evaluation_point, factors,
+                                                 static_cast<ScalarType>(1.));
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 template <typename... Indices>
 constexpr PhysicalPointType
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::

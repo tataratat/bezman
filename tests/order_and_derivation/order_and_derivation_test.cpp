@@ -33,7 +33,9 @@ using namespace bezman;
 namespace bezman::tests::basic_operations {
 
 class BezierTestingSuite : public ::testing::Test {
+ public:
   using Point2D = Point<2, double>;
+  using Point3D = Point<3, double>;
 
  protected:
   void SetUp() override {}
@@ -69,12 +71,15 @@ class BezierTestingSuite : public ::testing::Test {
   BezierSpline<2, Point2D, double> surface_spline{surface_degrees,
                                                   surface_ctps};
 
-  auto CreateRandomSpline(unsigned int degree) {
-    BezierSpline<1, double, double> randomSpline{
-        std::array<std::size_t, 1>{degree}};
-    for (unsigned int i{}; i < degree; i++) {
-      randomSpline.ControlPoint(i) =
-          static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+  template <std::size_t para_dim>
+  auto CreateRandomSpline(const std::array<std::size_t, para_dim>& degrees) {
+    BezierSpline<para_dim, Point3D, double> randomSpline{degrees};
+    for (std::size_t i_ctps{}; i_ctps < randomSpline.GetNumberOfControlPoints();
+         i_ctps++) {
+      for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
+        randomSpline.control_points[i_ctps][i_dim] =
+            static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+      }
     }
     return randomSpline;
   }
@@ -89,7 +94,7 @@ TEST_F(BezierTestingSuite, OrderElevation) {
 // Demonstrate Elevation at random Points and random lines
 TEST_F(BezierTestingSuite, OrderElevation2) {
   // Expect equality.
-  auto spline1 = CreateRandomSpline(10);
+  auto spline1 = CreateRandomSpline(std::array<std::size_t, 1>{10});
   const auto spline1_original = spline1;
   // Elevate the order a couple of times
   spline1.OrderElevateAlongParametricDimension(0)
@@ -100,7 +105,9 @@ TEST_F(BezierTestingSuite, OrderElevation2) {
 
   for (int i{}; i < 10; i++) {
     const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    EXPECT_FLOAT_EQ(spline1.Evaluate(x), spline1_original.Evaluate(x));
+    EXPECT_FLOAT_EQ(spline1.Evaluate(x)[0], spline1_original.Evaluate(x)[0]);
+    EXPECT_FLOAT_EQ(spline1.Evaluate(x)[1], spline1_original.Evaluate(x)[1]);
+    EXPECT_FLOAT_EQ(spline1.Evaluate(x)[2], spline1_original.Evaluate(x)[2]);
   }
 }
 
@@ -129,5 +136,43 @@ TEST_F(BezierTestingSuite, OrderElevation3) {
 TEST_F(BezierTestingSuite, Derivation) {
   // Expect equality.
   EXPECT_EQ(line1.DerivativeWRTParametricDimension(0), line1_deriv);
+}
+
+// Demonstrate the direct evaluation of a derivative
+TEST_F(BezierTestingSuite, DerivativeEvaluation) {
+  auto rand_int = [](const std::size_t& min, const std::size_t& max) {
+    std::size_t interval = max - min;
+    return min + rand() % interval;
+  };
+  const auto degrees = std::array<std::size_t, 3>{
+      rand_int(5, 10), rand_int(5, 10), rand_int(5, 10)};
+  const auto derivs = std::array<std::size_t, 3>{rand_int(0, 5), rand_int(0, 5),
+                                                 rand_int(0, 5)};
+  const auto random_spline = CreateRandomSpline(degrees);
+  auto random_spline_deriv = random_spline;
+  for (std::size_t i_para_dim{}; i_para_dim < 3; i_para_dim++) {
+    for (std::size_t i_deriv{}; i_deriv < derivs[i_para_dim]; i_deriv++) {
+      random_spline_deriv =
+          random_spline_deriv.DerivativeWRTParametricDimension(i_para_dim);
+    }
+  }
+  const std::size_t n_tests = 10;
+  for (std::size_t i_test{}; i_test < n_tests; i_test++) {
+    // Create evaluation points
+    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    const double y{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    const double z{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
+    Point3D eval_point{x, y, z};
+    const auto result = random_spline.EvaluateDerivative(
+        // Evaluation Point
+        eval_point,
+        // derivatives
+        derivs);
+    const auto result_2 = random_spline_deriv.Evaluate(eval_point);
+    // Compare results dimensions
+    for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
+      EXPECT_FLOAT_EQ(result[i_dim], result_2[i_dim]);
+    }
+  }
 }
 }  // namespace bezman::tests::basic_operations

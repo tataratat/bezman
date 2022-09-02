@@ -32,6 +32,7 @@ SOFTWARE.
 #include <vector>
 
 #include "bezman/src/point.hpp"
+#include "bezman/src/utils/algorithms/bernstein_polynomial.hpp"
 #include "bezman/src/utils/fastbinomialcoefficient.hpp"
 #include "bezman/src/utils/logger.hpp"
 #include "bezman/src/utils/type_traits/is_bezier_spline.hpp"

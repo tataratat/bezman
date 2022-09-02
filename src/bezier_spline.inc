@@ -302,29 +302,9 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 
   // Preallocate space to vectors
   for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    factors[par_dim].reserve(degrees[par_dim] + 1);
-  }
-
-  // Loop over parametric dimensions to precalculate basisfunctions
-  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    ScalarType_ cfactor = static_cast<ScalarType>(1.);
-    const ScalarType_ t_value = par_coords[par_dim];
-    const ScalarType_ inv_t_value = 1. - par_coords[par_dim];
-    const IndexingType c_degree = degrees[par_dim];
-    // Loop over dimensionwise ctps
-    for (IndexingType i_ctps{0}; i_ctps < c_degree + 1; i_ctps++) {
-      factors[par_dim].push_back(
-          static_cast<ScalarType>(
-              utils::FastBinomialCoefficient::choose(c_degree, i_ctps)) *
-          cfactor);
-      cfactor *= t_value;
-    }
-    // Backwards assignment
-    cfactor = static_cast<ScalarType>(1.);
-    for (IndexingType i_ctps{0}; i_ctps < c_degree + 1; i_ctps++) {
-      factors[par_dim][c_degree - i_ctps] *= cfactor;
-      cfactor *= inv_t_value;
-    }
+    factors[par_dim] =
+        utils::algorithms::BernsteinPolynomial<ScalarType>::Evaluate(
+            degrees[par_dim], par_coords[par_dim]);
   }
 
   return factors;

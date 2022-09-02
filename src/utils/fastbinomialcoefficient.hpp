@@ -26,6 +26,7 @@ SOFTWARE.
 #define SRC_UTILS_FASTBINOMIALCOEFFICIENT_HPP
 
 #include <array>
+#include <cassert>
 
 #include "bezman/src/utils/binomialcoefficientlookuptablecreator.hpp"
 

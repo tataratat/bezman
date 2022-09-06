@@ -309,38 +309,39 @@ TEST_F(RationalSplineTestSuite, DerivativeTesting) {
 
 // Test Derivatives of rational Beziers
 TEST_F(RationalSplineTestSuite, DerivativeEvaluation) {
-  auto rand_int = [](const std::size_t& min, const std::size_t& max) {
-    std::size_t interval = max - min;
-    return min + rand() % interval;
-  };
-  const auto degrees = std::array<std::size_t, 3>{
-      rand_int(3, 6), rand_int(3, 6), rand_int(3, 6)};
-  const auto derivs = std::array<std::size_t, 3>{rand_int(0, 3), rand_int(0, 3),
-                                                 rand_int(0, 3)};
-  const auto random_spline = CreateRandomSpline(degrees);
-  auto random_spline_deriv = random_spline;
-  for (std::size_t i_para_dim{}; i_para_dim < 3; i_para_dim++) {
-    for (std::size_t i_deriv{}; i_deriv < derivs[i_para_dim]; i_deriv++) {
-      random_spline_deriv =
-          random_spline_deriv.DerivativeWRTParametricDimension(i_para_dim);
-    }
-  }
-  const std::size_t n_tests = 10;
+  constexpr std::size_t n_tests{3}, para_dims{2};
+  const std::size_t n_test_evaluations{5};
   for (std::size_t i_test{}; i_test < n_tests; i_test++) {
-    // Create evaluation points
-    const double x{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    const double y{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    const double z{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
-    Point3D eval_point{x, y, z};
-    const auto result = random_spline.EvaluateDerivative(
-        // Evaluation Point
-        eval_point,
-        // derivatives
-        derivs);
-    const auto result_2 = random_spline_deriv.Evaluate(eval_point);
-    // Compare results dimensions
-    for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
-      EXPECT_FLOAT_EQ(result[i_dim], result_2[i_dim]);
+    const auto degrees = std::array<std::size_t, para_dims>{3, 3};
+    const auto derivs = std::array<std::array<std::size_t, para_dims>, n_tests>{
+        2, 0, 1, 1, 1, 2}[i_test];
+    const auto random_spline = CreateRandomSpline(degrees);
+    auto random_spline_deriv = random_spline;
+    for (std::size_t i_para_dim{}; i_para_dim < para_dims; i_para_dim++) {
+      for (std::size_t i_deriv{}; i_deriv < derivs[i_para_dim]; i_deriv++) {
+        random_spline_deriv =
+            random_spline_deriv.DerivativeWRTParametricDimension(i_para_dim);
+      }
+    }
+
+    // Evaluate for comparison
+    for (std::size_t i_test{}; i_test < n_test_evaluations; i_test++) {
+      // Create evaluation points
+      const double x{static_cast<double>(rand()) /
+                     static_cast<double>(RAND_MAX)};
+      const double y{static_cast<double>(rand()) /
+                     static_cast<double>(RAND_MAX)};
+      Point2D eval_point{x, y};
+      const auto result = random_spline.EvaluateDerivative(
+          // Evaluation Point
+          eval_point,
+          // derivatives
+          derivs);
+      const auto result_2 = random_spline_deriv.Evaluate(eval_point);
+      // Compare results dimensions
+      for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
+        EXPECT_FLOAT_EQ(result[i_dim], result_2[i_dim]);
+      }
     }
   }
 }

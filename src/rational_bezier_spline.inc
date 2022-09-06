@@ -227,6 +227,16 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     }
     return id;
   };
+  // Check if requested derivative is "subset" to current derivative
+  auto is_not_subset_ =
+      [](const std::array<std::size_t, parametric_dimension>& req_derivs_max,
+         const std::array<std::size_t, parametric_dimension>& req_derivs)
+      -> bool {
+    for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+      if (req_derivs[i_pd] > req_derivs_max[i_pd]) return true;
+    }
+    return false;
+  };
 
   // Initialize return type
   const std::size_t number_of_derivs{global_ids_(nth_derivs) + 1};
@@ -255,9 +265,13 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     // Assign derivative of Numerator-function
     derivatives[i_deriv] = A_derivatives[i_deriv];
     // Substract all weighted lower-order functions
-    for (std::size_t j_deriv{0}; j_deriv < i_deriv; j_deriv++) {
+    for (std::size_t j_deriv{1}; j_deriv <= i_deriv; j_deriv++) {
       // Retrieve order of current index
       const auto derivative_order_indexwise_RHS = local_ids_(j_deriv);
+      // Check only subsets
+      if (is_not_subset_(derivative_order_indexwise_LHS,
+                         derivative_order_indexwise_RHS))
+        continue;
       // Precompute Product of binomial coefficients
       std::size_t binom_fact{1};
       for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
@@ -267,7 +281,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
       }
       // Substract low-order function
       derivatives[i_deriv] -=
-          binom_fact * w_derivatives[i_deriv - j_deriv] * derivatives[j_deriv];
+          binom_fact * w_derivatives[j_deriv] * derivatives[i_deriv - j_deriv];
     }
     // Finalize
     derivatives[i_deriv] *= inv_w_fact;

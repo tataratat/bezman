@@ -317,7 +317,7 @@ constexpr PhysicalPointType BezierSpline<
     ScalarType>::ForwardEvaluate(const PointTypeParametric_& par_coords) const {
   /*
    * Here we avoid Point operations and try to precompute as many values as
-   * possible, this greatly increases the complexity of the necessary code.
+   * possible, this greatly decreases the complexity of the necessary code.
    */
   const auto factors = BasisFunctions(par_coords);
 
@@ -359,7 +359,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
         const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
   /*
    * Here we avoid Point operations and try to precompute as many values as
-   * possible, this greatly increases the complexity of the necessary code.
+   * possible, this greatly decreases the complexity of the necessary code.
    */
   const auto factors = BasisFunctionsDerivatives(par_coords, nth_derivs);
 

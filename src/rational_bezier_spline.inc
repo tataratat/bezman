@@ -198,8 +198,11 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     EvaluateDerivative(
         const PointTypeParametric_& par_coords,
         const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
-  // Define Lambdas for indexing
-  // From a single index notation to an array of indices
+  // Define lambdas to switch between local indexing with coordinate style
+  // indexing to global, scalar indexing
+  // example: for nth (2,1,4) : (1,0,0)->1, (1,1,0)->4
+
+  // Global (scalar) indexing to local index-system
   auto local_ids_ = [&nth_derivs](const std::size_t req_id)
       -> std::array<std::size_t, parametric_dimension> {
     std::size_t id{req_id};
@@ -212,7 +215,8 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     }
     return local_ids;
   };
-  // From array of indices to single index
+
+  // Local (coordinate-style) indexing to global
   auto global_ids_ =
       [&nth_derivs](
           const std::array<std::size_t, parametric_dimension>& req_derivs)
@@ -227,6 +231,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     }
     return id;
   };
+
   // Check if requested derivative is "subset" to current derivative
   auto is_not_subset_ =
       [](const std::array<std::size_t, parametric_dimension>& req_derivs_max,

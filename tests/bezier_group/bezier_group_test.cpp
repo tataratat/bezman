@@ -27,9 +27,9 @@ SOFTWARE.
 #include <gtest/gtest.h>
 
 #include <array>
-#include <bezman/src/rational_bezier_spline.hpp>
 
 #include "bezman/src/bezier_spline.hpp"
+#include "bezman/src/rational_bezier_spline.hpp"
 
 using namespace bezman;
 

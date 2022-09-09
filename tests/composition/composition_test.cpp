@@ -92,8 +92,9 @@ TEST_F(BezierTestingSuite, CompositionHighOrder) {
   }
   const auto composed_spline = surface.Compose(line);
 
-  std::cerr << "[          ] surface-degrees: =     \t(" << surface.GetDegrees()[0]
-            << ", " << surface.GetDegrees()[1] << ")" << std::endl;
+  std::cerr << "[          ] surface-degrees: =     \t("
+            << surface.GetDegrees()[0] << ", " << surface.GetDegrees()[1] << ")"
+            << std::endl;
   std::cerr << "[          ] line-degree: =         \t(" << line.GetDegrees()[0]
             << ")" << std::endl;
 

@@ -193,6 +193,110 @@ constexpr PhysicalPointType RationalBezierSpline<
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr PhysicalPointType
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    EvaluateDerivative(
+        const PointTypeParametric_& par_coords,
+        const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
+  // Define lambdas to switch between local indexing with coordinate style
+  // indexing to global, scalar indexing
+  // example: for nth (2,1,4) : (1,0,0)->1, (1,1,0)->4
+
+  // Global (scalar) indexing to local index-system
+  auto local_ids_ = [&nth_derivs](const std::size_t req_id)
+      -> std::array<std::size_t, parametric_dimension> {
+    std::size_t id{req_id};
+    std::array<std::size_t, parametric_dimension> local_ids{};
+    for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+      if (nth_derivs[i_pd] == 0) continue;
+      local_ids[i_pd] = id % (nth_derivs[i_pd] + 1);
+      id -= local_ids[i_pd];
+      id /= nth_derivs[i_pd] + 1;
+    }
+    return local_ids;
+  };
+
+  // Local (coordinate-style) indexing to global
+  auto global_ids_ =
+      [&nth_derivs](
+          const std::array<std::size_t, parametric_dimension>& req_derivs)
+      -> std::size_t {
+    std::size_t id{};
+    std::size_t offset{1};
+    for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+      // assert(req_derivs[i_pd] <= nth_derivs[i_pd]);
+      if (nth_derivs[i_pd] == 0) continue;
+      id += offset * (req_derivs[i_pd]);
+      offset = nth_derivs[i_pd] > 0 ? offset * (nth_derivs[i_pd] + 1) : offset;
+    }
+    return id;
+  };
+
+  // Check if requested derivative is "subset" to current derivative
+  auto is_not_subset_ =
+      [](const std::array<std::size_t, parametric_dimension>& req_derivs_max,
+         const std::array<std::size_t, parametric_dimension>& req_derivs)
+      -> bool {
+    for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+      if (req_derivs[i_pd] > req_derivs_max[i_pd]) return true;
+    }
+    return false;
+  };
+
+  // Initialize return type
+  const std::size_t number_of_derivs{global_ids_(nth_derivs) + 1};
+  // Please remember that the first derivative is not used
+  std::vector<PhysicalPointType> derivatives(number_of_derivs);
+  std::vector<PhysicalPointType> A_derivatives(number_of_derivs);
+  std::vector<ScalarType> w_derivatives(number_of_derivs);
+
+  // Fill all polynomial spline derivatives (and values for id=0)
+  for (std::size_t i_deriv{}; i_deriv < number_of_derivs; i_deriv++) {
+    const auto req_derivs = local_ids_(i_deriv);
+    A_derivatives[i_deriv] =
+        weighted_spline_.EvaluateDerivative(par_coords, req_derivs);
+    w_derivatives[i_deriv] =
+        weight_function_.EvaluateDerivative(par_coords, req_derivs);
+  }
+
+  // Precompute inverse of weighted function
+  const ScalarType inv_w_fact = static_cast<ScalarType>(1.) / w_derivatives[0];
+
+  // Loop over all lower-order derivatives and assign derivatives-vector
+  // Notation follows "The NURBS book" eq. 4.20 (extended for n-d splines)
+  for (std::size_t i_deriv{0}; i_deriv < number_of_derivs; i_deriv++) {
+    // Retrieve index-wise order of the derivative for current ID
+    const auto derivative_order_indexwise_LHS = local_ids_(i_deriv);
+    // Assign derivative of Numerator-function
+    derivatives[i_deriv] = A_derivatives[i_deriv];
+    // Substract all weighted lower-order functions
+    for (std::size_t j_deriv{1}; j_deriv <= i_deriv; j_deriv++) {
+      // Retrieve order of current index
+      const auto derivative_order_indexwise_RHS = local_ids_(j_deriv);
+      // Check only subsets
+      if (is_not_subset_(derivative_order_indexwise_LHS,
+                         derivative_order_indexwise_RHS))
+        continue;
+      // Precompute Product of binomial coefficients
+      std::size_t binom_fact{1};
+      for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+        binom_fact *= utils::FastBinomialCoefficient::choose(
+            derivative_order_indexwise_LHS[i_pd],
+            derivative_order_indexwise_RHS[i_pd]);
+      }
+      // Substract low-order function
+      derivatives[i_deriv] -=
+          binom_fact * w_derivatives[j_deriv] * derivatives[i_deriv - j_deriv];
+    }
+    // Finalize
+    derivatives[i_deriv] *= inv_w_fact;
+  }
+  // Return last value
+  return derivatives[number_of_derivs - 1];
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
                                ScalarType>&
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::

@@ -66,8 +66,8 @@ TEST_F(Base64ExportSuite, ExportImportTest) {
 
 TEST_F(Base64ExportSuite, ExportImportTestPoints) {
   // Points
-  const auto test_point_ctps = Base64::Decode<bezman::Point<3ul, double>>(
-      Base64::Encode(point_vector));
+  const auto test_point_ctps =
+      Base64::Decode<bezman::Point<3ul, double>>(Base64::Encode(point_vector));
   EXPECT_EQ(point_vector, test_point_ctps);
 }
 

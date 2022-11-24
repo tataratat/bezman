@@ -260,11 +260,11 @@ class BezierSpline {
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
   BasisFunctions(const PointTypeParametric_& par_coords) const;
 
-  /// Evaluate Basis Functions Unraveled
+  /// Evaluate Basis Functions Unraveled using Cartesian Product of p-dim
   constexpr std::vector<ScalarType> BasisFunctionValues(
       const PointTypeParametric_& par_coords) const;
 
-  /// Evaluate Basis Functions Unraveled
+  /// Evaluate Basis Functions Unraveled using Cartesian Product of p-dim
   template <typename... T>
   constexpr std::vector<ScalarType> BasisFunctionValues(
       const T&... par_coords) const {

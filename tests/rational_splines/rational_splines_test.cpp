@@ -347,6 +347,50 @@ TEST_F(RationalSplineTestSuite, DerivativeEvaluation) {
   }
 }
 
+// Test Derivatives of rational Beziers
+TEST_F(RationalSplineTestSuite, BasisFunctionDerivativeEvaluation) {
+  constexpr std::size_t n_tests{4}, para_dims{2};
+  const std::size_t n_test_evaluations{5};
+  for (std::size_t i_test{}; i_test < n_tests; i_test++) {
+    const auto degrees = std::array<std::size_t, para_dims>{3, 3};
+    const auto derivs = std::array<std::array<std::size_t, para_dims>, n_tests>{
+        2, 0, 1, 1, 1, 2, 1, 3}[i_test];
+    const auto random_spline = CreateRandomSpline(degrees);
+
+    // Evaluate for comparison
+    for (std::size_t i_test{}; i_test < n_test_evaluations; i_test++) {
+      // Create evaluation points
+      const double x{static_cast<double>(rand()) /
+                     static_cast<double>(RAND_MAX)};
+      const double y{static_cast<double>(rand()) /
+                     static_cast<double>(RAND_MAX)};
+      Point2D eval_point{x, y};
+      const auto result = random_spline.EvaluateDerivative(
+          // Evaluation Point
+          eval_point,
+          // derivatives
+          derivs);
+      const auto basis_function_derivatives =
+          random_spline.BasisFunctionsDerivatives(
+              // Evaluation Point
+              eval_point,
+              // derivatives
+              derivs);
+      Point3D sum{};
+      for (std::size_t i_basis{};
+           i_basis < random_spline.GetNumberOfControlPoints(); i_basis++) {
+        sum += basis_function_derivatives[i_basis] *
+               random_spline.GetWeightedControlPoints()[i_basis] /
+               random_spline.GetWeights()[i_basis];
+      };
+      // Compare results dimensions
+      for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
+        EXPECT_FLOAT_EQ(result[i_dim], sum[i_dim]);
+      }
+    }
+  }
+}
+
 // Test Multiplication
 TEST_F(RationalSplineTestSuite, MultiplicationTest) {
   using RationalBezier = RationalBezierSpline<1, Point2D, double>;

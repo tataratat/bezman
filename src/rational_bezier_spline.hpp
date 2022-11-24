@@ -299,6 +299,11 @@ class RationalBezierSpline {
       const PointTypeParametric_& par_coords,
       const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
 
+  /// Evaluate the derivatives of a spline using Leibnitz' rule
+  constexpr std::vector<ScalarType> BasisFunctionsDerivatives(
+      const PointTypeParametric_& par_coords,
+      const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
+
   //-------------------  Refinement Strategies
 
   /// Order elevation along a specific parametric dimension

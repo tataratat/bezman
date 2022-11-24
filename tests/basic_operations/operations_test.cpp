@@ -137,7 +137,7 @@ TEST_F(BezierTestingSuite, TestEvaluationRoutines) {
 }
 
 // Test Basis Function evaluation
-TEST_F(BezierTestingSuite, TestBasisFunctions) {
+TEST_F(BezierTestingSuite, TestBasisFunctionContributions) {
   // Elevate dergees
   surface_spline.OrderElevateAlongParametricDimension(0);
   surface_spline.OrderElevateAlongParametricDimension(1);
@@ -147,7 +147,8 @@ TEST_F(BezierTestingSuite, TestBasisFunctions) {
   const double xy{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
   const Point2D x{xx, xy};
   // Retrieve basis functions
-  const auto basis_functions = surface_spline.BasisFunctions(xx, xy);
+  const auto basis_functions =
+      surface_spline.BasisFunctionContributions(xx, xy);
 
   // Compare to analytical solution
   for (std::size_t pdim{}; pdim < 2; pdim++) {
@@ -162,8 +163,8 @@ TEST_F(BezierTestingSuite, TestBasisFunctions) {
   }
 }
 
-// Test Basis Function Value Evaluations
-TEST_F(BezierTestingSuite, TestBasisFunctionValues) {
+// Test Basis Function Evaluations
+TEST_F(BezierTestingSuite, TestBasisFunctions) {
   // Elevate dergees
   surface_spline.OrderElevateAlongParametricDimension(0);
   surface_spline.OrderElevateAlongParametricDimension(1);
@@ -176,7 +177,7 @@ TEST_F(BezierTestingSuite, TestBasisFunctionValues) {
     const double xy{static_cast<double>(rand()) /
                     static_cast<double>(RAND_MAX)};
     // Retrieve basis functions
-    const auto basis_functions = surface_spline.BasisFunctionValues(xx, xy);
+    const auto basis_functions = surface_spline.BasisFunctions(xx, xy);
 
     // Compare to analytical solution
     for (std::size_t i_basis{}; i_basis < degrees[0] + 1; i_basis++) {

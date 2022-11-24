@@ -192,14 +192,16 @@ TEST_F(RationalSplineTestSuite, TestBasisFunctions) {
   // Create random evaluation point
   const double xx{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
   const Point1D x{xx};
-  // Retrieve basis functions
-  const auto basis_functions = circular_arc.PolynomialBasisFunctions(xx);
-
-  EXPECT_EQ(basis_functions, circular_arc.PolynomialBasisFunctions(x));
+  // Retrieve basis functions (check overloads)
+  EXPECT_EQ(circular_arc.BasisFunctions(xx), circular_arc.BasisFunctions(x));
+  EXPECT_EQ(circular_arc.BasisFunctionContributions(xx),
+            circular_arc.BasisFunctionContributions(x));
 
   // Compare to analytical solution
   double weighted_basis_function_sum{};
+
   // Test Polynomial Basis Functions
+  const auto basis_functions = circular_arc.BasisFunctionContributions(x);
   for (std::size_t i_basis{}; i_basis < degree[0] + 1; i_basis++) {
     const double analytical_solution_bernstein_pol =
         utils::FastBinomialCoefficient::choose(degree[0], i_basis) *
@@ -209,15 +211,15 @@ TEST_F(RationalSplineTestSuite, TestBasisFunctions) {
     EXPECT_FLOAT_EQ(basis_functions[0][i_basis],
                     analytical_solution_bernstein_pol);
   }
+
   // Test Weighted Basis Functions
   const auto weighted_basis_function = circular_arc.BasisFunctions(xx);
-  EXPECT_EQ(weighted_basis_function, circular_arc.BasisFunctions(x));
   for (std::size_t i_basis{}; i_basis < degree[0] + 1; i_basis++) {
     const double analytical_solution_bernstein_pol =
         utils::FastBinomialCoefficient::choose(degree[0], i_basis) *
         std::pow(x[0], i_basis) * std::pow(1. - x[0], degree[0] - i_basis);
     EXPECT_FLOAT_EQ(
-        weighted_basis_function[0][i_basis],
+        weighted_basis_function[i_basis],
         analytical_solution_bernstein_pol / weighted_basis_function_sum);
   }
 }
@@ -249,8 +251,7 @@ TEST_F(RationalSplineTestSuite, HighDimEvaluation) {
   // Compare to analytical solution
   for (std::size_t pdim{}; pdim < 2; pdim++) {
     for (std::size_t i_basis{}; i_basis < degrees[pdim] + 1; i_basis++) {
-      EXPECT_FLOAT_EQ(basis_functions[pdim][i_basis],
-                      pol_basis_functions[pdim][i_basis]);
+      EXPECT_FLOAT_EQ(basis_functions[i_basis], pol_basis_functions[i_basis]);
     }
   }
 }

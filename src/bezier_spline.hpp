@@ -73,20 +73,6 @@ class BezierSpline {
 
   constexpr void UpdateIndexOffsets_();
 
-  /**
-   * @brief Multiply all weights to their corresponding control points and add
-   * up all weighted contributions more efficiently by precomputing some of the
-   * factors in every loop
-   *
-   * Changing the inner array to a vector would pass less values at the price of
-   * runtime memory allocation
-   */
-  template <typename... Indices>
-  constexpr PhysicalPointType AddUpContributionsToControlPointVector_(
-      PhysicalPointType& evaluation_point,
-      const std::array<std::vector<ScalarType>, parametric_dimension>& factors,
-      const ScalarType& factor_product, const Indices&... indices) const;
-
   /// Polynomial degrees
   std::array<IndexingType, parametric_dimension> degrees{};
   /// Number of control points
@@ -215,6 +201,16 @@ class BezierSpline {
     UpdateIndexOffsets_();
   }
 
+  /// Access Control Point Vector directly (for conformity to rationals)
+  constexpr const std::vector<PhysicalPointType>& GetControlPoints() const {
+    return control_points;
+  }
+
+  /// Access Control Point Vector directly (for conformity to rationals)
+  constexpr std::vector<PhysicalPointType>& GetControlPoints() {
+    return control_points;
+  }
+
   /// Retrieve single control point from local indices
   template <typename... T>
   constexpr const PhysicalPointType_& ControlPoint(const T... index) const;
@@ -252,28 +248,33 @@ class BezierSpline {
   /// Evaluate Basis Functions
   template <typename... T>
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-  BasisFunctions(const T&... par_coords) const {
-    return BasisFunctions(PointTypeParametric_{par_coords...});
+  BasisFunctionContributions(const T&... par_coords) const {
+    return BasisFunctionContributions(PointTypeParametric_{par_coords...});
   }
 
   /// Evaluate Basis Functions
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-  BasisFunctions(const PointTypeParametric_& par_coords) const;
+  BasisFunctionContributions(const PointTypeParametric_& par_coords) const;
 
   /// Evaluate Basis Functions Unraveled using Cartesian Product of p-dim
-  constexpr std::vector<ScalarType> BasisFunctionValues(
+  constexpr std::vector<ScalarType> BasisFunctions(
       const PointTypeParametric_& par_coords) const;
 
   /// Evaluate Basis Functions Unraveled using Cartesian Product of p-dim
   template <typename... T>
-  constexpr std::vector<ScalarType> BasisFunctionValues(
+  constexpr std::vector<ScalarType> BasisFunctions(
       const T&... par_coords) const {
-    return BasisFunctionValues(PointTypeParametric_{par_coords...});
+    return BasisFunctions(PointTypeParametric_{par_coords...});
   }
 
   /// Evaluate Basis Functions Derivatives
+  constexpr std::vector<ScalarType> BasisFunctionsDerivatives(
+      const PointTypeParametric_& par_coords,
+      const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
+
+  /// Evaluate Basis Functions Derivatives
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-  BasisFunctionsDerivatives(
+  BasisFunctionsDerivativeContributions(
       const PointTypeParametric_& par_coords,
       const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
 

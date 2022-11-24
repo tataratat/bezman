@@ -134,29 +134,33 @@ constexpr PhysicalPointType RationalBezierSpline<
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    BasisFunctions(const PointTypeParametric_& par_coords) const {
+constexpr std::vector<ScalarType> RationalBezierSpline<
+    parametric_dimension, PhysicalPointType,
+    ScalarType>::BasisFunctions(const PointTypeParametric_& par_coords) const {
   // Check sanity
   assert(CheckSplineCompatibility());
+
+  // Basis function of weight function and weighted spline are equivalent
   // Evaluiere Basis Functions
-  std::array<std::vector<ScalarType>, parametric_dimension> factors =
-      weighted_spline_.BasisFunctions(par_coords);
+  std::vector<ScalarType> factors = weight_function_.BasisFunctions(par_coords);
 
   // Initialize values
   ScalarType weight_eval{};
-  weight_function_.AddUpContributionsToControlPointVector_(
-      weight_eval, factors, static_cast<ScalarType>(1.));
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    weight_eval += factors[i_basis_function] * GetWeights()[i_basis_function];
+  }
 
   // Add up the individual contributions
   const ScalarType inv_weight_function =
       static_cast<ScalarType>(1.) / weight_eval;
-  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    for (IndexingType i_basis_function{0};
-         i_basis_function < factors[par_dim].size(); i_basis_function++) {
-      factors[par_dim][i_basis_function] *= inv_weight_function;
-    }
+
+  // Divide through weight function value
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    factors[i_basis_function] *= inv_weight_function;
   }
+
   return factors;
 }
 
@@ -164,29 +168,9 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::vector<ScalarType>, parametric_dimension>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    PolynomialBasisFunctions(const PointTypeParametric_& par_coords) const {
-  // Pass to member
-  return weighted_spline_.BasisFunctions(par_coords);
-}
-
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-constexpr std::vector<ScalarType>
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    BasisFunctionValues(const PointTypeParametric_& par_coords) const {
-  // Recursively combine basis function values per parametric dimension
-  return utils::algorithms::RecursiveCombine(BasisFunctions(par_coords));
-}
-
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-constexpr std::vector<ScalarType>
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    PolynomialBasisFunctionValues(
-        const PointTypeParametric_& par_coords) const {
-  // Recursively combine basis function values per parametric dimension
-  return utils::algorithms::RecursiveCombine(
-      PolynomialBasisFunctions(par_coords));
+    BasisFunctionContributions(const PointTypeParametric_& par_coords) const {
+  // Basis function of weight function and weighted spline are equivalent
+  return weighted_spline_.BasisFunctionContributions(par_coords);
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -202,13 +186,15 @@ constexpr PhysicalPointType RationalBezierSpline<
 
   // Initialize values
   PhysicalPointType evaluation_point{};
-  ScalarType weight_eval{};
+
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    evaluation_point += factors[i_basis_function] *
+                        GetWeightedControlPoints()[i_basis_function];
+  }
 
   // Add up the individual contributions
-  return weighted_spline_.AddUpContributionsToControlPointVector_(
-             evaluation_point, factors, static_cast<ScalarType>(1.)) /
-         weight_function_.AddUpContributionsToControlPointVector_(
-             weight_eval, factors, static_cast<ScalarType>(1.));
+  return evaluation_point;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,

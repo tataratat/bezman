@@ -295,9 +295,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-BezierSpline<parametric_dimension, PhysicalPointType,
-             ScalarType>::BasisFunctions(const PointTypeParametric_& par_coords)
-    const {
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    BasisFunctionContributions(const PointTypeParametric_& par_coords) const {
   std::array<std::vector<ScalarType>, parametric_dimension> factors;
 
   // Preallocate space to vectors
@@ -312,11 +311,12 @@ BezierSpline<parametric_dimension, PhysicalPointType,
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr std::vector<ScalarType>
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    BasisFunctionValues(const PointTypeParametric_& par_coords) const {
+constexpr std::vector<ScalarType> BezierSpline<
+    parametric_dimension, PhysicalPointType,
+    ScalarType>::BasisFunctions(const PointTypeParametric_& par_coords) const {
   // Recursively combine basis function values per parametric dimension
-  return utils::algorithms::RecursiveCombine(BasisFunctions(par_coords));
+  return utils::algorithms::RecursiveCombine(
+      BasisFunctionContributions(par_coords));
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -336,15 +336,20 @@ constexpr PhysicalPointType BezierSpline<
    */
   PhysicalPointType_ evaluation_point{};
 
-  return AddUpContributionsToControlPointVector_(evaluation_point, factors,
-                                                 static_cast<ScalarType>(1.));
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    evaluation_point +=
+        factors[i_basis_function] * GetControlPoints()[i_basis_function];
+  }
+
+  return evaluation_point;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::vector<ScalarType>, parametric_dimension>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    BasisFunctionsDerivatives(
+    BasisFunctionsDerivativeContributions(
         const PointTypeParametric_& par_coords,
         const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
   std::array<std::vector<ScalarType>, parametric_dimension> factors;
@@ -357,6 +362,20 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
 
   return factors;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr std::vector<ScalarType>
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    BasisFunctionsDerivatives(
+        const PointTypeParametric_& par_coords,
+        const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
+  std::array<std::vector<ScalarType>, parametric_dimension> factors;
+
+  // Preallocate space to vectors
+  return utils::algorithms::RecursiveCombine(
+      BasisFunctionsDerivativeContributions(par_coords, nth_derivs));
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -378,38 +397,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
    */
   PhysicalPointType_ evaluation_point{};
 
-  return AddUpContributionsToControlPointVector_(evaluation_point, factors,
-                                                 static_cast<ScalarType>(1.));
-}
-
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-template <typename... Indices>
-constexpr PhysicalPointType
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    AddUpContributionsToControlPointVector_(
-        PhysicalPointType& evaluation_point,
-        const std::array<std::vector<ScalarType>, parametric_dimension>&
-            factors,
-        const ScalarType& factor_product, const Indices&... indices) const {
-  // Check that all are indices
-  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    assert(factors[par_dim].size() == degrees[par_dim] + 1);
-  }
-
-  // Loop over current parametric dimensions
-  const IndexingType c_par_dim = sizeof...(Indices);
-  const IndexingType i_ctps_per_par_dim = degrees[c_par_dim] + 1;
-
-  for (IndexingType i_ctps{}; i_ctps < i_ctps_per_par_dim; i_ctps++) {
-    if constexpr (sizeof...(indices) + 1 == parametric_dimension) {
-      evaluation_point += factor_product * factors[c_par_dim][i_ctps] *
-                          ControlPoint(indices..., i_ctps);
-    } else {
-      AddUpContributionsToControlPointVector_(
-          evaluation_point, factors,
-          factors[c_par_dim][i_ctps] * factor_product, indices..., i_ctps);
-    }
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    evaluation_point +=
+        factors[i_basis_function] * GetControlPoints()[i_basis_function];
   }
 
   return evaluation_point;

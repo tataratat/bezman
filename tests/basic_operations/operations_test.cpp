@@ -153,6 +153,37 @@ TEST_F(BezierTestingSuite, TestBasisFunctions) {
   }
 }
 
+// Test Basis Function Value Evaluations
+TEST_F(BezierTestingSuite, TestBasisFunctionValues) {
+  // Elevate dergees
+  surface_spline.OrderElevateAlongParametricDimension(0);
+  surface_spline.OrderElevateAlongParametricDimension(1);
+  const auto degrees = surface_spline.GetDegrees();
+  const std::size_t n_tests{5};
+  for (std::size_t i_test{}; i_test < n_tests; i_test++) {
+    // Create random evaluation point
+    const double xx{static_cast<double>(rand()) /
+                    static_cast<double>(RAND_MAX)};
+    const double xy{static_cast<double>(rand()) /
+                    static_cast<double>(RAND_MAX)};
+    // Retrieve basis functions
+    const auto basis_functions = surface_spline.BasisFunctionValues(xx, xy);
+
+    // Compare to analytical solution
+    for (std::size_t i_basis{}; i_basis < degrees[0] + 1; i_basis++) {
+      for (std::size_t j_basis{}; j_basis < degrees[1] + 1; j_basis++) {
+        const double analytical_solution_bernstein_pol =
+            utils::FastBinomialCoefficient::choose(degrees[0], i_basis) *
+            std::pow(xx, i_basis) * std::pow(1. - xx, degrees[0] - i_basis) *
+            utils::FastBinomialCoefficient::choose(degrees[1], j_basis) *
+            std::pow(xy, j_basis) * std::pow(1. - xy, degrees[1] - j_basis);
+        EXPECT_FLOAT_EQ(basis_functions[i_basis + (degrees[0] + 1) * j_basis],
+                        analytical_solution_bernstein_pol);
+      }
+    }
+  }
+}
+
 // Demonstrate Addition at random Points and random lines
 TEST_F(BezierTestingSuite, TestAddition3) {
   // Expect equality.

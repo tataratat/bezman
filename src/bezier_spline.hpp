@@ -33,6 +33,7 @@ SOFTWARE.
 
 #include "bezman/src/point.hpp"
 #include "bezman/src/utils/algorithms/bernstein_polynomial.hpp"
+#include "bezman/src/utils/algorithms/recursive_combine.hpp"
 #include "bezman/src/utils/fastbinomialcoefficient.hpp"
 #include "bezman/src/utils/logger.hpp"
 #include "bezman/src/utils/type_traits/is_bezier_spline.hpp"
@@ -258,6 +259,17 @@ class BezierSpline {
   /// Evaluate Basis Functions
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
   BasisFunctions(const PointTypeParametric_& par_coords) const;
+
+  /// Evaluate Basis Functions Unraveled
+  constexpr std::vector<ScalarType> BasisFunctionValues(
+      const PointTypeParametric_& par_coords) const;
+
+  /// Evaluate Basis Functions Unraveled
+  template <typename... T>
+  constexpr std::vector<ScalarType> BasisFunctionValues(
+      const T&... par_coords) const {
+    return BasisFunctionValues(PointTypeParametric_{par_coords...});
+  }
 
   /// Evaluate Basis Functions Derivatives
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>

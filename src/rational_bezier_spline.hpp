@@ -284,6 +284,29 @@ class RationalBezierSpline {
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
   PolynomialBasisFunctions(const PointTypeParametric_& par_coords) const;
 
+  /// Evaluate Basis Functions Unraveled using Cartesian Product of p-dim
+  template <typename... T>
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  BasisFunctionValues(const T&... par_coords) const {
+    return BasisFunctionValues(PointTypeParametric_{par_coords...});
+  }
+
+  /// Evaluate Basis Functions Unraveled using Cartesian Product of p-dim
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  BasisFunctionValues(const PointTypeParametric_& par_coords) const;
+
+  /// Evaluate Basis Functions Unraveled using Cartesian Product of p-dim
+  template <typename... T>
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  PolynomialBasisFunctionValues(const T&... par_coords) const {
+    return PolynomialBasisFunctionValues(PointTypeParametric_{par_coords...});
+  }
+
+  /// Evaluate Basis Functions without respecting weights Unraveled using
+  /// Cartesian Product of p-dim
+  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+  PolynomialBasisFunctionValues(const PointTypeParametric_& par_coords) const;
+
   /// Evaluate the spline via the explicit precomputation of bernstein values
   constexpr PhysicalPointType_ ForwardEvaluate(
       const PointTypeParametric_& par_coords) const;

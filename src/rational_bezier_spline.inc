@@ -171,6 +171,26 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    BasisFunctionValues(const PointTypeParametric_& par_coords) const {
+  // Recursively combine basis function values per parametric dimension
+  return utils::algorithms::RecursiveCombine(BasisFunctions(par_coords));
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr std::array<std::vector<ScalarType>, parametric_dimension>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    PolynomialBasisFunctionValues(
+        const PointTypeParametric_& par_coords) const {
+  // Recursively combine basis function values per parametric dimension
+  return utils::algorithms::RecursiveCombine(
+      PolynomialBasisFunctions(par_coords));
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 constexpr PhysicalPointType RationalBezierSpline<
     parametric_dimension, PhysicalPointType,
     ScalarType>::ForwardEvaluate(const PointTypeParametric_& par_coords) const {

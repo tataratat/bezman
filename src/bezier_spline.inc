@@ -664,27 +664,32 @@ constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::RaisePower(
     const IndexingType power) const {
   // Implements Recursive function of integer powers (can be storage intense)
-  static_assert(std::is_scalar_v<PhysicalPointType>,
-                "Only Scalar-type Splines can be raised to a power.");
-  if (power == 0) {
-    utils::Logger::Error("Raising to 0 is inefficient. Please revisit");
-    return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
-        // Degree 0 (use zero default initialization)
-        std::array<std::size_t, parametric_dimension>{},
-        // Set the single remaining ctps to 1
-        std::vector<ScalarType>{1.}};
-  }
-  if (power == 1) {
-    return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
-        (*this)};
-  }
+  if constexpr (std::is_scalar_v<PhysicalPointType>) {
+    if (power == 0) {
+      utils::Logger::Error("Raising to 0 is inefficient. Please revisit");
+      return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
+          // Degree 0 (use zero default initialization)
+          std::array<std::size_t, parametric_dimension>{},
+          // Set the single remaining ctps to 1
+          std::vector<ScalarType>{1.}};
+    }
+    if (power == 1) {
+      return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
+          (*this)};
+    }
 
-  // Start Recursion
-  const auto recursive_power = RaisePower(static_cast<IndexingType>(power / 2));
-  if ((power % 2) == 0) {
-    return recursive_power * recursive_power;
+    // Start Recursion
+    const auto recursive_power =
+        RaisePower(static_cast<IndexingType>(power / 2));
+    if ((power % 2) == 0) {
+      return recursive_power * recursive_power;
+    } else {
+      return recursive_power * recursive_power * (*this);
+    }
   } else {
-    return recursive_power * recursive_power * (*this);
+    utils::Logger::TerminatingError(
+        "Only Scalar-type Splines can be raised to a power.");
+    return BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>{};
   }
 }
 
@@ -742,12 +747,16 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                       const PhysicalPointType& scale_vector) {
   utils::Logger::ExtendedInformation(
       "Starting scaling and transposing spline to move bounds");
-  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
-       i_dim++) {
-    for (IndexingType i{}; i < GetNumberOfControlPoints(); i++) {
-      control_points[i][i_dim] =
-          (transposition[i_dim] + control_points[i][i_dim]) *
-          scale_vector[i_dim];
+  for (IndexingType i{}; i < GetNumberOfControlPoints(); i++) {
+    if constexpr (std::is_scalar_v<PhysicalPointType>) {
+      control_points[i] = (transposition + control_points[i]) * scale_vector;
+    } else {
+      for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+           i_dim++) {
+        control_points[i][i_dim] =
+            (transposition[i_dim] + control_points[i][i_dim]) *
+            scale_vector[i_dim];
+      }
     }
   }
   return (*this);

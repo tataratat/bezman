@@ -31,6 +31,9 @@ constexpr inline void RecursiveCombine_(
 /**
  * @brief Using efficient recursion at compile time we can avoid multple
  * calculations of the same product
+ *
+ * This is done in the following way:
+ * For a three dimensional p
  */
 template <std::size_t parametric_dimension, typename ValueType>
 constexpr std::vector<ValueType> RecursiveCombine(

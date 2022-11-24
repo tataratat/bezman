@@ -71,13 +71,22 @@ class BezierTestingSuite : public ::testing::Test {
   std::array<std::size_t, 2> surface_degrees{2, 2};
   BezierSpline<2, Point2D, double> surface_spline{surface_degrees,
                                                   surface_ctps};
-
+  template <typename PhysicalPoint = double>
   auto CreateRandomSpline(unsigned int degree) {
-    BezierSpline<1, double, double> randomSpline{
+    BezierSpline<1, PhysicalPoint, double> randomSpline{
         std::array<std::size_t, 1>{degree}};
+
     for (unsigned int i{}; i < degree; i++) {
-      randomSpline.ControlPoint(i) =
-          static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+      if constexpr (std::is_scalar_v<PhysicalPoint>) {
+        randomSpline.ControlPoint(i) =
+            static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+      } else {
+        for (std::size_t i_dim{}; i_dim < PhysicalPoint::kSpatialDimension;
+             i_dim++) {
+          randomSpline.ControlPoint(i)[i_dim] =
+              static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        }
+      }
     }
     return randomSpline;
   }
@@ -206,7 +215,6 @@ TEST_F(BezierTestingSuite, MultiplicationTest1) {
                     (line1 * line2).Evaluate(x));
   }
 }
-
 // Multiplications at random points and random splines
 TEST_F(BezierTestingSuite, MultiplicationTest2) {
   // Expect equality.

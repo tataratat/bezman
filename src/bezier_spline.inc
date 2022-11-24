@@ -770,9 +770,13 @@ BezierSpline<parametric_dimension, PhysicalPointType,
   const auto maximum_corner = MaximumCorner();
   const auto minimum_corner = MinimumCorner();
   auto scale_vector = maximum_corner - minimum_corner;
-  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
-       i_dim++) {
-    scale_vector[i_dim] = static_cast<ScalarType>(1) / scale_vector[i_dim];
+  if constexpr (std::is_scalar_v<PhysicalPointType>) {
+    scale_vector = static_cast<ScalarType>(1) / scale_vector;
+  } else {
+    for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+         i_dim++) {
+      scale_vector[i_dim] = static_cast<ScalarType>(1) / scale_vector[i_dim];
+    }
   }
   return TransposeAndScale(-minimum_corner, scale_vector);
 }

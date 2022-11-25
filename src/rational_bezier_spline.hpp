@@ -262,7 +262,7 @@ class RationalBezierSpline {
     return Evaluate(PointTypeParametric_{par_coords...});
   }
 
-  /// Evaluate Basis Functions
+  /// Evaluate Basis Functions in the form (w_i N_i / (sum(w_j N_j)))
   template <typename... T>
   constexpr std::vector<ScalarType> BasisFunctions(
       const T&... par_coords) const {
@@ -273,6 +273,26 @@ class RationalBezierSpline {
   constexpr std::vector<ScalarType> BasisFunctions(
       const PointTypeParametric_& par_coords) const;
 
+ private:
+  /**
+   * @brief Evaluate non weighted basis functions
+   *
+   * returns basis function values in the form (N_i / (sum(w_j N_j)))
+   * They are required in the use of weighted control points to avoid
+   * multiplication followed by division of the same coefficients. For internal
+   * use only
+   */
+  template <typename... T>
+  constexpr std::vector<ScalarType> NonWeightedBasisFunctions_(
+      const T&... par_coords) const {
+    return NonWeightedBasisFunctions_(PointTypeParametric_{par_coords...});
+  }
+
+  /// Evaluate Basis Functions
+  constexpr std::vector<ScalarType> NonWeightedBasisFunctions_(
+      const PointTypeParametric_& par_coords) const;
+
+ public:
   /// Evaluate Basis Functions
   template <typename... T>
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>

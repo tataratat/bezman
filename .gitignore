@@ -39,6 +39,7 @@
 **/build/
 **/cmake-build-debug/
 **/install/
+CMakeFiles/
 
 # ingore build documentation
 **/doxydocs/

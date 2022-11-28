@@ -215,7 +215,7 @@ TEST_F(RationalSplineTestSuite, TestBasisFunctions) {
   // Test Weighted Basis Functions
   const auto weighted_basis_function = circular_arc.BasisFunctions(xx);
   const auto non_weighted_basis_function =
-      circular_arc.NonWeightedBasisFunctions(xx);
+      circular_arc.UnweightedBasisFunctions(xx);
 
   for (std::size_t i_basis{}; i_basis < degree[0] + 1; i_basis++) {
     const double analytical_solution_bernstein_pol =

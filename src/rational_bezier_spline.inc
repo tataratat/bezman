@@ -141,7 +141,7 @@ constexpr std::vector<ScalarType> RationalBezierSpline<
   assert(CheckSplineCompatibility());
 
   // Retrieve non-weighted basis functions
-  std::vector<ScalarType> factors = NonWeightedBasisFunctions_(par_coords);
+  std::vector<ScalarType> factors = NonWeightedBasisFunctions(par_coords);
 
   // Divide through weight function value
   for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
@@ -156,7 +156,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::vector<ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    NonWeightedBasisFunctions_(const PointTypeParametric_& par_coords) const {
+    NonWeightedBasisFunctions(const PointTypeParametric_& par_coords) const {
   // Check sanity
   assert(CheckSplineCompatibility());
 

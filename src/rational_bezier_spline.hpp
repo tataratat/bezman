@@ -273,7 +273,6 @@ class RationalBezierSpline {
   constexpr std::vector<ScalarType> BasisFunctions(
       const PointTypeParametric_& par_coords) const;
 
- private:
   /**
    * @brief Evaluate non weighted basis functions
    *
@@ -283,16 +282,15 @@ class RationalBezierSpline {
    * use only
    */
   template <typename... T>
-  constexpr std::vector<ScalarType> NonWeightedBasisFunctions_(
+  constexpr std::vector<ScalarType> NonWeightedBasisFunctions(
       const T&... par_coords) const {
-    return NonWeightedBasisFunctions_(PointTypeParametric_{par_coords...});
+    return NonWeightedBasisFunctions(PointTypeParametric_{par_coords...});
   }
 
   /// Evaluate Basis Functions
-  constexpr std::vector<ScalarType> NonWeightedBasisFunctions_(
+  constexpr std::vector<ScalarType> NonWeightedBasisFunctions(
       const PointTypeParametric_& par_coords) const;
 
- public:
   /// Evaluate Basis Functions
   template <typename... T>
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>

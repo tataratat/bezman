@@ -214,13 +214,19 @@ TEST_F(RationalSplineTestSuite, TestBasisFunctions) {
 
   // Test Weighted Basis Functions
   const auto weighted_basis_function = circular_arc.BasisFunctions(xx);
+  const auto non_weighted_basis_function =
+      circular_arc.NonWeightedBasisFunctions(xx);
+
   for (std::size_t i_basis{}; i_basis < degree[0] + 1; i_basis++) {
     const double analytical_solution_bernstein_pol =
         utils::FastBinomialCoefficient::choose(degree[0], i_basis) *
-        std::pow(x[0], i_basis) * std::pow(1. - x[0], degree[0] - i_basis) *
-        circular_arc.GetWeights()[i_basis];
+        std::pow(x[0], i_basis) * std::pow(1. - x[0], degree[0] - i_basis);
+    EXPECT_DOUBLE_EQ(weighted_basis_function[i_basis],
+                     analytical_solution_bernstein_pol *
+                         circular_arc.GetWeights()[i_basis] /
+                         weighted_basis_function_sum);
     EXPECT_DOUBLE_EQ(
-        weighted_basis_function[i_basis],
+        non_weighted_basis_function[i_basis],
         analytical_solution_bernstein_pol / weighted_basis_function_sum);
   }
 }

@@ -134,29 +134,53 @@ constexpr PhysicalPointType RationalBezierSpline<
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    BasisFunctions(const PointTypeParametric_& par_coords) const {
+constexpr std::vector<ScalarType> RationalBezierSpline<
+    parametric_dimension, PhysicalPointType,
+    ScalarType>::BasisFunctions(const PointTypeParametric_& par_coords) const {
   // Check sanity
   assert(CheckSplineCompatibility());
+
+  // Retrieve non-weighted basis functions
+  std::vector<ScalarType> factors = UnweightedBasisFunctions(par_coords);
+
+  // Multiply basis functions with weights
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    factors[i_basis_function] *= GetWeights()[i_basis_function];
+  }
+
+  return factors;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr std::vector<ScalarType>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    UnweightedBasisFunctions(const PointTypeParametric_& par_coords) const {
+  // Check sanity
+  assert(CheckSplineCompatibility());
+
+  // Basis function of weight function and weighted spline are equivalent
   // Evaluiere Basis Functions
-  std::array<std::vector<ScalarType>, parametric_dimension> factors =
-      weighted_spline_.BasisFunctions(par_coords);
+  std::vector<ScalarType> factors = weight_function_.BasisFunctions(par_coords);
 
   // Initialize values
   ScalarType weight_eval{};
-  weight_function_.AddUpContributionsToControlPointVector_(
-      weight_eval, factors, static_cast<ScalarType>(1.));
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    weight_eval += factors[i_basis_function] * GetWeights()[i_basis_function];
+  }
 
   // Add up the individual contributions
   const ScalarType inv_weight_function =
       static_cast<ScalarType>(1.) / weight_eval;
-  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    for (IndexingType i_basis_function{0};
-         i_basis_function < factors[par_dim].size(); i_basis_function++) {
-      factors[par_dim][i_basis_function] *= inv_weight_function;
-    }
+
+  // Divide through weight function value
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    factors[i_basis_function] *= inv_weight_function;
   }
+
   return factors;
 }
 
@@ -164,9 +188,9 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::vector<ScalarType>, parametric_dimension>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    PolynomialBasisFunctions(const PointTypeParametric_& par_coords) const {
-  // Pass to member
-  return weighted_spline_.BasisFunctions(par_coords);
+    BasisFunctionContributions(const PointTypeParametric_& par_coords) const {
+  // Basis function of weight function and weighted spline are equivalent
+  return weighted_spline_.BasisFunctionContributions(par_coords);
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -182,13 +206,15 @@ constexpr PhysicalPointType RationalBezierSpline<
 
   // Initialize values
   PhysicalPointType evaluation_point{};
-  ScalarType weight_eval{};
+
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    evaluation_point += factors[i_basis_function] *
+                        GetWeightedControlPoints()[i_basis_function];
+  }
 
   // Add up the individual contributions
-  return weighted_spline_.AddUpContributionsToControlPointVector_(
-             evaluation_point, factors, static_cast<ScalarType>(1.)) /
-         weight_function_.AddUpContributionsToControlPointVector_(
-             weight_eval, factors, static_cast<ScalarType>(1.));
+  return evaluation_point;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -290,6 +316,119 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     }
     // Finalize
     derivatives[i_deriv] *= inv_w_fact;
+  }
+  // Return last value
+  return derivatives[number_of_derivs - 1];
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr std::vector<ScalarType>
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    BasisFunctionsDerivatives(
+        const PointTypeParametric_& par_coords,
+        const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
+  // Define lambdas to switch between local indexing with coordinate style
+  // indexing to global, scalar indexing
+  // example: for nth (2,1,4) : (1,0,0)->1, (1,1,0)->4
+
+  // Global (scalar) indexing to local index-system
+  auto local_ids_ = [&nth_derivs](const std::size_t req_id)
+      -> std::array<std::size_t, parametric_dimension> {
+    std::size_t id{req_id};
+    std::array<std::size_t, parametric_dimension> local_ids{};
+    for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+      if (nth_derivs[i_pd] == 0) continue;
+      local_ids[i_pd] = id % (nth_derivs[i_pd] + 1);
+      id -= local_ids[i_pd];
+      id /= nth_derivs[i_pd] + 1;
+    }
+    return local_ids;
+  };
+
+  // Local (coordinate-style) indexing to global
+  auto global_ids_ =
+      [&nth_derivs](
+          const std::array<std::size_t, parametric_dimension>& req_derivs)
+      -> std::size_t {
+    std::size_t id{};
+    std::size_t offset{1};
+    for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+      // assert(req_derivs[i_pd] <= nth_derivs[i_pd]);
+      if (nth_derivs[i_pd] == 0) continue;
+      id += offset * (req_derivs[i_pd]);
+      offset = nth_derivs[i_pd] > 0 ? offset * (nth_derivs[i_pd] + 1) : offset;
+    }
+    return id;
+  };
+
+  // Check if requested derivative is "subset" to current derivative
+  auto is_not_subset_ =
+      [](const std::array<std::size_t, parametric_dimension>& req_derivs_max,
+         const std::array<std::size_t, parametric_dimension>& req_derivs)
+      -> bool {
+    for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+      if (req_derivs[i_pd] > req_derivs_max[i_pd]) return true;
+    }
+    return false;
+  };
+
+  // Initialize return type
+  const std::size_t number_of_derivs{global_ids_(nth_derivs) + 1};
+  const std::size_t n_basis_functions{GetNumberOfControlPoints()};
+  // Please remember that the first derivative is not used
+  std::vector<std::vector<ScalarType>> derivatives(number_of_derivs);
+  std::vector<std::vector<ScalarType>> A_derivatives(number_of_derivs);
+  std::vector<ScalarType> w_derivatives(number_of_derivs);
+
+  // Fill all polynomial spline derivatives (and values for id=0)
+  for (std::size_t i_deriv{}; i_deriv < number_of_derivs; i_deriv++) {
+    const auto req_derivs = local_ids_(i_deriv);
+    A_derivatives[i_deriv] =
+        weighted_spline_.BasisFunctionsDerivatives(par_coords, req_derivs);
+    for (std::size_t i_basis{}; i_basis < n_basis_functions; i_basis++) {
+      const ScalarType weight = GetWeights()[i_basis];
+      w_derivatives[i_deriv] += weight * A_derivatives[i_deriv][i_basis];
+      A_derivatives[i_deriv][i_basis] *= weight;
+    }
+  }
+
+  // Precompute inverse of weighted function
+  const ScalarType inv_w_fact = static_cast<ScalarType>(1.) / w_derivatives[0];
+
+  // Loop over all lower-order derivatives and assign derivatives-vector
+  // Notation follows "The NURBS book" eq. 4.20 (extended for n-d splines)
+  for (std::size_t i_deriv{0}; i_deriv < number_of_derivs; i_deriv++) {
+    // Retrieve index-wise order of the derivative for current ID
+    const auto derivative_order_indexwise_LHS = local_ids_(i_deriv);
+    // Assign derivative of Numerator-function
+    derivatives[i_deriv] = A_derivatives[i_deriv];
+    // Substract all weighted lower-order functions
+    for (std::size_t j_deriv{1}; j_deriv <= i_deriv; j_deriv++) {
+      // Retrieve order of current index
+      const auto derivative_order_indexwise_RHS = local_ids_(j_deriv);
+      // Check only subsets
+      if (is_not_subset_(derivative_order_indexwise_LHS,
+                         derivative_order_indexwise_RHS))
+        continue;
+      // Precompute Product of binomial coefficients
+      std::size_t binom_fact{1};
+      for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
+        binom_fact *= utils::FastBinomialCoefficient::choose(
+            derivative_order_indexwise_LHS[i_pd],
+            derivative_order_indexwise_RHS[i_pd]);
+      }
+      // Substract low-order function
+      for (std::size_t i_basis{}; i_basis < n_basis_functions; i_basis++) {
+        derivatives[i_deriv][i_basis] -=
+            binom_fact * w_derivatives[j_deriv] *
+            derivatives[i_deriv - j_deriv][i_basis];
+      }
+    }
+    // Finalize
+    for (std::size_t i_basis{}; i_basis < n_basis_functions; i_basis++) {
+      derivatives[i_deriv][i_basis] *= inv_w_fact;
+    }
   }
   // Return last value
   return derivatives[number_of_derivs - 1];

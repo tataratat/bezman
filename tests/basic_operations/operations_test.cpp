@@ -71,13 +71,22 @@ class BezierTestingSuite : public ::testing::Test {
   std::array<std::size_t, 2> surface_degrees{2, 2};
   BezierSpline<2, Point2D, double> surface_spline{surface_degrees,
                                                   surface_ctps};
-
+  template <typename PhysicalPoint = double>
   auto CreateRandomSpline(unsigned int degree) {
-    BezierSpline<1, double, double> randomSpline{
+    BezierSpline<1, PhysicalPoint, double> randomSpline{
         std::array<std::size_t, 1>{degree}};
+
     for (unsigned int i{}; i < degree; i++) {
-      randomSpline.ControlPoint(i) =
-          static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+      if constexpr (std::is_scalar_v<PhysicalPoint>) {
+        randomSpline.ControlPoint(i) =
+            static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+      } else {
+        for (std::size_t i_dim{}; i_dim < PhysicalPoint::kSpatialDimension;
+             i_dim++) {
+          randomSpline.ControlPoint(i)[i_dim] =
+              static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        }
+      }
     }
     return randomSpline;
   }
@@ -128,7 +137,7 @@ TEST_F(BezierTestingSuite, TestEvaluationRoutines) {
 }
 
 // Test Basis Function evaluation
-TEST_F(BezierTestingSuite, TestBasisFunctions) {
+TEST_F(BezierTestingSuite, TestBasisFunctionContributions) {
   // Elevate dergees
   surface_spline.OrderElevateAlongParametricDimension(0);
   surface_spline.OrderElevateAlongParametricDimension(1);
@@ -138,7 +147,8 @@ TEST_F(BezierTestingSuite, TestBasisFunctions) {
   const double xy{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
   const Point2D x{xx, xy};
   // Retrieve basis functions
-  const auto basis_functions = surface_spline.BasisFunctions(xx, xy);
+  const auto basis_functions =
+      surface_spline.BasisFunctionContributions(xx, xy);
 
   // Compare to analytical solution
   for (std::size_t pdim{}; pdim < 2; pdim++) {
@@ -149,6 +159,37 @@ TEST_F(BezierTestingSuite, TestBasisFunctions) {
           std::pow(1. - x[pdim], degrees[pdim] - i_basis);
       EXPECT_FLOAT_EQ(basis_functions[pdim][i_basis],
                       analytical_solution_bernstein_pol);
+    }
+  }
+}
+
+// Test Basis Function Evaluations
+TEST_F(BezierTestingSuite, TestBasisFunctions) {
+  // Elevate dergees
+  surface_spline.OrderElevateAlongParametricDimension(0);
+  surface_spline.OrderElevateAlongParametricDimension(1);
+  const auto degrees = surface_spline.GetDegrees();
+  const std::size_t n_tests{5};
+  for (std::size_t i_test{}; i_test < n_tests; i_test++) {
+    // Create random evaluation point
+    const double xx{static_cast<double>(rand()) /
+                    static_cast<double>(RAND_MAX)};
+    const double xy{static_cast<double>(rand()) /
+                    static_cast<double>(RAND_MAX)};
+    // Retrieve basis functions
+    const auto basis_functions = surface_spline.BasisFunctions(xx, xy);
+
+    // Compare to analytical solution
+    for (std::size_t i_basis{}; i_basis < degrees[0] + 1; i_basis++) {
+      for (std::size_t j_basis{}; j_basis < degrees[1] + 1; j_basis++) {
+        const double analytical_solution_bernstein_pol =
+            utils::FastBinomialCoefficient::choose(degrees[0], i_basis) *
+            std::pow(xx, i_basis) * std::pow(1. - xx, degrees[0] - i_basis) *
+            utils::FastBinomialCoefficient::choose(degrees[1], j_basis) *
+            std::pow(xy, j_basis) * std::pow(1. - xy, degrees[1] - j_basis);
+        EXPECT_FLOAT_EQ(basis_functions[i_basis + (degrees[0] + 1) * j_basis],
+                        analytical_solution_bernstein_pol);
+      }
     }
   }
 }
@@ -175,7 +216,6 @@ TEST_F(BezierTestingSuite, MultiplicationTest1) {
                     (line1 * line2).Evaluate(x));
   }
 }
-
 // Multiplications at random points and random splines
 TEST_F(BezierTestingSuite, MultiplicationTest2) {
   // Expect equality.

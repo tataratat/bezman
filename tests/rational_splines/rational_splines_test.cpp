@@ -192,14 +192,16 @@ TEST_F(RationalSplineTestSuite, TestBasisFunctions) {
   // Create random evaluation point
   const double xx{static_cast<double>(rand()) / static_cast<double>(RAND_MAX)};
   const Point1D x{xx};
-  // Retrieve basis functions
-  const auto basis_functions = circular_arc.PolynomialBasisFunctions(xx);
-
-  EXPECT_EQ(basis_functions, circular_arc.PolynomialBasisFunctions(x));
+  // Retrieve basis functions (check overloads)
+  EXPECT_EQ(circular_arc.BasisFunctions(xx), circular_arc.BasisFunctions(x));
+  EXPECT_EQ(circular_arc.BasisFunctionContributions(xx),
+            circular_arc.BasisFunctionContributions(x));
 
   // Compare to analytical solution
   double weighted_basis_function_sum{};
+
   // Test Polynomial Basis Functions
+  const auto basis_functions = circular_arc.BasisFunctionContributions(x);
   for (std::size_t i_basis{}; i_basis < degree[0] + 1; i_basis++) {
     const double analytical_solution_bernstein_pol =
         utils::FastBinomialCoefficient::choose(degree[0], i_basis) *
@@ -209,15 +211,22 @@ TEST_F(RationalSplineTestSuite, TestBasisFunctions) {
     EXPECT_FLOAT_EQ(basis_functions[0][i_basis],
                     analytical_solution_bernstein_pol);
   }
+
   // Test Weighted Basis Functions
   const auto weighted_basis_function = circular_arc.BasisFunctions(xx);
-  EXPECT_EQ(weighted_basis_function, circular_arc.BasisFunctions(x));
+  const auto non_weighted_basis_function =
+      circular_arc.UnweightedBasisFunctions(xx);
+
   for (std::size_t i_basis{}; i_basis < degree[0] + 1; i_basis++) {
     const double analytical_solution_bernstein_pol =
         utils::FastBinomialCoefficient::choose(degree[0], i_basis) *
         std::pow(x[0], i_basis) * std::pow(1. - x[0], degree[0] - i_basis);
-    EXPECT_FLOAT_EQ(
-        weighted_basis_function[0][i_basis],
+    EXPECT_DOUBLE_EQ(weighted_basis_function[i_basis],
+                     analytical_solution_bernstein_pol *
+                         circular_arc.GetWeights()[i_basis] /
+                         weighted_basis_function_sum);
+    EXPECT_DOUBLE_EQ(
+        non_weighted_basis_function[i_basis],
         analytical_solution_bernstein_pol / weighted_basis_function_sum);
   }
 }
@@ -249,8 +258,7 @@ TEST_F(RationalSplineTestSuite, HighDimEvaluation) {
   // Compare to analytical solution
   for (std::size_t pdim{}; pdim < 2; pdim++) {
     for (std::size_t i_basis{}; i_basis < degrees[pdim] + 1; i_basis++) {
-      EXPECT_FLOAT_EQ(basis_functions[pdim][i_basis],
-                      pol_basis_functions[pdim][i_basis]);
+      EXPECT_FLOAT_EQ(basis_functions[i_basis], pol_basis_functions[i_basis]);
     }
   }
 }
@@ -341,6 +349,50 @@ TEST_F(RationalSplineTestSuite, DerivativeEvaluation) {
       // Compare results dimensions
       for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
         EXPECT_FLOAT_EQ(result[i_dim], result_2[i_dim]);
+      }
+    }
+  }
+}
+
+// Test Derivatives of rational Beziers
+TEST_F(RationalSplineTestSuite, BasisFunctionDerivativeEvaluation) {
+  constexpr std::size_t n_tests{4}, para_dims{2};
+  const std::size_t n_test_evaluations{5};
+  for (std::size_t i_test{}; i_test < n_tests; i_test++) {
+    const auto degrees = std::array<std::size_t, para_dims>{3, 3};
+    const auto derivs = std::array<std::array<std::size_t, para_dims>, n_tests>{
+        2, 0, 1, 1, 1, 2, 1, 3}[i_test];
+    const auto random_spline = CreateRandomSpline(degrees);
+
+    // Evaluate for comparison
+    for (std::size_t i_test{}; i_test < n_test_evaluations; i_test++) {
+      // Create evaluation points
+      const double x{static_cast<double>(rand()) /
+                     static_cast<double>(RAND_MAX)};
+      const double y{static_cast<double>(rand()) /
+                     static_cast<double>(RAND_MAX)};
+      Point2D eval_point{x, y};
+      const auto result = random_spline.EvaluateDerivative(
+          // Evaluation Point
+          eval_point,
+          // derivatives
+          derivs);
+      const auto basis_function_derivatives =
+          random_spline.BasisFunctionsDerivatives(
+              // Evaluation Point
+              eval_point,
+              // derivatives
+              derivs);
+      Point3D sum{};
+      for (std::size_t i_basis{};
+           i_basis < random_spline.GetNumberOfControlPoints(); i_basis++) {
+        sum += basis_function_derivatives[i_basis] *
+               random_spline.GetWeightedControlPoints()[i_basis] /
+               random_spline.GetWeights()[i_basis];
+      };
+      // Compare results dimensions
+      for (std::size_t i_dim{}; i_dim < 3; i_dim++) {
+        EXPECT_FLOAT_EQ(result[i_dim], sum[i_dim]);
       }
     }
   }

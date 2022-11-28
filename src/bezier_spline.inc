@@ -295,9 +295,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Evaluate(
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-BezierSpline<parametric_dimension, PhysicalPointType,
-             ScalarType>::BasisFunctions(const PointTypeParametric_& par_coords)
-    const {
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    BasisFunctionContributions(const PointTypeParametric_& par_coords) const {
   std::array<std::vector<ScalarType>, parametric_dimension> factors;
 
   // Preallocate space to vectors
@@ -308,6 +307,16 @@ BezierSpline<parametric_dimension, PhysicalPointType,
   }
 
   return factors;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr std::vector<ScalarType> BezierSpline<
+    parametric_dimension, PhysicalPointType,
+    ScalarType>::BasisFunctions(const PointTypeParametric_& par_coords) const {
+  // Recursively combine basis function values per parametric dimension
+  return utils::algorithms::RecursiveCombine(
+      BasisFunctionContributions(par_coords));
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -327,15 +336,20 @@ constexpr PhysicalPointType BezierSpline<
    */
   PhysicalPointType_ evaluation_point{};
 
-  return AddUpContributionsToControlPointVector_(evaluation_point, factors,
-                                                 static_cast<ScalarType>(1.));
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    evaluation_point +=
+        factors[i_basis_function] * GetControlPoints()[i_basis_function];
+  }
+
+  return evaluation_point;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::vector<ScalarType>, parametric_dimension>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    BasisFunctionsDerivatives(
+    BasisFunctionsDerivativeContributions(
         const PointTypeParametric_& par_coords,
         const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
   std::array<std::vector<ScalarType>, parametric_dimension> factors;
@@ -348,6 +362,20 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
 
   return factors;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr std::vector<ScalarType>
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    BasisFunctionsDerivatives(
+        const PointTypeParametric_& par_coords,
+        const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
+  std::array<std::vector<ScalarType>, parametric_dimension> factors;
+
+  // Preallocate space to vectors
+  return utils::algorithms::RecursiveCombine(
+      BasisFunctionsDerivativeContributions(par_coords, nth_derivs));
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -369,38 +397,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
    */
   PhysicalPointType_ evaluation_point{};
 
-  return AddUpContributionsToControlPointVector_(evaluation_point, factors,
-                                                 static_cast<ScalarType>(1.));
-}
-
-template <std::size_t parametric_dimension, typename PhysicalPointType,
-          typename ScalarType>
-template <typename... Indices>
-constexpr PhysicalPointType
-BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    AddUpContributionsToControlPointVector_(
-        PhysicalPointType& evaluation_point,
-        const std::array<std::vector<ScalarType>, parametric_dimension>&
-            factors,
-        const ScalarType& factor_product, const Indices&... indices) const {
-  // Check that all are indices
-  for (IndexingType par_dim{0}; par_dim < parametric_dimension; par_dim++) {
-    assert(factors[par_dim].size() == degrees[par_dim] + 1);
-  }
-
-  // Loop over current parametric dimensions
-  const IndexingType c_par_dim = sizeof...(Indices);
-  const IndexingType i_ctps_per_par_dim = degrees[c_par_dim] + 1;
-
-  for (IndexingType i_ctps{}; i_ctps < i_ctps_per_par_dim; i_ctps++) {
-    if constexpr (sizeof...(indices) + 1 == parametric_dimension) {
-      evaluation_point += factor_product * factors[c_par_dim][i_ctps] *
-                          ControlPoint(indices..., i_ctps);
-    } else {
-      AddUpContributionsToControlPointVector_(
-          evaluation_point, factors,
-          factors[c_par_dim][i_ctps] * factor_product, indices..., i_ctps);
-    }
+  for (IndexingType i_basis_function{0}; i_basis_function < factors.size();
+       i_basis_function++) {
+    evaluation_point +=
+        factors[i_basis_function] * GetControlPoints()[i_basis_function];
   }
 
   return evaluation_point;
@@ -655,27 +655,32 @@ constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::RaisePower(
     const IndexingType power) const {
   // Implements Recursive function of integer powers (can be storage intense)
-  static_assert(std::is_scalar_v<PhysicalPointType>,
-                "Only Scalar-type Splines can be raised to a power.");
-  if (power == 0) {
-    utils::Logger::Error("Raising to 0 is inefficient. Please revisit");
-    return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
-        // Degree 0 (use zero default initialization)
-        std::array<std::size_t, parametric_dimension>{},
-        // Set the single remaining ctps to 1
-        std::vector<ScalarType>{1.}};
-  }
-  if (power == 1) {
-    return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
-        (*this)};
-  }
+  if constexpr (std::is_scalar_v<PhysicalPointType>) {
+    if (power == 0) {
+      utils::Logger::Error("Raising to 0 is inefficient. Please revisit");
+      return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
+          // Degree 0 (use zero default initialization)
+          std::array<std::size_t, parametric_dimension>{},
+          // Set the single remaining ctps to 1
+          std::vector<ScalarType>{1.}};
+    }
+    if (power == 1) {
+      return BezierSpline<parametric_dimension, ScalarType_, ScalarType_>{
+          (*this)};
+    }
 
-  // Start Recursion
-  const auto recursive_power = RaisePower(static_cast<IndexingType>(power / 2));
-  if ((power % 2) == 0) {
-    return recursive_power * recursive_power;
+    // Start Recursion
+    const auto recursive_power =
+        RaisePower(static_cast<IndexingType>(power / 2));
+    if ((power % 2) == 0) {
+      return recursive_power * recursive_power;
+    } else {
+      return recursive_power * recursive_power * (*this);
+    }
   } else {
-    return recursive_power * recursive_power * (*this);
+    utils::Logger::TerminatingError(
+        "Only Scalar-type Splines can be raised to a power.");
+    return BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>{};
   }
 }
 
@@ -733,12 +738,16 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                       const PhysicalPointType& scale_vector) {
   utils::Logger::ExtendedInformation(
       "Starting scaling and transposing spline to move bounds");
-  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
-       i_dim++) {
-    for (IndexingType i{}; i < GetNumberOfControlPoints(); i++) {
-      control_points[i][i_dim] =
-          (transposition[i_dim] + control_points[i][i_dim]) *
-          scale_vector[i_dim];
+  for (IndexingType i{}; i < GetNumberOfControlPoints(); i++) {
+    if constexpr (std::is_scalar_v<PhysicalPointType>) {
+      control_points[i] = (transposition + control_points[i]) * scale_vector;
+    } else {
+      for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+           i_dim++) {
+        control_points[i][i_dim] =
+            (transposition[i_dim] + control_points[i][i_dim]) *
+            scale_vector[i_dim];
+      }
     }
   }
   return (*this);
@@ -752,9 +761,13 @@ BezierSpline<parametric_dimension, PhysicalPointType,
   const auto maximum_corner = MaximumCorner();
   const auto minimum_corner = MinimumCorner();
   auto scale_vector = maximum_corner - minimum_corner;
-  for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
-       i_dim++) {
-    scale_vector[i_dim] = static_cast<ScalarType>(1) / scale_vector[i_dim];
+  if constexpr (std::is_scalar_v<PhysicalPointType>) {
+    scale_vector = static_cast<ScalarType>(1) / scale_vector;
+  } else {
+    for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+         i_dim++) {
+      scale_vector[i_dim] = static_cast<ScalarType>(1) / scale_vector[i_dim];
+    }
   }
   return TransposeAndScale(-minimum_corner, scale_vector);
 }

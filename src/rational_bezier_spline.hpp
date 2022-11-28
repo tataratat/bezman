@@ -262,27 +262,45 @@ class RationalBezierSpline {
     return Evaluate(PointTypeParametric_{par_coords...});
   }
 
-  /// Evaluate Basis Functions
+  /// Evaluate Basis Functions in the form (w_i N_i / (sum(w_j N_j)))
   template <typename... T>
-  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-  BasisFunctions(const T&... par_coords) const {
+  constexpr std::vector<ScalarType> BasisFunctions(
+      const T&... par_coords) const {
     return BasisFunctions(PointTypeParametric_{par_coords...});
   }
 
   /// Evaluate Basis Functions
-  constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-  BasisFunctions(const PointTypeParametric_& par_coords) const;
+  constexpr std::vector<ScalarType> BasisFunctions(
+      const PointTypeParametric_& par_coords) const;
+
+  /**
+   * @brief Evaluate non weighted basis functions
+   *
+   * returns basis function values in the form (N_i / (sum(w_j N_j)))
+   * They are required in the use of weighted control points to avoid
+   * multiplication followed by division of the same coefficients. For internal
+   * use only
+   */
+  template <typename... T>
+  constexpr std::vector<ScalarType> UnweightedBasisFunctions(
+      const T&... par_coords) const {
+    return UnweightedBasisFunctions(PointTypeParametric_{par_coords...});
+  }
+
+  /// Evaluate Basis Functions
+  constexpr std::vector<ScalarType> UnweightedBasisFunctions(
+      const PointTypeParametric_& par_coords) const;
 
   /// Evaluate Basis Functions
   template <typename... T>
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-  PolynomialBasisFunctions(const T&... par_coords) const {
-    return PolynomialBasisFunctions(PointTypeParametric_{par_coords...});
+  BasisFunctionContributions(const T&... par_coords) const {
+    return BasisFunctionContributions(PointTypeParametric_{par_coords...});
   }
 
   /// Evaluate Basis Functions without respecting weights
   constexpr std::array<std::vector<ScalarType>, parametric_dimension>
-  PolynomialBasisFunctions(const PointTypeParametric_& par_coords) const;
+  BasisFunctionContributions(const PointTypeParametric_& par_coords) const;
 
   /// Evaluate the spline via the explicit precomputation of bernstein values
   constexpr PhysicalPointType_ ForwardEvaluate(
@@ -296,6 +314,11 @@ class RationalBezierSpline {
 
   /// Evaluate the derivatives of a spline using Leibnitz' rule
   constexpr PhysicalPointType_ EvaluateDerivative(
+      const PointTypeParametric_& par_coords,
+      const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
+
+  /// Evaluate the derivatives of a spline using Leibnitz' rule
+  constexpr std::vector<ScalarType> BasisFunctionsDerivatives(
       const PointTypeParametric_& par_coords,
       const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
 

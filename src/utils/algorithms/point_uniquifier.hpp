@@ -39,7 +39,7 @@ SOFTWARE.
 namespace bezman::utils::algorithms {
 
 /**
- * @brief Determine the connectivity from corner-vertices, assuming nothing of
+ * @brief Determine the connectivity from center-vertices, assuming nothing of
  * the underlying grid
  *
  * Duplicate Points are not eliminated, assuming that a maximum of two points
@@ -55,53 +55,24 @@ namespace bezman::utils::algorithms {
  */
 template <typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
-auto FindConnectivity(const std::vector<PhysicalPointType>& corner_vertices,
-                      const PhysicalPointType& metric,
-                      const ScalarType tolerance,
-                      const bool& check_orientation = true) {
+auto FindConnectivityFromCenters(
+    const std::vector<PhysicalPointType>& face_center_vertices,
+    const PhysicalPointType& metric, const ScalarType tolerance,
+    const bool& check_orientation = true) {
   // -- Auxiliary data --
   constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
-  constexpr auto subelement_vertex_ids =
-      HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
   constexpr auto opposite_face_list =
       HyperCube<kParametricDimensions_>::GetOppositeFaces();
   constexpr std::size_t number_of_element_faces = opposite_face_list.size();
-  constexpr std::size_t number_of_element_vertices{algorithms::IntPower(
-      static_cast<std::size_t>(2), kParametricDimensions_)};
   const std::size_t number_of_patches =
-      corner_vertices.size() / number_of_element_vertices;
+      face_center_vertices.size() / number_of_element_faces;
   const ScalarType tolerance_squared{tolerance * tolerance};
 
   // Consistency check
-  if (!(corner_vertices.size() % number_of_element_vertices == 0)) {
+  if (!(face_center_vertices.size() % number_of_element_faces == 0)) {
     Logger::TerminatingError(
         "Number of corner vertices invalid. Must be a multiple of the number "
         "of vertices per patch");
-  }
-
-  // -- Determine connectivity --
-  // Calculate face centers
-  std::vector<PhysicalPointType> face_center_vertices;
-  face_center_vertices.reserve(number_of_patches * number_of_element_faces);
-
-  // Start the actual loop
-  // (Instead of using the mean of the face vertices, using the sum)
-  for (std::size_t i_spline{}; i_spline < number_of_patches; i_spline++) {
-    const std::size_t patch_vertex_index_offset =
-        i_spline * number_of_element_vertices;
-    const std::size_t patch_face_index_offset =
-        i_spline * number_of_element_faces;
-    for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
-      face_center_vertices.push_back(
-          corner_vertices[patch_vertex_index_offset +
-                          subelement_vertex_ids[i_face][0]]);
-      for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
-           i_point++) {
-        face_center_vertices[patch_face_index_offset + i_face] +=
-            corner_vertices[patch_vertex_index_offset +
-                            subelement_vertex_ids[i_face][i_point]];
-      }
-    }
   }
 
   // Check if number of faces is a divisor of the point list length
@@ -241,6 +212,76 @@ auto FindConnectivity(const std::vector<PhysicalPointType>& corner_vertices,
   Logger::Logging("Found " + std::to_string(last_id) + " connections for " +
                   std::to_string(number_of_center_vertices) + " faces");
   return connectivity;
+}
+
+/**
+ * @brief Determine the connectivity from corner-vertices, assuming nothing of
+ * the underlying grid
+ *
+ * Duplicate Points are not eliminated, assuming that a maximum of two points
+ * are equivalent. If this is not the case an exception is thrown. In theory
+ * this has complexity O(nlogn) whereas a KDTree has complexity O(n (logn)^dim).
+ *
+ * @tparam PhysicalPointType Type of Point coordinates
+ * @param corner_vertices std::vector<PhysicalPointType> containing all vertices
+ * at spline corners
+ * @param metric Metric used to project coords in order to use sorting
+ * techniques on one dimensional data
+ * @return connectivity
+ */
+template <typename PhysicalPointType,
+          typename ScalarType = typename PhysicalPointType::ScalarType_>
+auto FindConnectivity(const std::vector<PhysicalPointType>& corner_vertices,
+                      const PhysicalPointType& metric,
+                      const ScalarType tolerance,
+                      const bool& check_orientation = true) {
+  // -- Auxiliary data --
+  constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
+  constexpr auto subelement_vertex_ids =
+      HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
+  constexpr auto opposite_face_list =
+      HyperCube<kParametricDimensions_>::GetOppositeFaces();
+  constexpr std::size_t number_of_element_faces = opposite_face_list.size();
+  constexpr std::size_t number_of_element_vertices{algorithms::IntPower(
+      static_cast<std::size_t>(2), kParametricDimensions_)};
+  const std::size_t number_of_patches =
+      corner_vertices.size() / number_of_element_vertices;
+
+  // Consistency check
+  if (!(corner_vertices.size() % number_of_element_vertices == 0)) {
+    Logger::TerminatingError(
+        "Number of corner vertices invalid. Must be a multiple of the number "
+        "of vertices per patch");
+  }
+
+  // -- Determine connectivity --
+  // Calculate face centers
+  std::vector<PhysicalPointType> face_center_vertices;
+  face_center_vertices.reserve(number_of_patches * number_of_element_faces);
+
+  // Start the actual loop
+  // (Instead of using the mean of the face vertices, using the sum)
+  for (std::size_t i_spline{}; i_spline < number_of_patches; i_spline++) {
+    const std::size_t patch_vertex_index_offset =
+        i_spline * number_of_element_vertices;
+    const std::size_t patch_face_index_offset =
+        i_spline * number_of_element_faces;
+    for (std::size_t i_face{}; i_face < number_of_element_faces; i_face++) {
+      face_center_vertices.push_back(
+          corner_vertices[patch_vertex_index_offset +
+                          subelement_vertex_ids[i_face][0]]);
+      for (std::size_t i_point{1}; i_point < subelement_vertex_ids[0].size();
+           i_point++) {
+        face_center_vertices[patch_face_index_offset + i_face] +=
+            corner_vertices[patch_vertex_index_offset +
+                            subelement_vertex_ids[i_face][i_point]];
+      }
+    }
+  }
+
+  // Return connectivity
+  return FindConnectivityFromCenters(face_center_vertices, metric, tolerance,
+                                     check_orientation);
 }
 
 /**

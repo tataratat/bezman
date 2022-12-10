@@ -65,8 +65,6 @@ auto FindConnectivityFromCenters(
     const PhysicalPointType& metric, const ScalarType tolerance) {
   // -- Auxiliary data --
   constexpr std::size_t kParametricDimensions_ = parametric_dimension;
-  constexpr auto opposite_face_list =
-      HyperCube<kParametricDimensions_>::GetOppositeFaces();
   constexpr std::size_t number_of_element_faces = parametric_dimension * 2;
   const std::size_t number_of_patches =
       face_center_vertices.size() / number_of_element_faces;
@@ -177,6 +175,8 @@ auto FindConnectivityFromCenters(
       // Check 2. (@todo EXCEPTION)
       // TODO check if mfem format is used for the output -> if not do not check
       if constexpr (check_orientation) {
+        constexpr auto opposite_face_list =
+            HyperCube<kParametricDimensions_>::GetOppositeFaces();
         if (opposite_face_list[element_face_id_start] != element_face_id_end) {
           Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
           // @todo In order to get the connectivity only, this check needs to be

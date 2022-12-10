@@ -49,24 +49,25 @@ namespace bezman::utils::algorithms {
  * @tparam PhysicalPointType Type of Point coordinates
  * @tparam ScalarType Type determining the precision
  * @tparam parametric_dimension dimension of the object (e.g. surface in 3D)
+ * @tparam boolean check_orientation to check if neighboring elements match
+ *                          structured grid
  * @param face_center_vertices vertices in the centers of spline-surfaces
  * @param metric used for preordering the vertices along a line
  * @param tolerance tolerance (distance between two vertices that are joined)
- * @param check_orientation boolean to check if neighboring elements match
- *                          structured grid
+
  * @return connectivity as a std::vector<std::array<...>>
  */
-template <std::size_t parametric_dimension, typename PhysicalPointType,
+template <std::size_t parametric_dimension, bool check_orientation,
+          typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
 auto FindConnectivityFromCenters(
     const std::vector<PhysicalPointType>& face_center_vertices,
-    const PhysicalPointType& metric, const ScalarType tolerance,
-    const bool& check_orientation = true) {
+    const PhysicalPointType& metric, const ScalarType tolerance) {
   // -- Auxiliary data --
   constexpr std::size_t kParametricDimensions_ = parametric_dimension;
   constexpr auto opposite_face_list =
       HyperCube<kParametricDimensions_>::GetOppositeFaces();
-  constexpr std::size_t number_of_element_faces = opposite_face_list.size();
+  constexpr std::size_t number_of_element_faces = parametric_dimension * 2;
   const std::size_t number_of_patches =
       face_center_vertices.size() / number_of_element_faces;
   const ScalarType tolerance_squared{tolerance * tolerance};
@@ -175,19 +176,20 @@ auto FindConnectivityFromCenters(
 
       // Check 2. (@todo EXCEPTION)
       // TODO check if mfem format is used for the output -> if not do not check
-      if (check_orientation &&
-          opposite_face_list[element_face_id_start] != element_face_id_end) {
-        Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
-        // @todo In order to get the connectivity only, this check needs to be
-        // performed, a boolean value needs to be switched, but the connectivity
-        // is still returned
-      }
+      if constexpr (check_orientation) {
+        if (opposite_face_list[element_face_id_start] != element_face_id_end) {
+          Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
+          // @todo In order to get the connectivity only, this check needs to be
+          // performed, a boolean value needs to be switched, but the
+          // connectivity is still returned
+        }
 #ifndef NDEBUG
-      if (check_orientation &&
-          opposite_face_list[element_face_id_end] != element_face_id_start) {
-        Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
-      }
+        if (opposite_face_list[element_face_id_end] != element_face_id_start) {
+          Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
+        }
 #endif
+      }
+
       // If both tests passed, update connectivity
       connectivity[element_id_start][element_face_id_start] = element_id_end;
       connectivity[element_id_end][element_face_id_end] = element_id_start;
@@ -284,8 +286,15 @@ auto FindConnectivityFromCorners(
   }
 
   // Return connectivity
-  return FindConnectivityFromCenters<kParametricDimensions_>(
-      face_center_vertices, metric, tolerance, check_orientation);
+  // Conditional is required for individual use without orientation for higher
+  // dimensional or embedded types
+  if (check_orientation) {
+    return FindConnectivityFromCenters<kParametricDimensions_, true>(
+        face_center_vertices, metric, tolerance);
+  } else {
+    return FindConnectivityFromCenters<kParametricDimensions_, false>(
+        face_center_vertices, metric, tolerance);
+  }
 }
 
 /**

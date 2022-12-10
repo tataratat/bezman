@@ -51,6 +51,7 @@ class ConnectivityCheckSuite : public ::testing::Test {
    * origin        0 --(0)-- 1
    */
   using Point2D = ::bezman::Point<2ul, double>;
+  using Point3D = ::bezman::Point<3ul, double>;
 
  public:
   // Face center points
@@ -61,6 +62,18 @@ class ConnectivityCheckSuite : public ::testing::Test {
       Point2D{1., 1.}, Point2D{2., 1.}, Point2D{2., 2.}, Point2D{1., 2.},
       // Third Patch
       Point2D{1., 0.}, Point2D{2., 0.}, Point2D{2., 1.}, Point2D{1., 1.}};
+
+  // Face center points embdedded
+  std::vector<Point3D> corner_vertices_3d{
+      // First Patch
+      Point3D{0., 1., 2.}, Point3D{1., 1., 2.}, Point3D{1., 2., 2.},
+      Point3D{0., 2., 2.},
+      // Second Patch
+      Point3D{1., 1., 2.}, Point3D{2., 1., 2.}, Point3D{2., 2., 2.},
+      Point3D{1., 2., 2.},
+      // Third Patch
+      Point3D{1., 0., 2.}, Point3D{2., 0., 2.}, Point3D{2., 1., 2.},
+      Point3D{1., 1., 2.}};
 
   // Expected Connectivity
   std::vector<std::array<std::size_t, 4>> expected_connectivity{
@@ -81,8 +94,10 @@ class ConnectivityCheckSuite : public ::testing::Test {
        static_cast<std::size_t>(-1)}  // 3
   };
 
-  // Metric
+  // Metric 2D
   Point2D metric{1.1, 1.};
+  // Metric 3D
+  Point3D metric3d{1.1, 1., 0.1};
 
   // Unique List
   std::vector<std::size_t> uniquelist{0, 3, 5, 2, 3, 6, 7, 5, 1, 4, 6, 3};
@@ -94,7 +109,18 @@ class ConnectivityCheckSuite : public ::testing::Test {
 TEST_F(ConnectivityCheckSuite, ConnectivityTest) {
   // Calculate the connectivity
   const auto connectivity =
-      algorithms::FindConnectivity(corner_vertices, metric, 1e-5);
+      algorithms::FindConnectivityFromCorners<2>(corner_vertices, metric, 1e-5);
+
+  EXPECT_EQ(connectivity, expected_connectivity);
+}
+
+/*
+ * Check the connectivity for an embedded problem
+ */
+TEST_F(ConnectivityCheckSuite, ConnectivityTestEmbedded) {
+  // Calculate the connectivity
+  const auto connectivity = algorithms::FindConnectivityFromCorners<2>(
+      corner_vertices_3d, metric3d, 1e-5);
 
   EXPECT_EQ(connectivity, expected_connectivity);
 }

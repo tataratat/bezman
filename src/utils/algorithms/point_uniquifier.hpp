@@ -53,14 +53,14 @@ namespace bezman::utils::algorithms {
  * techniques on one dimensional data
  * @return connectivity
  */
-template <typename PhysicalPointType,
+template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
 auto FindConnectivityFromCenters(
     const std::vector<PhysicalPointType>& face_center_vertices,
     const PhysicalPointType& metric, const ScalarType tolerance,
     const bool& check_orientation = true) {
   // -- Auxiliary data --
-  constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
+  constexpr std::size_t kParametricDimensions_ = parametric_dimension;
   constexpr auto opposite_face_list =
       HyperCube<kParametricDimensions_>::GetOppositeFaces();
   constexpr std::size_t number_of_element_faces = opposite_face_list.size();
@@ -82,18 +82,16 @@ auto FindConnectivityFromCenters(
   assert(number_of_center_vertices % number_of_element_faces == 0);
 
   // Assure Metric is normed and non-zero
-  const Point<kParametricDimensions_, ScalarType> normed_metric =
-      [](PhysicalPointType metric) {
-        if (metric.EuclidianNorm() < 1e-20) {
-          Logger::Warning(
-              "Metric has no length. Chose non-zero "
-              "metric for ordering points");
-          Logger::Warning(
-              "Fall back to default metric, which is {1., 1., ...}");
-          metric.fill(1.);
-        }
-        return metric * (static_cast<ScalarType>(1.) / metric.EuclidianNorm());
-      }(metric);
+  const PhysicalPointType normed_metric = [](PhysicalPointType metric) {
+    if (metric.EuclidianNorm() < 1e-20) {
+      Logger::Warning(
+          "Metric has no length. Chose non-zero "
+          "metric for ordering points");
+      Logger::Warning("Fall back to default metric, which is {1., 1., ...}");
+      metric.fill(1.);
+    }
+    return metric * (static_cast<ScalarType>(1.) / metric.EuclidianNorm());
+  }(metric);
   // Init connectivity and metric value
   // (-1 : boundary, -2 : untouched)
   std::vector<std::array<std::size_t, number_of_element_faces>> connectivity(
@@ -229,14 +227,14 @@ auto FindConnectivityFromCenters(
  * techniques on one dimensional data
  * @return connectivity
  */
-template <typename PhysicalPointType,
+template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
-auto FindConnectivity(const std::vector<PhysicalPointType>& corner_vertices,
-                      const PhysicalPointType& metric,
-                      const ScalarType tolerance,
-                      const bool& check_orientation = true) {
+auto FindConnectivityFromCorners(
+    const std::vector<PhysicalPointType>& corner_vertices,
+    const PhysicalPointType& metric, const ScalarType tolerance,
+    const bool& check_orientation = true) {
   // -- Auxiliary data --
-  constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
+  constexpr std::size_t kParametricDimensions_ = parametric_dimension;
   constexpr auto subelement_vertex_ids =
       HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
   constexpr auto opposite_face_list =
@@ -280,8 +278,8 @@ auto FindConnectivity(const std::vector<PhysicalPointType>& corner_vertices,
   }
 
   // Return connectivity
-  return FindConnectivityFromCenters(face_center_vertices, metric, tolerance,
-                                     check_orientation);
+  return FindConnectivityFromCenters<kParametricDimensions_>(
+      face_center_vertices, metric, tolerance, check_orientation);
 }
 
 /**
@@ -432,8 +430,8 @@ auto ExtractMFEMInformation(
   }
 
   // Find connectivity using face centers
-  const auto connectivity =
-      FindConnectivity(corner_vertices, metric, tolerance);
+  const auto connectivity = FindConnectivityFromCorners<kParametricDimensions_>(
+      corner_vertices, metric, tolerance);
   Logger::ExtendedInformation("Connectivity determined");
 
   // -- Enumerate Vertices --

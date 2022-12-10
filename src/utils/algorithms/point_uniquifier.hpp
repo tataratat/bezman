@@ -47,11 +47,14 @@ namespace bezman::utils::algorithms {
  * this has complexity O(nlogn) whereas a KDTree has complexity O(n (logn)^dim).
  *
  * @tparam PhysicalPointType Type of Point coordinates
- * @param corner_vertices std::vector<PhysicalPointType> containing all vertices
- * at spline corners
- * @param metric Metric used to project coords in order to use sorting
- * techniques on one dimensional data
- * @return connectivity
+ * @tparam ScalarType Type determining the precision
+ * @tparam parametric_dimension dimension of the object (e.g. surface in 3D)
+ * @param face_center_vertices vertices in the centers of spline-surfaces
+ * @param metric used for preordering the vertices along a line
+ * @param tolerance tolerance (distance between two vertices that are joined)
+ * @param check_orientation boolean to check if neighboring elements match
+ *                          structured grid
+ * @return connectivity as a std::vector<std::array<...>>
  */
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
@@ -221,11 +224,14 @@ auto FindConnectivityFromCenters(
  * this has complexity O(nlogn) whereas a KDTree has complexity O(n (logn)^dim).
  *
  * @tparam PhysicalPointType Type of Point coordinates
- * @param corner_vertices std::vector<PhysicalPointType> containing all vertices
- * at spline corners
- * @param metric Metric used to project coords in order to use sorting
- * techniques on one dimensional data
- * @return connectivity
+ * @tparam ScalarType Type determining the precision
+ * @tparam parametric_dimension dimension of the object (e.g. surface in 3D)
+ * @param corner_vertices Corner Vertices that are extracted from the splines
+ * @param metric used for preordering the vertices along a line
+ * @param tolerance tolerance (distance between two vertices that are joined)
+ * @param check_orientation boolean to check if neighboring elements match
+ *                          structured grid
+ * @return connectivity as a vector<array<...>>
  */
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
@@ -391,7 +397,12 @@ std::vector<std::size_t> IndexUniquePointList(
  * parametric dimension matches the physical dimension of the problem
  *
  * @tparam PhysicalPointType array-type for coordinates
- * @param std::vector<PhysicalPointType> vector of corner vertices
+ * @tparam ScalarType
+ * @param corner_vertices vector<PhysicalPointType> vector of corner vertices
+ * @param metric used for preordering the vertices along a line
+ * @param tolerance tolerance (distance between two vertices that are joined)
+ * @return std::make_tuple(connectivity, vertex_ids, edge_information,
+ *                        boundaries)
  */
 template <typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>

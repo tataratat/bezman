@@ -47,23 +47,25 @@ namespace bezman::utils::algorithms {
  * this has complexity O(nlogn) whereas a KDTree has complexity O(n (logn)^dim).
  *
  * @tparam PhysicalPointType Type of Point coordinates
- * @param corner_vertices std::vector<PhysicalPointType> containing all vertices
- * at spline corners
- * @param metric Metric used to project coords in order to use sorting
- * techniques on one dimensional data
- * @return connectivity
+ * @tparam ScalarType Type determining the precision
+ * @tparam parametric_dimension dimension of the object (e.g. surface in 3D)
+ * @tparam boolean check_orientation to check if neighboring elements match
+ *                          structured grid
+ * @param face_center_vertices vertices in the centers of spline-surfaces
+ * @param metric used for preordering the vertices along a line
+ * @param tolerance tolerance (distance between two vertices that are joined)
+
+ * @return connectivity as a std::vector<std::array<...>>
  */
-template <typename PhysicalPointType,
+template <std::size_t parametric_dimension, bool check_orientation,
+          typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
 auto FindConnectivityFromCenters(
     const std::vector<PhysicalPointType>& face_center_vertices,
-    const PhysicalPointType& metric, const ScalarType tolerance,
-    const bool& check_orientation = true) {
+    const PhysicalPointType& metric, const ScalarType tolerance) {
   // -- Auxiliary data --
-  constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
-  constexpr auto opposite_face_list =
-      HyperCube<kParametricDimensions_>::GetOppositeFaces();
-  constexpr std::size_t number_of_element_faces = opposite_face_list.size();
+  constexpr std::size_t kParametricDimensions_ = parametric_dimension;
+  constexpr std::size_t number_of_element_faces = parametric_dimension * 2;
   const std::size_t number_of_patches =
       face_center_vertices.size() / number_of_element_faces;
   const ScalarType tolerance_squared{tolerance * tolerance};
@@ -82,18 +84,16 @@ auto FindConnectivityFromCenters(
   assert(number_of_center_vertices % number_of_element_faces == 0);
 
   // Assure Metric is normed and non-zero
-  const Point<kParametricDimensions_, ScalarType> normed_metric =
-      [](PhysicalPointType metric) {
-        if (metric.EuclidianNorm() < 1e-20) {
-          Logger::Warning(
-              "Metric has no length. Chose non-zero "
-              "metric for ordering points");
-          Logger::Warning(
-              "Fall back to default metric, which is {1., 1., ...}");
-          metric.fill(1.);
-        }
-        return metric * (static_cast<ScalarType>(1.) / metric.EuclidianNorm());
-      }(metric);
+  const PhysicalPointType normed_metric = [](PhysicalPointType metric) {
+    if (metric.EuclidianNorm() < 1e-20) {
+      Logger::Warning(
+          "Metric has no length. Chose non-zero "
+          "metric for ordering points");
+      Logger::Warning("Fall back to default metric, which is {1., 1., ...}");
+      metric.fill(1.);
+    }
+    return metric * (static_cast<ScalarType>(1.) / metric.EuclidianNorm());
+  }(metric);
   // Init connectivity and metric value
   // (-1 : boundary, -2 : untouched)
   std::vector<std::array<std::size_t, number_of_element_faces>> connectivity(
@@ -174,19 +174,22 @@ auto FindConnectivityFromCenters(
 
       // Check 2. (@todo EXCEPTION)
       // TODO check if mfem format is used for the output -> if not do not check
-      if (check_orientation &&
-          opposite_face_list[element_face_id_start] != element_face_id_end) {
-        Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
-        // @todo In order to get the connectivity only, this check needs to be
-        // performed, a boolean value needs to be switched, but the connectivity
-        // is still returned
-      }
+      if constexpr (check_orientation) {
+        constexpr auto opposite_face_list =
+            HyperCube<kParametricDimensions_>::GetOppositeFaces();
+        if (opposite_face_list[element_face_id_start] != element_face_id_end) {
+          Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
+          // @todo In order to get the connectivity only, this check needs to be
+          // performed, a boolean value needs to be switched, but the
+          // connectivity is still returned
+        }
 #ifndef NDEBUG
-      if (check_orientation &&
-          opposite_face_list[element_face_id_end] != element_face_id_start) {
-        Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
-      }
+        if (opposite_face_list[element_face_id_end] != element_face_id_start) {
+          Logger::TerminatingError("Orientation Problem for MFEM-mesh output.");
+        }
 #endif
+      }
+
       // If both tests passed, update connectivity
       connectivity[element_id_start][element_face_id_start] = element_id_end;
       connectivity[element_id_end][element_face_id_end] = element_id_start;
@@ -223,20 +226,23 @@ auto FindConnectivityFromCenters(
  * this has complexity O(nlogn) whereas a KDTree has complexity O(n (logn)^dim).
  *
  * @tparam PhysicalPointType Type of Point coordinates
- * @param corner_vertices std::vector<PhysicalPointType> containing all vertices
- * at spline corners
- * @param metric Metric used to project coords in order to use sorting
- * techniques on one dimensional data
- * @return connectivity
+ * @tparam ScalarType Type determining the precision
+ * @tparam parametric_dimension dimension of the object (e.g. surface in 3D)
+ * @param corner_vertices Corner Vertices that are extracted from the splines
+ * @param metric used for preordering the vertices along a line
+ * @param tolerance tolerance (distance between two vertices that are joined)
+ * @param check_orientation boolean to check if neighboring elements match
+ *                          structured grid
+ * @return connectivity as a vector<array<...>>
  */
-template <typename PhysicalPointType,
+template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
-auto FindConnectivity(const std::vector<PhysicalPointType>& corner_vertices,
-                      const PhysicalPointType& metric,
-                      const ScalarType tolerance,
-                      const bool& check_orientation = true) {
+auto FindConnectivityFromCorners(
+    const std::vector<PhysicalPointType>& corner_vertices,
+    const PhysicalPointType& metric, const ScalarType tolerance,
+    const bool& check_orientation = true) {
   // -- Auxiliary data --
-  constexpr std::size_t kParametricDimensions_ = PhysicalPointType{}.size();
+  constexpr std::size_t kParametricDimensions_ = parametric_dimension;
   constexpr auto subelement_vertex_ids =
       HyperCube<kParametricDimensions_>::SubElementVerticesToFace();
   constexpr auto opposite_face_list =
@@ -280,8 +286,15 @@ auto FindConnectivity(const std::vector<PhysicalPointType>& corner_vertices,
   }
 
   // Return connectivity
-  return FindConnectivityFromCenters(face_center_vertices, metric, tolerance,
-                                     check_orientation);
+  // Conditional is required for individual use without orientation for higher
+  // dimensional or embedded types
+  if (check_orientation) {
+    return FindConnectivityFromCenters<kParametricDimensions_, true>(
+        face_center_vertices, metric, tolerance);
+  } else {
+    return FindConnectivityFromCenters<kParametricDimensions_, false>(
+        face_center_vertices, metric, tolerance);
+  }
 }
 
 /**
@@ -393,7 +406,12 @@ std::vector<std::size_t> IndexUniquePointList(
  * parametric dimension matches the physical dimension of the problem
  *
  * @tparam PhysicalPointType array-type for coordinates
- * @param std::vector<PhysicalPointType> vector of corner vertices
+ * @tparam ScalarType
+ * @param corner_vertices vector<PhysicalPointType> vector of corner vertices
+ * @param metric used for preordering the vertices along a line
+ * @param tolerance tolerance (distance between two vertices that are joined)
+ * @return std::make_tuple(connectivity, vertex_ids, edge_information,
+ *                        boundaries)
  */
 template <typename PhysicalPointType,
           typename ScalarType = typename PhysicalPointType::ScalarType_>
@@ -432,8 +450,8 @@ auto ExtractMFEMInformation(
   }
 
   // Find connectivity using face centers
-  const auto connectivity =
-      FindConnectivity(corner_vertices, metric, tolerance);
+  const auto connectivity = FindConnectivityFromCorners<kParametricDimensions_>(
+      corner_vertices, metric, tolerance);
   Logger::ExtendedInformation("Connectivity determined");
 
   // -- Enumerate Vertices --

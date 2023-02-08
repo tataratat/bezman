@@ -1,0 +1,44 @@
+name: Build gcc
+
+on:
+  push:
+
+
+jobs:
+
+  release:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config Release
+    
+    - name: Make
+      run: cd ${{github.workspace}}/build && make
+
+    - name: Test
+      run: cd ${{github.workspace}}/build && ctest
+
+  debug:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config Debug
+
+      - name: Make
+        run: cd ${{github.workspace}}/build && make
+
+      - name: Test
+        run: cd ${{github.workspace}}/build && ctest

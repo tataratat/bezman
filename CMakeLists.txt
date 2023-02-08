@@ -145,8 +145,7 @@ if(BEZMAN_NOT_TOPLEVEL_PROJECT AND BEZMAN_USE_COMPILE_OPTIONS)
     )
 endif()
 
-#target_compile_features(${MY_FANCY_TARGET_NAME} INTERFACE cxx_std_17)
-set_property(TARGET ${MY_FANCY_TARGET_NAME} PROPERTY CXX_STANDARD 17)
+target_compile_features(${MY_FANCY_TARGET_NAME} INTERFACE cxx_std_17)
 
 # 2. logging
 add_library(${MY_FANCY_LOGGER_TARGET} INTERFACE)

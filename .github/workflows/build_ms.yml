@@ -1,4 +1,4 @@
-name: Build gcc
+name: Build ms
 
 on:
   push:
@@ -19,9 +19,6 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config Release
     
-    - name: Make
-      run: cd ${{github.workspace}}/build && make
-
     - name: Test
       run: cd ${{github.workspace}}/build && ctest
 

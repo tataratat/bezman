@@ -960,8 +960,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   /// Start the composition with the current spline
   // Initialize return value
   using ScalarReturnT = decltype(ScalarType_{} * ScalarTypeInnerFunction{});
-  const IndexingType sum_of_degrees_outer_spline =
-      std::accumulate(degrees.begin(), degrees.end(), 0);
+  const IndexingType sum_of_degrees_outer_spline = std::accumulate(
+      degrees.begin(), degrees.end(), static_cast<IndexingType>(0));
 
   // New degrees
   std::array<IndexingType, parametric_dimension_inner_spline> new_degrees{

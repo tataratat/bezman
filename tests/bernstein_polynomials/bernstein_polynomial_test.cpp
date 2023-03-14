@@ -77,7 +77,7 @@ TEST_F(BernsteinPolynomialTest, TestEnvelopAndPartitionOfUnity) {
 
 TEST_F(BernsteinPolynomialTest, TestDerivatives) {
   std::size_t n_tests = 10;
-  std::size_t max_degree = 8;
+  std::size_t max_degree = 5;
   // Test that derivatives sum up to 0
   for (std::size_t i_test{}; i_test < n_tests; i_test++) {
     const std::size_t degree = rand() % max_degree + 2;

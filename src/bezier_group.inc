@@ -170,8 +170,7 @@ constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::AddComponentwise(
 
 template <typename SplineType>
 template <typename SplineTypeRHS>
-constexpr BezierGroup<decltype(SplineType{} * SplineTypeRHS{})>
-BezierGroup<SplineType>::MultiplyComponentwise(
+constexpr auto BezierGroup<SplineType>::MultiplyComponentwise(
     const BezierGroup<SplineTypeRHS> &rhs) const {
   utils::Logger::Logging(
       "Adding two Bezier Spline Groups comonentwise "

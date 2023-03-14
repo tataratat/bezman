@@ -503,7 +503,7 @@ constexpr BezierSpline<parametric_dimension,
                        decltype(PhysicalPointType{} + PointTypeRHS{}),
                        decltype(ScalarType{} + ScalarRHS{})>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
-    const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs)
+    const BezierSpline<parametric_dimensionRHS, PointTypeRHS, ScalarRHS>& rhs)
     const {
   static_assert(parametric_dimension == parametric_dimensionRHS,
                 "Dimension mismatch between parametric dimensions");

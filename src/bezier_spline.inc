@@ -499,9 +499,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <std::size_t parametric_dimensionRHS, typename PointTypeRHS,
           typename ScalarRHS>
-constexpr BezierSpline<parametric_dimension,
-                       decltype(PhysicalPointType{} + PointTypeRHS{}),
-                       decltype(ScalarType{} + ScalarRHS{})>
+constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
     const BezierSpline<parametric_dimensionRHS, PointTypeRHS, ScalarRHS>& rhs)
     const {
@@ -511,6 +509,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
   using PointTypeReturnT = decltype(PhysicalPointType{} + PointTypeRHS{});
   using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
 
+  // Return type
   BezierSpline<parametric_dimension, PointTypeReturnT, ScalarReturnT>
       return_spline(degrees, control_points);
 

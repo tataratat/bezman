@@ -299,11 +299,9 @@ class BezierSpline {
   /// pointwise addition of the two Beziers
   template <std::size_t parametric_dimensionRHS, typename PointTypeRHS,
             typename ScalarRHS>
-  constexpr BezierSpline<parametric_dimension,
-                         decltype(PhysicalPointType{} + PointTypeRHS{}),
-                         decltype(ScalarType_{} + ScalarRHS{})>
-  operator+(const BezierSpline<parametric_dimensionRHS, PointTypeRHS,
-                               ScalarRHS>& rhs) const;
+  constexpr auto operator+(
+      const BezierSpline<parametric_dimensionRHS, PointTypeRHS, ScalarRHS>& rhs)
+      const;
 
   /// Add two splines of same type
   constexpr BezierSpline& operator+=(BezierSpline rhs);

@@ -101,7 +101,7 @@ auto FindConnectivityFromCenters(
       number_of_patches,
       // Lambda function to initialize an array with constant value in size
       // of face-number
-      []() {
+      [&]() {
         std::array<std::size_t, number_of_element_faces> a{};
         a.fill(static_cast<std::size_t>(-2));
         return a;

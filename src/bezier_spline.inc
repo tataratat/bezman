@@ -528,15 +528,15 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
       return_spline.OrderElevateAlongParametricDimension(par_dim);
     }
   }
-  if (rhs_needs_copy) {
-    // use commutativity of addition to create a copy of rhs
-    return rhs + return_spline;
-  } else {
+  if (!rhs_needs_copy) {
     for (IndexingType i_ctps{};
          i_ctps < return_spline.GetNumberOfControlPoints(); i_ctps++) {
       return_spline.control_points[i_ctps] += rhs.control_points[i_ctps];
     }
     return return_spline;
+  } else {
+    // use commutativity of addition to create a copy of rhs
+    return rhs + return_spline;
   }
 }
 
@@ -1134,8 +1134,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                                    PointTypeRHS, ScalarRHS>& inner_function)
         const {
   // Calculate cumulated sum of outer degrees
-  const IndexingType sum_of_degrees_outer_spline =
-      std::accumulate(degrees.begin(), degrees.end(), 0);
+  const IndexingType sum_of_degrees_outer_spline = std::accumulate(
+      degrees.begin(), degrees.end(), static_cast<IndexingType>(0));
   return (inner_function.GetWeightFunctionSpline())
       .RaisePower(sum_of_degrees_outer_spline);
 }

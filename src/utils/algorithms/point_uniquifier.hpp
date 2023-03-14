@@ -66,6 +66,8 @@ auto FindConnectivityFromCenters(
   // -- Auxiliary data --
   constexpr std::size_t kParametricDimensions_ = parametric_dimension;
   constexpr std::size_t number_of_element_faces = parametric_dimension * 2;
+  using ElementConnectivityInfoT =
+      std::array<std::size_t, number_of_element_faces>;
   const std::size_t number_of_patches =
       face_center_vertices.size() / number_of_element_faces;
   const ScalarType tolerance_squared{tolerance * tolerance};
@@ -101,8 +103,8 @@ auto FindConnectivityFromCenters(
       number_of_patches,
       // Lambda function to initialize an array with constant value in size
       // of face-number
-      []() {
-        std::array<std::size_t, number_of_element_faces> a{};
+      [&]() {
+        ElementConnectivityInfoT a{};
         a.fill(static_cast<std::size_t>(-2));
         return a;
       }());

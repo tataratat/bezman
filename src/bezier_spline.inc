@@ -498,9 +498,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator*(
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename PointTypeRHS, typename ScalarRHS>
-constexpr BezierSpline<parametric_dimension,
-                       decltype(PhysicalPointType{} + PointTypeRHS{}),
-                       decltype(ScalarType{} + ScalarRHS{})>
+constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
     const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs)
     const {
@@ -508,6 +506,7 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
   using PointTypeReturnT = decltype(PhysicalPointType{} + PointTypeRHS{});
   using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
 
+  // Return type
   BezierSpline<parametric_dimension, PointTypeReturnT, ScalarReturnT>
       return_spline(degrees, control_points);
 
@@ -526,15 +525,15 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
       return_spline.OrderElevateAlongParametricDimension(par_dim);
     }
   }
-  if (rhs_needs_copy) {
-    // use commutativity of addition to create a copy of rhs
-    return rhs + return_spline;
-  } else {
+  if (!rhs_needs_copy) {
     for (IndexingType i_ctps{};
          i_ctps < return_spline.GetNumberOfControlPoints(); i_ctps++) {
       return_spline.control_points[i_ctps] += rhs.control_points[i_ctps];
     }
     return return_spline;
+  } else {
+    // use commutativity of addition to create a copy of rhs
+    return rhs + return_spline;
   }
 }
 
@@ -566,15 +565,14 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+=(
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename PointTypeRHS, typename ScalarRHS>
-constexpr BezierSpline<parametric_dimension,
-                       decltype(PhysicalPointType{} - PointTypeRHS{}),
-                       decltype(ScalarType{} * ScalarRHS{})>
+constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator-(
     BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS> rhs) const {
   // Initialize return value
   using PointTypeReturnT = decltype(PhysicalPointType{} + PointTypeRHS{});
   using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
 
+  // Return type
   BezierSpline<parametric_dimension, PointTypeReturnT, ScalarReturnT>
       return_spline(degrees, control_points);
 
@@ -798,9 +796,7 @@ constexpr bool BezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename PointTypeRHS, typename ScalarRHS>
-constexpr BezierSpline<parametric_dimension,
-                       decltype(PhysicalPointType{} * PointTypeRHS{}),
-                       decltype(ScalarType{} * ScalarRHS{})>
+constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator*(
     const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs)
     const {
@@ -836,8 +832,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
           typename ScalarRHS>
-constexpr BezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
-                       decltype(ScalarType{} * ScalarRHS{})>
+constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                        ScalarRHS>& inner_function) const {
@@ -862,9 +857,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
           typename ScalarRHS>
-constexpr RationalBezierSpline<parametric_dimension_inner_spline,
-                               PhysicalPointType,
-                               decltype(ScalarType{} * ScalarRHS{})>
+constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     const RationalBezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                                ScalarRHS>& inner_function) const {
@@ -961,8 +954,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   /// Start the composition with the current spline
   // Initialize return value
   using ScalarReturnT = decltype(ScalarType_{} * ScalarTypeInnerFunction{});
-  const IndexingType sum_of_degrees_outer_spline =
-      std::accumulate(degrees.begin(), degrees.end(), 0);
+  const IndexingType sum_of_degrees_outer_spline = std::accumulate(
+      degrees.begin(), degrees.end(), static_cast<IndexingType>(0));
 
   // New degrees
   std::array<IndexingType, parametric_dimension_inner_spline> new_degrees{
@@ -1135,8 +1128,8 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                                    PointTypeRHS, ScalarRHS>& inner_function)
         const {
   // Calculate cumulated sum of outer degrees
-  const IndexingType sum_of_degrees_outer_spline =
-      std::accumulate(degrees.begin(), degrees.end(), 0);
+  const IndexingType sum_of_degrees_outer_spline = std::accumulate(
+      degrees.begin(), degrees.end(), static_cast<IndexingType>(0));
   return (inner_function.GetWeightFunctionSpline())
       .RaisePower(sum_of_degrees_outer_spline);
 }

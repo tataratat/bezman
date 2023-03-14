@@ -89,9 +89,8 @@ constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::FitIntoUnitCube() {
 
 template <typename SplineType>
 template <typename SplineTypeRHS>
-constexpr BezierGroup<
-    typename BezierGroup<SplineType>::template ComposedType<SplineTypeRHS>>
-BezierGroup<SplineType>::Compose(const SplineTypeRHS &inner_function) const {
+constexpr auto BezierGroup<SplineType>::Compose(
+    const SplineTypeRHS &inner_function) const {
   // Alias for ReturnType
   using ReturnType =
       BezierGroup<typename BezierGroup::template ComposedType<SplineTypeRHS>>;
@@ -112,9 +111,7 @@ BezierGroup<SplineType>::Compose(const SplineTypeRHS &inner_function) const {
 
 template <typename SplineType>
 template <typename SplineTypeRHS>
-constexpr BezierGroup<
-    typename BezierGroup<SplineType>::template ComposedType<SplineTypeRHS>>
-BezierGroup<SplineType>::Compose(
+constexpr auto BezierGroup<SplineType>::Compose(
     const BezierGroup<SplineTypeRHS> &inner_function_group) const {
   // Alias for ReturnType
   using ReturnType =
@@ -170,8 +167,7 @@ constexpr BezierGroup<SplineType> &BezierGroup<SplineType>::AddComponentwise(
 
 template <typename SplineType>
 template <typename SplineTypeRHS>
-constexpr BezierGroup<decltype(SplineType{} * SplineTypeRHS{})>
-BezierGroup<SplineType>::MultiplyComponentwise(
+constexpr auto BezierGroup<SplineType>::MultiplyComponentwise(
     const BezierGroup<SplineTypeRHS> &rhs) const {
   utils::Logger::Logging(
       "Adding two Bezier Spline Groups comonentwise "

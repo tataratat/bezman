@@ -118,12 +118,11 @@ class BezierGroup : public std::vector<SplineType> {
 
   /// Compose with single Spline
   template <typename SplineTypeRHS>
-  constexpr BezierGroup<ComposedType<SplineTypeRHS>> Compose(
-      const SplineTypeRHS &inner_function) const;
+  constexpr auto Compose(const SplineTypeRHS &inner_function) const;
 
   /// Compose with Splinegroup
   template <typename SplineTypeRHS>
-  constexpr BezierGroup<ComposedType<SplineTypeRHS>> Compose(
+  constexpr auto Compose(
       const BezierGroup<SplineTypeRHS> &inner_function_group) const;
 
   /// Add two Bezier Spline Groups Component wise to the current Group
@@ -131,8 +130,8 @@ class BezierGroup : public std::vector<SplineType> {
 
   /// Add two Bezier Spline Groups Component wise to the current Group
   template <typename SplineTypeRHS>
-  constexpr BezierGroup<decltype(SplineType_{} * SplineTypeRHS{})>
-  MultiplyComponentwise(const BezierGroup<SplineTypeRHS> &rhs) const;
+  constexpr auto MultiplyComponentwise(
+      const BezierGroup<SplineTypeRHS> &rhs) const;
 
   /// Calculate the derivative of all components and return in a new group
   constexpr BezierGroup DerivativeWRTParametricDimension(

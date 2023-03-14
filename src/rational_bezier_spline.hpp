@@ -399,11 +399,9 @@ class RationalBezierSpline {
   /// Addition of Two Splines resulting in a new spline that describes the
   /// pointwise addition of the two Beziers
   template <typename PointTypeRHS, typename ScalarRHS>
-  constexpr RationalBezierSpline<parametric_dimension,
-                                 decltype(PhysicalPointType{} + PointTypeRHS{}),
-                                 decltype(ScalarType_{} * ScalarRHS{})>
-  operator+(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
-                                       ScalarRHS>& rhs) const;
+  constexpr auto operator+(
+      const RationalBezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>&
+          rhs) const;
 
   /// Add two splines of same type
   constexpr RationalBezierSpline& operator+=(const RationalBezierSpline& rhs);
@@ -411,22 +409,18 @@ class RationalBezierSpline {
   /// Substraction of Two Splines resulting in a new spline that describes the
   /// pointwise addition of the two Beziers
   template <typename PointTypeRHS, typename ScalarRHS>
-  constexpr RationalBezierSpline<parametric_dimension,
-                                 decltype(PhysicalPointType{} - PointTypeRHS{}),
-                                 decltype(ScalarType_{} * ScalarRHS{})>
-  operator-(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
-                                       ScalarRHS>& rhs) const;
+  constexpr auto operator-(
+      const RationalBezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>&
+          rhs) const;
 
   /// Subtract two splines of same type
   constexpr RationalBezierSpline& operator-=(const RationalBezierSpline& rhs);
 
   /// Multiplication of two splines similar to pointwise product
   template <typename PointTypeRHS, typename ScalarRHS>
-  constexpr RationalBezierSpline<parametric_dimension,
-                                 decltype(PhysicalPointType{} * PointTypeRHS{}),
-                                 decltype(ScalarType_{} * ScalarRHS{})>
-  operator*(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
-                                       ScalarRHS>& rhs) const;
+  constexpr auto operator*(
+      const RationalBezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>&
+          rhs) const;
 
   //------------------- IRIT-related operations
 
@@ -444,11 +438,9 @@ class RationalBezierSpline {
    */
   template <std::size_t parametric_dimension_inner_spline,
             typename PointTypeRHS, typename ScalarRHS>
-  constexpr RationalBezierSpline<parametric_dimension_inner_spline,
-                                 PhysicalPointType,
-                                 decltype(ScalarType_{} * ScalarRHS{})>
-  Compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
-                             ScalarRHS>& inner_function) const {
+  constexpr auto Compose(
+      const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
+                         ScalarRHS>& inner_function) const {
     return RationalBezierSpline<parametric_dimension_inner_spline,
                                 PhysicalPointType,
                                 decltype(ScalarType_{} * ScalarRHS{})>{

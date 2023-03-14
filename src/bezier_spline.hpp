@@ -302,8 +302,8 @@ class BezierSpline {
   constexpr BezierSpline<parametric_dimension,
                          decltype(PhysicalPointType{} + PointTypeRHS{}),
                          decltype(ScalarType_{} + ScalarRHS{})>
-  operator+(const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>&
-                rhs) const;
+  operator+(const BezierSpline<parametric_dimensionRHS, PointTypeRHS,
+                               ScalarRHS>& rhs) const;
 
   /// Add two splines of same type
   constexpr BezierSpline& operator+=(BezierSpline rhs);

@@ -497,14 +497,11 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator*(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-template <std::size_t parametric_dimensionRHS, typename PointTypeRHS,
-          typename ScalarRHS>
+template <typename PointTypeRHS, typename ScalarRHS>
 constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+(
-    const BezierSpline<parametric_dimensionRHS, PointTypeRHS, ScalarRHS>& rhs)
+    const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs)
     const {
-  static_assert(parametric_dimension == parametric_dimensionRHS,
-                "Dimension mismatch between parametric dimensions");
   // Initialize return value
   using PointTypeReturnT = decltype(PhysicalPointType{} + PointTypeRHS{});
   using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});
@@ -567,13 +564,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator+=(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-template <std::size_t parametric_dimensionRHS, typename PointTypeRHS,
-          typename ScalarRHS>
+template <typename PointTypeRHS, typename ScalarRHS>
 constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::operator-(
-    BezierSpline<parametric_dimensionRHS, PointTypeRHS, ScalarRHS> rhs) const {
-  static_assert(parametric_dimension == parametric_dimensionRHS,
-                "Dimension mismatch between parametric dimensions");
+    BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS> rhs) const {
   // Initialize return value
   using PointTypeReturnT = decltype(PhysicalPointType{} + PointTypeRHS{});
   using ScalarReturnT = decltype(ScalarType_{} * ScalarRHS{});

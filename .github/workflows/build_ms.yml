@@ -20,7 +20,7 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config Release
     
     - name: Test
-      run: cd ${{github.workspace}}/build && ctest -D Release
+      run: cd ${{github.workspace}}/build && ctest -C Release
 
   debug:
     runs-on: windows-latest
@@ -35,4 +35,4 @@ jobs:
         run: cmake --build ${{github.workspace}}/build --config Debug
 
       - name: Test
-        run: cd ${{github.workspace}}/build && ctest -D Debug
+        run: cd ${{github.workspace}}/build && ctest -C Debug

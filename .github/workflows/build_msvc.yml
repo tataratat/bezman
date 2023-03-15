@@ -1,0 +1,38 @@
+name: Build MSVC
+
+on:
+  push:
+
+
+jobs:
+
+  release:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config Release
+    
+    - name: Test
+      # ctest without -C raises error
+      run: cd ${{github.workspace}}/build && ctest -C Release --output-on-failure
+
+  debug:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config Debug
+
+      - name: Test
+        run: cd ${{github.workspace}}/build && ctest -C Debug --output-on-failure

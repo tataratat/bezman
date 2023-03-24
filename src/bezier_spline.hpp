@@ -298,11 +298,9 @@ class BezierSpline {
   /// Addition of Two Splines resulting in a new spline that describes the
   /// pointwise addition of the two Beziers
   template <typename PointTypeRHS, typename ScalarRHS>
-  constexpr BezierSpline<parametric_dimension,
-                         decltype(PhysicalPointType{} + PointTypeRHS{}),
-                         decltype(ScalarType_{} + ScalarRHS{})>
-  operator+(const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>&
-                rhs) const;
+  constexpr auto operator+(
+      const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs)
+      const;
 
   /// Add two splines of same type
   constexpr BezierSpline& operator+=(BezierSpline rhs);
@@ -310,10 +308,7 @@ class BezierSpline {
   /// Substraction of Two Splines resulting in a new spline that describes the
   /// pointwise addition of the two Beziers
   template <typename PointTypeRHS, typename ScalarRHS>
-  constexpr BezierSpline<parametric_dimension,
-                         decltype(PhysicalPointType{} - PointTypeRHS{}),
-                         decltype(ScalarType_{} * ScalarRHS{})>
-  operator-(
+  constexpr auto operator-(
       BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS> rhs) const;
 
   /// Add two splines of same type
@@ -324,11 +319,9 @@ class BezierSpline {
 
   /// Multiplication of two splines similar to pointwise product
   template <typename PointTypeRHS, typename ScalarRHS>
-  constexpr BezierSpline<parametric_dimension,
-                         decltype(PhysicalPointType{} * PointTypeRHS{}),
-                         decltype(ScalarType_{} * ScalarRHS{})>
-  operator*(const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>&
-                rhs) const;
+  constexpr auto operator*(
+      const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs)
+      const;
 
   /// Extract single coordinate spline
   constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
@@ -419,10 +412,9 @@ class BezierSpline {
    */
   template <std::size_t parametric_dimension_inner_spline,
             typename PointTypeRHS, typename ScalarRHS>
-  constexpr BezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
-                         decltype(ScalarType_{} * ScalarRHS{})>
-  Compose(const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
-                             ScalarRHS>& inner_function) const;
+  constexpr auto Compose(
+      const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
+                         ScalarRHS>& inner_function) const;
 
   /*
    * Composition between mutliple splines from a spline group
@@ -445,11 +437,9 @@ class BezierSpline {
    */
   template <std::size_t parametric_dimension_inner_spline,
             typename PointTypeRHS, typename ScalarRHS>
-  constexpr RationalBezierSpline<parametric_dimension_inner_spline,
-                                 PhysicalPointType,
-                                 decltype(ScalarType_{} * ScalarRHS{})>
-  Compose(const RationalBezierSpline<parametric_dimension_inner_spline,
-                                     PointTypeRHS, ScalarRHS>& inner_function)
+  constexpr auto Compose(
+      const RationalBezierSpline<parametric_dimension_inner_spline,
+                                 PointTypeRHS, ScalarRHS>& inner_function)
       const;
 
   /*

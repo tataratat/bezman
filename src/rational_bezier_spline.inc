@@ -618,9 +618,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename PointTypeRHS, typename ScalarRHS>
-constexpr RationalBezierSpline<parametric_dimension,
-                               decltype(PhysicalPointType{} + PointTypeRHS{}),
-                               decltype(ScalarType{} * ScalarRHS{})>
+constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator+(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
                                      ScalarRHS>& rhs) const {
@@ -657,9 +655,7 @@ operator+=(const RationalBezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename PointTypeRHS, typename ScalarRHS>
-constexpr RationalBezierSpline<parametric_dimension,
-                               decltype(PhysicalPointType{} - PointTypeRHS{}),
-                               decltype(ScalarType{} * ScalarRHS{})>
+constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator-(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
                                      ScalarRHS>& rhs) const {
@@ -696,9 +692,7 @@ operator-=(const RationalBezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename PointTypeRHS, typename ScalarRHS>
-constexpr RationalBezierSpline<parametric_dimension,
-                               decltype(PhysicalPointType{} * PointTypeRHS{}),
-                               decltype(ScalarType{} * ScalarRHS{})>
+constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator*(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
                                      ScalarRHS>& rhs) const {

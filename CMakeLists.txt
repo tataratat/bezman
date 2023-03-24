@@ -74,8 +74,10 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             -Wunreachable-code -Wshadow -Wfloat-equal -Weffc++
             -Wno-unused-parameter -Wno-unused-variable
             $<$<BOOL:${BEZMAN_GOOGLETEST}>:-Wno-gnu-zero-variadic-macro-arguments>)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(OPTIMIZATION_FLAGS /O2)
 else()
-    message(ERROR "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}")
+    message(WARNING "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}")
 endif()
 
 # Add Files by going through directory structure and add support for IDEs

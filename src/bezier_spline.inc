@@ -858,6 +858,32 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
           typename ScalarRHS>
 constexpr auto
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    ComposeSensitivity(
+        const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
+                           ScalarRHS>& inner_function) const {
+  // Check if the inner function fits into the unit cube
+  if (!inner_function.FitsIntoUnitCube()) {
+    utils::Logger::TerminatingError(
+        "Inner function must fit unit cube to "
+        "perform composition");
+  }
+
+  // Check Dimensions (Scalar Value splines to be treaded as kSpDim = 1)
+  if constexpr (std::is_arithmetic_v<PointTypeRHS>) {
+    static_assert(parametric_dimension == 1, "Dimension mismatch");
+  } else {
+    static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
+                  "Dimension mismatch");
+  }
+  return ComposeNumeratorSensitivity(inner_function);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
+          typename ScalarRHS>
+constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
     const RationalBezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                                ScalarRHS>& inner_function) const {
@@ -926,10 +952,10 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-template <typename SplineType>
+template <bool compute_sensitivities, typename SplineType>
 constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    ComposeNumeratorSpline(const SplineType& inner_function) const {
+    ComposeNumeratorHelper(const SplineType& inner_function) const {
   // Compile only if SplineType is (Rational) Bezier Spline
   static_assert(utils::type_traits::isBezierSpline_v<SplineType> ||
                     utils::type_traits::isRationalBezierSpline_v<SplineType>,
@@ -963,9 +989,27 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   for (IndexingType i{}; i < parametric_dimension_inner_spline; i++)
     new_degrees[i] *= sum_of_degrees_outer_spline;
 
-  BezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
-               ScalarReturnT>
-      composition{new_degrees};
+  // If the sensitivities are to be computed, return a vector with the size of
+  // control points and the same degrees, representing the respective
+  // derivatives. This falls down to computing the basis function splines of the
+  // composition (without the multiplication of the control point values). If
+  // the composition is computed directly, the individual splines have top be
+  // summed up. Initialize return value
+  auto return_value = [&]() {
+    if constexpr (compute_sensitivities) {
+      using ReturnSplineType = BezierSpline<parametric_dimension_inner_spline,
+                                            ScalarReturnT, ScalarReturnT>;
+      std::vector<ReturnSplineType> return_value_{};
+      // Return one spline for every control point of the outer spline
+      return_value_.reserve(GetNumberOfControlPoints());
+      return return_value_;
+    } else {
+      using ReturnSplineType = BezierSpline<parametric_dimension_inner_spline,
+                                            PhysicalPointType, ScalarReturnT>;
+      ReturnSplineType return_value_{new_degrees};
+      return return_value_;
+    }
+  }();
 
   // Precompute the "Bernstein-Basis-Splines", similar to Composition of
   // Polynomial splines. This is performed in 2 stages, first the splines are
@@ -1083,36 +1127,52 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     const auto outer_spline_ctps_indices =
         LocalToGlobalIndex(i_control_point_outer_spline);
 
-    // Initialize current factor
-    auto bernstein_basis_tensor_product =
-        bernstein_basis_splines[0][outer_spline_ctps_indices[0]];
-    for (std::size_t i_outer_parametric_dimension{1};
-         i_outer_parametric_dimension < parametric_dimension;
-         i_outer_parametric_dimension++) {
-      bernstein_basis_tensor_product =
-          bernstein_basis_tensor_product *
-          bernstein_basis_splines
-              [i_outer_parametric_dimension]
-              [outer_spline_ctps_indices[i_outer_parametric_dimension]];
-    }
+    // Start interpolation
+    if constexpr (compute_sensitivities) {
+      return_value.push_back(
+          bernstein_basis_splines[0][outer_spline_ctps_indices[0]]);
+      for (std::size_t i_outer_parametric_dimension{1};
+           i_outer_parametric_dimension < parametric_dimension;
+           i_outer_parametric_dimension++) {
+        return_value.back() =
+            return_value.back() *
+            bernstein_basis_splines
+                [i_outer_parametric_dimension]
+                [outer_spline_ctps_indices[i_outer_parametric_dimension]];
+      }
+    } else {
+      // Initialize current factor
+      auto bernstein_basis_tensor_product =
+          bernstein_basis_splines[0][outer_spline_ctps_indices[0]];
+      for (std::size_t i_outer_parametric_dimension{1};
+           i_outer_parametric_dimension < parametric_dimension;
+           i_outer_parametric_dimension++) {
+        bernstein_basis_tensor_product =
+            bernstein_basis_tensor_product *
+            bernstein_basis_splines
+                [i_outer_parametric_dimension]
+                [outer_spline_ctps_indices[i_outer_parametric_dimension]];
+      }
 
-    // Check if the bernstein_basis_tensor_product has the degrees (and number
-    // of control_points) as expected
-    assert(new_degrees == bernstein_basis_tensor_product.GetDegrees());
-    // Now that all factors have been precomputed we can determine the
-    // control-points of the resulting spline
-    for (IndexingType i_control_point_composition{};
-         i_control_point_composition < composition.GetNumberOfControlPoints();
-         i_control_point_composition++) {
-      // Start interpolation
-      composition.control_points[i_control_point_composition] +=
-          bernstein_basis_tensor_product
-              .control_points[i_control_point_composition] *
-          control_points[i_control_point_outer_spline];
+      // Check if the bernstein_basis_tensor_product has the degrees (and number
+      // of control_points) as expected
+      assert(new_degrees == bernstein_basis_tensor_product.GetDegrees());
+
+      // Now that all factors have been precomputed we can determine the
+      // control-points of the resulting spline
+      for (IndexingType i_control_point_composition{};
+           i_control_point_composition <
+           return_value.GetNumberOfControlPoints();
+           i_control_point_composition++) {
+        return_value.control_points[i_control_point_composition] +=
+            bernstein_basis_tensor_product
+                .control_points[i_control_point_composition] *
+            control_points[i_control_point_outer_spline];
+      }
     }
   }
 
-  return composition;
+  return return_value;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,

@@ -79,13 +79,39 @@ class BezierSpline {
   IndexingType number_of_control_points{};
 
   /**
+   * @brief Templated Fallback function for ComposeNumeratorSpline and
+   * ComposeNumeratorSensitivity as they share most or their code
+   *
+   * Check out their respective documentation for more information
+   */
+  template <bool compute_sensitivities, typename SplineType>
+  constexpr auto ComposeNumeratorHelper(const SplineType& inner_function) const;
+
+  /**
    * @brief Compose the Numerator Function of a polynomial and rational spline
    *
    * This function composes the Numerator only, so it can be reused to work with
    * rational-rational-spline-compositions
    */
   template <typename SplineType>
-  constexpr auto ComposeNumeratorSpline(const SplineType& inner_function) const;
+  constexpr auto ComposeNumeratorSpline(
+      const SplineType& inner_function) const {
+    return ComposeNumeratorHelper<false>(inner_function);
+  }
+
+  /**
+   * @brief Compose the Sensitivity of the Numerator Function of a polynomial
+   * and rational spline with respect to the outer function's control point
+   * positions
+   *
+   * This function composes the Numerator only, so it can be reused to work with
+   * rational-rational-spline-compositions
+   */
+  template <typename SplineType>
+  constexpr auto ComposeNumeratorSensitivity(
+      const SplineType& inner_function) const {
+    return ComposeNumeratorHelper<true>(inner_function);
+  }
 
   /**
    * @brief Compose the Numerator Function of a polynomial and rational spline
@@ -413,6 +439,38 @@ class BezierSpline {
   template <std::size_t parametric_dimension_inner_spline,
             typename PointTypeRHS, typename ScalarRHS>
   constexpr auto Compose(
+      const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
+                         ScalarRHS>& inner_function) const;
+
+  /*
+   * Sensitivity of Functional Composition between two splines
+   *
+   * Computes the sensitivity of a composed spline with respect to the control
+   * points of the outer geometry. This is is required for the computation of
+   * the geometric derivative if the macro-geometry is changing. This works so
+   * long as the parametric dimension of the outer function matches the physical
+   * dimension of the inner function.
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr auto ComposeSensitivity(
+      const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
+                         ScalarRHS>& inner_function) const;
+
+  /*
+   * Sensitivity of Functional Composition between two splines with respect to
+   * outer spline's control-point position
+   *
+   * Compose two splines, taking the (*this) spline as the outer funtion and the
+   * function argument as the inner function. The result represents the
+   * derivative of the functional composition with respect to the outer
+   * geometries control point position, in the form of another Bezier Spline.
+   * This works so long as the parametric dimension of the outer function
+   * matches the physical dimension of the inner function.
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr auto SensitivityCompose(
       const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                          ScalarRHS>& inner_function) const;
 

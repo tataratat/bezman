@@ -910,6 +910,54 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+template <std::size_t parametric_dimension_inner_spline, typename PointTypeRHS,
+          typename ScalarRHS>
+constexpr auto
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    ComposeSensitivity(
+        const RationalBezierSpline<parametric_dimension_inner_spline,
+                                   PointTypeRHS, ScalarRHS>& inner_function)
+        const {
+  // Type declarations
+  using ReturnSplineType =
+      RationalBezierSpline<parametric_dimension_inner_spline,
+                           decltype(ScalarType{} * ScalarRHS{}),
+                           decltype(ScalarType{} * ScalarRHS{})>;
+
+  // Check if the inner function fits into the unit cube
+  if (!inner_function.FitsIntoUnitCube()) {
+    utils::Logger::TerminatingError(
+        "Inner function must fit unit cube to "
+        "perform composition");
+  }
+
+  // Check Dimensions (Scalar Value splines to be treaded as kSpDim = 1)
+  if constexpr (std::is_arithmetic_v<PointTypeRHS>) {
+    static_assert(parametric_dimension == 1, "Dimension mismatch");
+  } else {
+    static_assert(PointTypeRHS::kSpatialDimension == parametric_dimension,
+                  "Dimension mismatch");
+  }
+
+  // Precomputed required values - Numerator
+  const auto numerator_splines = ComposeNumeratorSensitivity(inner_function);
+  // Precomputed required values - Denominator
+  const auto denominator = ComposeDenominatorSpline(inner_function);
+
+  // Init return value
+  std::vector<ReturnSplineType> return_value{};
+  return_value.reserve(GetNumberOfControlPoints());
+
+  // Create corresponding list of rational splines
+  for (IndexingType i{}; i < GetNumberOfControlPoints(); i++) {
+    return_value.push_back(ReturnSplineType{numerator_splines[i], denominator});
+  }
+
+  return return_value;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 template <typename SplineType>
 constexpr auto
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::Compose(

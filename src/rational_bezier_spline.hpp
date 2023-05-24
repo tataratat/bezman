@@ -451,6 +451,49 @@ class RationalBezierSpline {
   }
 
   /*!
+   * Sensitivity to Functional Composition between two splines
+   *
+   * Compose two splines, taking the (*this) spline as the outer funtion and the
+   * function argument as the inner function. The result represents the
+   * derivative of the functional composition with respect to the outer
+   * geometries control point position, in the form of another Bezier Spline.
+   * This works so long as the parametric dimension of the outer function
+   * matches the physical dimension of the inner function.
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr auto ComposeSensitivity(
+      const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
+                         ScalarRHS>& inner_function) const {
+    // Return value Spline type
+    using ReturnSplineType =
+        RationalBezierSpline<parametric_dimension_inner_spline,
+                             decltype(ScalarType_{} * ScalarRHS{}),
+                             decltype(ScalarType_{} * ScalarRHS{})>;
+
+    // Precompute numerators
+    const auto& numerator_derivatives =
+        weighted_spline_.ComposeSensitivity(inner_function);
+    const auto& denominator_spline = weight_function_.Compose(inner_function);
+
+    // Init return value
+    std::vector<ReturnSplineType> return_value{};
+    return_value.reserve(numerator_derivatives.size());
+
+    // The above function computes the sensitivity with respect to the weighted
+    // control point. We have to rescale in order to retrieve the non-weighted
+    // sensitivity
+    for (IndexingType i{}; i < numerator_derivatives.size(); i++) {
+      return_value.push_back(ReturnSplineType{
+          // unweighted derivative
+          numerator_derivatives[i] * GetWeights()[i],
+          // weight spline stays constant
+          denominator_spline});
+    }
+    return return_value;
+  }
+
+  /*!
    * Functional Composition between two rational
    *
    * Compose two splines, taking the (*this) spline as the outer funtion and

@@ -443,21 +443,6 @@ class BezierSpline {
                          ScalarRHS>& inner_function) const;
 
   /*
-   * Sensitivity of Functional Composition between two splines
-   *
-   * Computes the sensitivity of a composed spline with respect to the control
-   * points of the outer geometry. This is is required for the computation of
-   * the geometric derivative if the macro-geometry is changing. This works so
-   * long as the parametric dimension of the outer function matches the physical
-   * dimension of the inner function.
-   */
-  template <std::size_t parametric_dimension_inner_spline,
-            typename PointTypeRHS, typename ScalarRHS>
-  constexpr auto ComposeSensitivity(
-      const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
-                         ScalarRHS>& inner_function) const;
-
-  /*
    * Sensitivity of Functional Composition between two splines with respect to
    * outer spline's control-point position
    *
@@ -470,20 +455,9 @@ class BezierSpline {
    */
   template <std::size_t parametric_dimension_inner_spline,
             typename PointTypeRHS, typename ScalarRHS>
-  constexpr auto SensitivityCompose(
+  constexpr auto ComposeSensitivity(
       const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                          ScalarRHS>& inner_function) const;
-
-  /*
-   * Composition between mutliple splines from a spline group
-   *
-   * Performes a composition between multple splines, which can be used to
-   * construct microstructures. After the return group is instantiated, the
-   * composition is performed elementwise.
-   */
-  template <typename SplineType>
-  constexpr auto Compose(
-      const BezierGroup<SplineType>& inner_function_group) const;
 
   /*
    * Functional Composition between a polynomial and rational spline
@@ -499,6 +473,34 @@ class BezierSpline {
       const RationalBezierSpline<parametric_dimension_inner_spline,
                                  PointTypeRHS, ScalarRHS>& inner_function)
       const;
+  /*
+   * Sensitivity of Functional Composition between two splines with respect to
+   * outer spline's control-point position
+   *
+   * Compose two splines, taking the (*this) spline as the outer funtion and the
+   * function argument as the inner function. The result represents the
+   * derivative of the functional composition with respect to the outer
+   * geometries control point position, in the form of another Bezier Spline.
+   * This works so long as the parametric dimension of the outer function
+   * matches the physical dimension of the inner function.
+   */
+  template <std::size_t parametric_dimension_inner_spline,
+            typename PointTypeRHS, typename ScalarRHS>
+  constexpr auto ComposeSensitivity(
+      const RationalBezierSpline<parametric_dimension_inner_spline,
+                                 PointTypeRHS, ScalarRHS>& inner_function)
+      const;
+
+  /*
+   * Composition between mutliple splines from a spline group
+   *
+   * Performes a composition between multple splines, which can be used to
+   * construct microstructures. After the return group is instantiated, the
+   * composition is performed elementwise.
+   */
+  template <typename SplineType>
+  constexpr auto Compose(
+      const BezierGroup<SplineType>& inner_function_group) const;
 
   /*
    * Split the Bezier Spline into two distinct subdivisions

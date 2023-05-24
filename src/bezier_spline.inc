@@ -1045,14 +1045,14 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   // summed up. Initialize return value
   auto return_value = [&]() {
     if constexpr (compute_sensitivities) {
-      using ReturnSplineType = BezierSpline<parametric_dimension_inner_spline,
+      using ReturnSplineType = BezierSpline<SplineType::kParametricDimensions,
                                             ScalarReturnT, ScalarReturnT>;
       std::vector<ReturnSplineType> return_value_{};
       // Return one spline for every control point of the outer spline
       return_value_.reserve(GetNumberOfControlPoints());
       return return_value_;
     } else {
-      using ReturnSplineType = BezierSpline<parametric_dimension_inner_spline,
+      using ReturnSplineType = BezierSpline<SplineType::kParametricDimensions,
                                             PhysicalPointType, ScalarReturnT>;
       ReturnSplineType return_value_{new_degrees};
       return return_value_;

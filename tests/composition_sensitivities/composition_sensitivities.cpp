@@ -250,4 +250,65 @@ TEST_F(BezierTestingSuite, CompositionSensitivityRatPoly) {
   }
 }
 
+/*
+ * Demonstrate spline composition sensitivities Rational(Rational)
+ *
+ * This is done using finite differences for validation and comparing the
+ * approximate solution to the analytical one.
+ */
+TEST_F(BezierTestingSuite, CompositionSensitivityRatRat) {
+  // Conpute baseline values
+  const auto composed_spline = r_surface.Compose(r_line);
+  const auto composed_sensitivity = r_surface.ComposeSensitivity(r_line);
+
+  // Baseline check
+  EXPECT_EQ(r_surface.GetNumberOfControlPoints(), composed_sensitivity.size());
+  for (std::size_t i{}; i < r_surface.GetNumberOfControlPoints(); i++) {
+    EXPECT_EQ(composed_spline.GetNumberOfControlPoints(),
+              composed_sensitivity[i].GetNumberOfControlPoints());
+  }
+
+  // Set finite difference step width
+  const double dx{1e-5}, inv_dx{1. / dx};
+  const double tolerance{1e-5};
+
+  // Test the control point positions against the finite element solution for
+  // every control point in the outer spline (in all physical directions)
+  for (std::size_t i{}; i < r_surface.GetNumberOfControlPoints(); i++) {
+    const double dx_local = dx * r_surface.GetWeights()[i];
+    for (std::size_t j{}; j < 2; j++) {
+      // Move control point
+      r_surface.GetWeightedControlPoints()[i][j] += dx_local;
+
+      // Perform composition
+      const auto composed_spline_dx = r_surface.Compose(r_line);
+
+      // Check values
+      for (std::size_t k{}; k < r_surface.GetNumberOfControlPoints(); k++) {
+        for (std::size_t l{}; l < 2; l++) {
+          if (l == j) {
+            const double fd_value =
+                (composed_spline_dx.GetWeightedControlPoints()[k][l] -
+                 composed_spline.GetWeightedControlPoints()[k][l]) *
+                inv_dx;
+            EXPECT_TRUE(
+                std::abs(
+                    fd_value -
+                    composed_sensitivity[i].GetWeightedControlPoints()[k]) <
+                tolerance);
+          } else {
+            EXPECT_DOUBLE_EQ(
+                composed_spline_dx.GetWeightedControlPoints()[k][l],
+                composed_spline.GetWeightedControlPoints()[k][l]);
+          }
+        }
+        EXPECT_DOUBLE_EQ(composed_spline_dx.GetWeights()[k],
+                         composed_spline.GetWeights()[k]);
+      }
+      // Clean up - move control point back
+      r_surface.GetWeightedControlPoints()[i][j] -= dx_local;
+    }
+  }
+}
+
 }  // namespace bezman::tests::composition_test

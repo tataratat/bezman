@@ -39,6 +39,9 @@ SOFTWARE.
 #include "bezman/src/utils/type_traits/is_bezier_spline.hpp"
 #include "bezman/src/utils/type_traits/is_rational_bezier_spline.hpp"
 
+#ifdef BEZMAN_DYNAMIC
+#include "bezman/src/vertices.hpp"
+#endif
 namespace bezman {
 
 // Forward declaration for later use
@@ -121,9 +124,14 @@ class BezierSpline {
    */
   template <std::size_t parametric_dimension_inner_spline,
             typename PointTypeRHS, typename ScalarRHS>
+#ifndef BEZMAN_DYNAMIC
   constexpr BezierSpline<parametric_dimension_inner_spline,
                          decltype(ScalarType{} * ScalarRHS{}),
                          decltype(ScalarType{} * ScalarRHS{})>
+#else
+  constexpr BezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
+                         decltype(ScalarType{} * ScalarRHS{})>
+#endif
   ComposeDenominatorSpline(
       const RationalBezierSpline<parametric_dimension_inner_spline,
                                  PointTypeRHS, ScalarRHS>& inner_function)
@@ -140,8 +148,15 @@ class BezierSpline {
 
   /// Offsets in Row based control point storage
   std::array<IndexingType, parametric_dimension> index_offsets{};
+
+#ifndef BEZMAN_DYNAMIC
   /// List of all control points in "Row-based" order
-  std::vector<PhysicalPointType_> control_points{};
+  using ControlPointsType_ = std::vector<PhysicalPointType_>;
+#else
+  using ControlPointsType_ = Vertices<ScalarType_>;
+  using ReturnVectorType_ = typename ControlPointsType_::ReturnVectorType_;
+#endif
+  ControlPointsType_ control_points{};
 
   /// Make Parametric dimension publicly available
   static constexpr IndexingType kParametricDimensions = parametric_dimension;
@@ -175,6 +190,7 @@ class BezierSpline {
   /// Empty constructor
   constexpr BezierSpline() = default;
 
+#ifndef BEZMAN_DYNAMIC
   /// Empty constructor with degrees
   constexpr BezierSpline(
       const std::array<std::size_t, parametric_dimension> deg)
@@ -185,11 +201,26 @@ class BezierSpline {
     control_points.resize(number_of_control_points);
     UpdateIndexOffsets_();
   };
+#else
+  constexpr BezierSpline(
+      const std::array<std::size_t, parametric_dimension>& deg,
+      const IndexingType dimension)
+      : degrees{deg} {
+    number_of_control_points = 1u;
+    for (unsigned int i{}; i < parametric_dimension; i++)
+      number_of_control_points *= degrees[i] + 1;
+
+    control_points.SetDimension(dimension);
+    control_points.resize(number_of_control_points);
+    UpdateIndexOffsets_();
+    assert(number_of_control_points == control_points.GetNumberOfVertices());
+  }
+#endif
 
   /// Constructor with control point list
   constexpr BezierSpline(
       const std::array<std::size_t, parametric_dimension>& deg,
-      const std::vector<PhysicalPointType>& points)
+      const ControlPointsType_& points)
       : degrees{deg}, control_points{points} {
     number_of_control_points = 1u;
     for (unsigned int i{}; i < parametric_dimension; i++)
@@ -228,15 +259,12 @@ class BezierSpline {
   }
 
   /// Access Control Point Vector directly (for conformity to rationals)
-  constexpr const std::vector<PhysicalPointType>& GetControlPoints() const {
-    return control_points;
-  }
+  constexpr const auto& GetControlPoints() const { return control_points; }
 
   /// Access Control Point Vector directly (for conformity to rationals)
-  constexpr std::vector<PhysicalPointType>& GetControlPoints() {
-    return control_points;
-  }
+  constexpr auto& GetControlPoints() { return control_points; }
 
+#ifndef BEZMAN_DYNAMIC
   /// Retrieve single control point from local indices
   template <typename... T>
   constexpr const PhysicalPointType_& ControlPoint(const T... index) const;
@@ -252,6 +280,23 @@ class BezierSpline {
   /// Retrieve single control point from local indices (as array)
   constexpr PhysicalPointType_& ControlPoint(
       const std::array<IndexingType, parametric_dimension>& index);
+#else
+  /// Retrieve single control point from local indices
+  template <typename... T>
+  constexpr const auto ControlPoint(const T... index) const;
+
+  /// Retrieve single control point from local indices
+  template <typename... T>
+  constexpr auto ControlPoint(const T... index);
+
+  /// Retrieve single control point from local indices (as array)
+  constexpr const auto ControlPoint(
+      const std::array<IndexingType, parametric_dimension>& index) const;
+
+  /// Retrieve single control point from local indices (as array)
+  constexpr auto ControlPoint(
+      const std::array<IndexingType, parametric_dimension>& index);
+#endif
 
   /// Order elevation along a specific parametric dimension
   constexpr BezierSpline& OrderElevateAlongParametricDimension(
@@ -263,13 +308,12 @@ class BezierSpline {
 
   /// Evaluate the spline using the de Casteljau algorithm
   template <typename... T>
-  constexpr PhysicalPointType_ Evaluate(const T&... par_coords) const {
+  constexpr auto Evaluate(const T&... par_coords) const {
     return Evaluate(PointTypeParametric_{par_coords...});
   }
 
   /// Evaluate the spline via the deCasteljau algorithm
-  constexpr PhysicalPointType_ Evaluate(
-      const PointTypeParametric_& par_coords) const;
+  constexpr auto Evaluate(const PointTypeParametric_& par_coords) const;
 
   /// Evaluate Basis Functions
   template <typename... T>
@@ -306,18 +350,17 @@ class BezierSpline {
 
   /// Evaluate the spline via the explicit precomputation of bernstein
   /// values
-  constexpr PhysicalPointType_ ForwardEvaluate(
-      const PointTypeParametric_& par_coords) const;
+  constexpr auto ForwardEvaluate(const PointTypeParametric_& par_coords) const;
 
   /// Evaluate the derivatives of a spline via the explicit precomputation of
   /// bernstein polynomial derivativs
-  constexpr PhysicalPointType_ EvaluateDerivative(
+  constexpr auto EvaluateDerivative(
       const PointTypeParametric_& par_coords,
       const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
 
   /// Evaluate the spline using explicit precomputation of bernstein values
   template <typename... T>
-  constexpr PhysicalPointType_ ForwardEvaluate(const T&... par_coords) const {
+  constexpr auto ForwardEvaluate(const T&... par_coords) const {
     return ForwardEvaluate(PointTypeParametric_{par_coords...});
   }
 
@@ -349,8 +392,12 @@ class BezierSpline {
       const BezierSpline<parametric_dimension, PointTypeRHS, ScalarRHS>& rhs)
       const;
 
-  /// Extract single coordinate spline
+#ifndef BEZMAN_DYNAMIC
   constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
+#else
+  constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
+#endif
+  /// Extract single coordinate spline
   ExtractDimension(const IndexingType& dimension) const;
 
   constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
@@ -393,10 +440,10 @@ class BezierSpline {
   constexpr BezierSpline operator-() const;
 
   /// Get maximum restricting corner of spline
-  constexpr PhysicalPointType MaximumCorner() const;
+  constexpr auto MaximumCorner() const;
 
   /// Get minimum restricting corner of spline
-  constexpr PhysicalPointType MinimumCorner() const;
+  constexpr auto MinimumCorner() const;
 
   /*
    * Reposition spline and scale dimensionwise
@@ -410,9 +457,9 @@ class BezierSpline {
    * @param transposition PointType describing the first corner of the nd cuboid
    * @param stretch PointType describing the second corner of the nd cuboid
    */
-  constexpr BezierSpline& TransposeAndScale(
-      const PhysicalPointType& transposition,
-      const PhysicalPointType& scale_vector);
+  template <typename ScalingType>
+  constexpr BezierSpline& TransposeAndScale(const ScalingType& transposition,
+                                            const ScalingType& scale_vector);
 
   /*
    * Fit into unit cube

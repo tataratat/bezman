@@ -110,7 +110,7 @@ class HyperCube {
    */
   static std::array<std::size_t, bezman::utils::algorithms::IntPower(
                                      static_cast<std::size_t>(2), dimension)>
-  VertexIdForDegrees(const std::array<std::size_t, dimension> &degrees) {
+  VertexIdForDegrees(const std::array<std::size_t, dimension>& degrees) {
     // Alias for Readability
     using ReturnType =
         std::array<std::size_t, bezman::utils::algorithms::IntPower(

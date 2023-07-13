@@ -93,15 +93,15 @@ class BezierGroup : public std::vector<SplineType> {
   /// Default constructor (to profit from std::vectors implementations)
   template <typename IntegralType, typename = typename std::enable_if_t<
                                        std::is_integral_v<IntegralType>>>
-  constexpr BezierGroup(const IntegralType &init_size)
+  constexpr BezierGroup(const IntegralType& init_size)
       : std::vector<SplineType_>{init_size} {}
 
   /// Copy constructor
-  constexpr BezierGroup(const BezierGroup &) = default;
+  constexpr BezierGroup(const BezierGroup&) = default;
 
   /// Initializer list overload
   template <typename... Splines>
-  constexpr BezierGroup(const Splines &...splines)
+  constexpr BezierGroup(const Splines&... splines)
       : BaseVector{static_cast<SplineType>(splines)...} {}
 
   /// Check if group fits unit cube
@@ -114,24 +114,24 @@ class BezierGroup : public std::vector<SplineType> {
   constexpr PhysicalPointType_ MinimumCorner() const;
 
   /// Fit to unit_cube
-  constexpr BezierGroup &FitIntoUnitCube();
+  constexpr BezierGroup& FitIntoUnitCube();
 
   /// Compose with single Spline
   template <typename SplineTypeRHS>
-  constexpr auto Compose(const SplineTypeRHS &inner_function) const;
+  constexpr auto Compose(const SplineTypeRHS& inner_function) const;
 
   /// Compose with Splinegroup
   template <typename SplineTypeRHS>
   constexpr auto Compose(
-      const BezierGroup<SplineTypeRHS> &inner_function_group) const;
+      const BezierGroup<SplineTypeRHS>& inner_function_group) const;
 
   /// Add two Bezier Spline Groups Component wise to the current Group
-  constexpr BezierGroup &AddComponentwise(const BezierGroup &rhs);
+  constexpr BezierGroup& AddComponentwise(const BezierGroup& rhs);
 
   /// Add two Bezier Spline Groups Component wise to the current Group
   template <typename SplineTypeRHS>
   constexpr auto MultiplyComponentwise(
-      const BezierGroup<SplineTypeRHS> &rhs) const;
+      const BezierGroup<SplineTypeRHS>& rhs) const;
 
   /// Calculate the derivative of all components and return in a new group
   constexpr BezierGroup DerivativeWRTParametricDimension(
@@ -139,19 +139,19 @@ class BezierGroup : public std::vector<SplineType> {
 
   /// Extract Dimensions Component-wise
   constexpr BezierGroup<ScalarSplineType> ExtractDimension(
-      const IndexingType &par_dim) const;
+      const IndexingType& par_dim) const;
 
   /// + Operator for concatenation
-  constexpr BezierGroup operator+(const BezierGroup &rhs) const;
+  constexpr BezierGroup operator+(const BezierGroup& rhs) const;
 
   /// + Operator for concatenation
-  constexpr BezierGroup &operator+=(const BezierGroup &rhs);
+  constexpr BezierGroup& operator+=(const BezierGroup& rhs);
 
   /// + Operator for translation
-  constexpr BezierGroup operator+(const PhysicalPointType_ &translation) const;
+  constexpr BezierGroup operator+(const PhysicalPointType_& translation) const;
 
   /// + Operator for translation
-  constexpr BezierGroup &operator+=(const PhysicalPointType_ &translation);
+  constexpr BezierGroup& operator+=(const PhysicalPointType_& translation);
 };  // namespace bezman
 
 #include "bezman/src/bezier_group.inc"

@@ -62,8 +62,8 @@ class Export {
    *
    * test.txt and test both return test.txt
    */
-  static std::string ensureFileExtension(const std::string &filename,
-                                         const std::string &obj_extension);
+  static std::string ensureFileExtension(const std::string& filename,
+                                         const std::string& obj_extension);
 
   /*
    * Formats spline to IRIT format
@@ -72,8 +72,8 @@ class Export {
    * a group Pipes everything directly into a file
    */
   template <typename SplineType>
-  static void format2IRITfile(const SplineType &spline,
-                              std::ofstream &export_file);
+  static void format2IRITfile(const SplineType& spline,
+                              std::ofstream& export_file);
 
   /*
    * Formats spline to XML format
@@ -82,8 +82,8 @@ class Export {
    * a group Pipes everything directly into a file
    */
   template <typename SplineType>
-  static void format2XMLfile(const SplineType &spline,
-                             std::ofstream &export_file);
+  static void format2XMLfile(const SplineType& spline,
+                             std::ofstream& export_file);
 
   /**
    * @brief  Formats spline in custom json format
@@ -92,8 +92,8 @@ class Export {
    * a group Pipes everything directly into a file
    */
   template <typename SplineType>
-  static void format2JSONfile(const SplineType &spline,
-                              std::ofstream &export_file,
+  static void format2JSONfile(const SplineType& spline,
+                              std::ofstream& export_file,
                               const bool base64encoding);
 
  public:
@@ -102,52 +102,52 @@ class Export {
 
   /// Guess by extension
   template <typename SplineType>
-  static void GuessByExtension(const SplineType &spline,
-                               const std::string &filename);
+  static void GuessByExtension(const SplineType& spline,
+                               const std::string& filename);
 
   /// Guess by extension
   template <typename SplineType>
-  static void GuessByExtension(const BezierGroup<SplineType> &spline_group,
-                               const std::string &filename);
+  static void GuessByExtension(const BezierGroup<SplineType>& spline_group,
+                               const std::string& filename);
 
   /// Export as IRIT
   template <typename SplineType>
-  static void AsIRIT(const SplineType &spline, const std::string &filename);
+  static void AsIRIT(const SplineType& spline, const std::string& filename);
 
   /// Export as IRIT
   template <typename SplineType>
-  static void AsIRIT(const BezierGroup<SplineType> &spline_group,
-                     const std::string &filename);
+  static void AsIRIT(const BezierGroup<SplineType>& spline_group,
+                     const std::string& filename);
 
   /// Export Single Spline as XML
   template <typename SplineType>
-  static void AsXML(const BezierGroup<SplineType> &spline,
-                    const std::string &filename);
+  static void AsXML(const BezierGroup<SplineType>& spline,
+                    const std::string& filename);
 
   /// Export Group as XML
   template <typename SplineType>
-  static void AsXML(const SplineType &spline_group,
-                    const std::string &filename);
+  static void AsXML(const SplineType& spline_group,
+                    const std::string& filename);
 
   /// Export Single Spline as custom JSON
   template <typename SplineType>
-  static void AsJSON(const SplineType &spline, const std::string &filename,
+  static void AsJSON(const SplineType& spline, const std::string& filename,
                      const bool base64encoding = true);
 
   /// Export Group as  custom JSON
   template <typename SplineType>
-  static void AsJSON(const BezierGroup<SplineType> &spline_group,
-                     const std::string &filename,
+  static void AsJSON(const BezierGroup<SplineType>& spline_group,
+                     const std::string& filename,
                      const bool base64encoding = true);
 
   /// Export Single Spline MFEM multipatch format
   template <typename SplineType>
-  static void AsMFEM(const SplineType &spline, const std::string &filename);
+  static void AsMFEM(const SplineType& spline, const std::string& filename);
 
   /// Export Spline-Group in MFEM multipatch format
   template <typename SplineType>
-  static void AsMFEM(const BezierGroup<SplineType> &spline_group,
-                     const std::string &filename);
+  static void AsMFEM(const BezierGroup<SplineType>& spline_group,
+                     const std::string& filename);
 };
 
 #include "bezman/src/utils/export.inc"

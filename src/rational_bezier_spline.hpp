@@ -54,11 +54,15 @@ class RationalBezierSpline {
   // Aliases
   using IndexingType = std::size_t;
   using PointTypeParametric_ = Point<parametric_dimension, ScalarType>;
-  using PolynomialScalarBezier =
-      BezierSpline<parametric_dimension, ScalarType, ScalarType>;
   using PolynomialBezier =
       BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>;
 
+#ifndef BEZMAN_DYNAMIC
+  using PolynomialScalarBezier =
+      BezierSpline<parametric_dimension, ScalarType, ScalarType>;
+#else
+  using PolynomialScalarBezier = PolynomialBezier;
+#endif
   /*!
    * Numerator Spline, with control points multiplied with their
    * respective weights
@@ -92,6 +96,10 @@ class RationalBezierSpline {
   /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
   using PhysicalPointType_ = PhysicalPointType;
+#ifdef BEZMAN_DYNAMIC
+  using ControlPointsType_ = typename PolynomialBezier::ControlPointsType_;
+  using ReturnVectorType_ = typename PolynomialBezier::ReturnVectorType_;
+#endif
 
   /// Make Parametric dimension publicly available
   static constexpr IndexingType kParametricDimensions = parametric_dimension;
@@ -105,6 +113,7 @@ class RationalBezierSpline {
       const BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>&
           bezier_spline)
       : weighted_spline_{bezier_spline} {
+#ifndef BEZMAN_DYNAMIC
     // Initialize new weight function spline
     weight_function_ =
         BezierSpline<parametric_dimension, ScalarType, ScalarType>{
@@ -116,6 +125,15 @@ class RationalBezierSpline {
                 weighted_spline_.GetNumberOfControlPoints(),
                 // Value
                 static_cast<ScalarType>(1.))};
+#else
+    weight_function_ =
+        BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>{
+            weighted_spline_.GetDegrees(),
+            ControlPointsType_{std::vector<ScalarType>(
+                                   weighted_spline_.GetNumberOfControlPoints(),
+                                   static_cast<ScalarType>(1.)),
+                               1}};
+#endif
     assert(CheckSplineCompatibility());
   }
 
@@ -131,16 +149,25 @@ class RationalBezierSpline {
   /// Empty constructor
   constexpr RationalBezierSpline() = default;
 
+#ifndef BEZMAN_DYNAMIC
   /// Constructor with weights
   constexpr RationalBezierSpline(
       const std::array<std::size_t, parametric_dimension> deg)
       : weighted_spline_{deg}, weight_function_{deg} {};
+#else
+  /// Constructor with weights
+  constexpr RationalBezierSpline(
+      const std::array<std::size_t, parametric_dimension> deg,
+      const IndexingType dimension)
+      : weighted_spline_{deg, dimension}, weight_function_{deg, dimension} {};
+#endif
 
   /// Constructor with control point list
   constexpr RationalBezierSpline(
       const std::array<std::size_t, parametric_dimension> deg,
-      const std::vector<PhysicalPointType_> control_point_vector,
+      const ControlPointsType_ control_point_vector,
       const std::vector<ScalarType> weights)
+#ifndef BEZMAN_DYNAMIC
       : weighted_spline_{deg}, weight_function_{deg, weights} {
     assert(control_point_vector.size() == weights.size());
     assert(weighted_spline_.GetNumberOfControlPoints() == weights.size());
@@ -149,6 +176,34 @@ class RationalBezierSpline {
       weighted_spline_.control_points[i_point] =
           control_point_vector[i_point] * weights[i_point];
     }
+#else
+  {
+    const auto cp_vector_size = control_point_vector.size();
+    const auto w_size = weights.size();
+    const auto dim = control_point_vector.GetDimension();
+
+    if (cp_vector_size != w_size) {
+      throw std::runtime_error(
+          "bezman::RationalBezierSpline - control points and weight size "
+          "mismatch.");
+    }
+    ControlPointsType_ weighted_vertices{};
+    auto& weighted_vertices_vector = weighted_vertices.GetVertices();
+    weighted_vertices_vector.reserve(cp_vector_size);
+
+    auto cp_vector_iter = control_point_vector.GetVertices().cbegin();
+    for (std::size_t i_point{0}; i_point < cp_vector_size; ++i_point) {
+      const auto& w = weights[i_point];
+      for (std::size_t i_dim{}; i_dim < dim; ++i_dim) {
+        weighted_vertices_vector.emplace_back(*(cp_vector_iter++) * w);
+      }
+    }
+
+    weighted_vertices.SetDimension(dim);
+
+    weighted_spline_ = PolynomialBezier{deg, weighted_vertices};
+    weight_function_ = PolynomialScalarBezier{deg, Vertices{weights, 1}};
+#endif
     assert(CheckSplineCompatibility());
   }
 
@@ -172,24 +227,23 @@ class RationalBezierSpline {
   };
 
   /// Access Control Point Vector directly
-  constexpr const std::vector<PhysicalPointType>& GetWeightedControlPoints()
-      const {
+  constexpr const ControlPointsType_& GetWeightedControlPoints() const {
     return weighted_spline_.control_points;
   }
 
   /// Access Control Point Vector directly
-  constexpr std::vector<PhysicalPointType>& GetWeightedControlPoints() {
+  constexpr ControlPointsType_& GetWeightedControlPoints() {
     return weighted_spline_.control_points;
   }
 
   /// Access Weights Vector directly
   constexpr const std::vector<ScalarType>& GetWeights() const {
-    return weight_function_.control_points;
+    return weight_function_.control_points.GetVertices();
   }
 
   /// Access Weights Vector directly
   constexpr std::vector<ScalarType>& GetWeights() {
-    return weight_function_.control_points;
+    return weight_function_.control_points.GetVertices();
   }
 
   /// Set Degrees
@@ -209,6 +263,7 @@ class RationalBezierSpline {
     return weight_function_;
   }
 
+#ifndef BEZMAN_DYNAMIC
   /// Retrieve single control point from local indices
   template <typename... T>
   constexpr PhysicalPointType_ ControlPoint(const T... index) const;
@@ -249,16 +304,55 @@ class RationalBezierSpline {
   /// Retrieve single weight from local indices (as array)
   constexpr ScalarType& Weight(
       const std::array<IndexingType, parametric_dimension>& index);
+#else
+  /// Retrieve single control point from local indices
+  template <typename... T>
+  constexpr auto ControlPoint(const T... index) const;
 
+  /// Retrieve single control point from local indices (as array)
+  constexpr auto ControlPoint(
+      const std::array<IndexingType, parametric_dimension>& index) const;
+
+  /// Retrieve single weighted eighted control point from local indices
+  template <typename... T>
+  constexpr const auto WeightedControlPoint(const T... index) const;
+
+  /// Retrieve single weighted control point from local indices
+  template <typename... T>
+  constexpr auto WeightedControlPoint(const T... index);
+
+  /// Retrieve single weighted control point from local indices (as array)
+  constexpr const auto WeightedControlPoint(
+      const std::array<IndexingType, parametric_dimension>& index) const;
+
+  /// Retrieve single weighted control point from local indices (as array)
+  constexpr auto WeightedControlPoint(
+      const std::array<IndexingType, parametric_dimension>& index);
+
+  /// Retrieve single weight from local indices
+  template <typename... T>
+  constexpr const ScalarType& Weight(const T... index) const;
+
+  /// Retrieve single weight from local indices
+  template <typename... T>
+  constexpr ScalarType& Weight(const T... index);
+
+  /// Retrieve single weight from local indices (as array)
+  constexpr const ScalarType& Weight(
+      const std::array<IndexingType, parametric_dimension>& index) const;
+
+  /// Retrieve single weight from local indices (as array)
+  constexpr ScalarType& Weight(
+      const std::array<IndexingType, parametric_dimension>& index);
+#endif
   //------------------- Essential Operations
 
   /// Evaluate the spline via the deCasteljau algorithm
-  constexpr PhysicalPointType_ Evaluate(
-      const PointTypeParametric_& par_coords) const;
+  constexpr auto Evaluate(const PointTypeParametric_& par_coords) const;
 
   /// Evaluate the spline using the de Casteljau algorithm
   template <typename... T>
-  constexpr PhysicalPointType_ Evaluate(const T&... par_coords) const {
+  constexpr auto Evaluate(const T&... par_coords) const {
     return Evaluate(PointTypeParametric_{par_coords...});
   }
 
@@ -313,7 +407,7 @@ class RationalBezierSpline {
   }
 
   /// Evaluate the derivatives of a spline using Leibnitz' rule
-  constexpr PhysicalPointType_ EvaluateDerivative(
+  constexpr auto EvaluateDerivative(
       const PointTypeParametric_& par_coords,
       const std::array<std::size_t, parametric_dimension>& nth_derivs) const;
 
@@ -425,7 +519,7 @@ class RationalBezierSpline {
   //------------------- IRIT-related operations
 
   /// Extract single coordinate spline
-  constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
+  constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
   ExtractDimension(const std::size_t& dimension) const;
 
   /*!
@@ -517,12 +611,12 @@ class RationalBezierSpline {
   };
 
   /// Get maximum restricting corner of spline
-  constexpr PhysicalPointType MaximumCorner() const {
+  constexpr auto MaximumCorner() const {
     return weighted_spline_.MaximumCorner();
   };
 
   /// Get minimum restricting corner of spline
-  constexpr PhysicalPointType MinimumCorner() const {
+  constexpr auto MinimumCorner() const {
     return weighted_spline_.MinimumCorner();
   };
 };

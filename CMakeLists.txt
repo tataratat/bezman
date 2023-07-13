@@ -14,6 +14,7 @@ project("bezman"
 # Options
 option(BEZMAN_GOOGLETEST "Build with GoogleTest" ON)
 option(BEZMAN_USE_COMPILE_OPTIONS "Populates INTERFACE compile flags" ON)
+option(BEZMAN_DYNAMIC "Switches to dynamic physical dimension." OFF)
 
 
 # Config
@@ -94,7 +95,8 @@ add_library(${MY_FANCY_TARGET_NAME} INTERFACE)
 add_library(${namespace}${MY_FANCY_TARGET_NAME} ALIAS ${MY_FANCY_TARGET_NAME})
 target_compile_definitions(${MY_FANCY_TARGET_NAME}
     INTERFACE
-        $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
+        $<$<NOT:$<CONFIG:Debug>>:NDEBUG>
+        $<$<BOOL:${BEZMAN_DYNAMIC}>:BEZMAN_DYNAMIC>)
 target_include_directories(${MY_FANCY_TARGET_NAME}
     INTERFACE
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/..>

@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef BEZMAN_DYNAMIC
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename... T>
@@ -123,13 +124,122 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   return weight_function_.ControlPoint(index);
 }
 
+#else
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr PhysicalPointType RationalBezierSpline<
+template <typename... T>
+constexpr auto RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                                    ScalarType>::ControlPoint(const T... index)
+    const {
+  static_assert(sizeof...(T) == parametric_dimension,
+                "Unspecified number of indices.");
+  const std::array<IndexingType, parametric_dimension> indices{
+      (static_cast<IndexingType>(index), ...)};
+  return ControlPoint(indices);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr auto
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    ControlPoint(
+        const std::array<IndexingType, parametric_dimension>& index) const {
+  return weighted_spline_.ControlPoint(index) / Weight(index);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename... T>
+constexpr const auto
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::WeightedControlPoint(const T... index) const {
+  static_assert(sizeof...(T) == parametric_dimension,
+                "Unspecified number of indices.");
+  return weighted_spline_.ControlPoint(index...);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename... T>
+constexpr auto
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::WeightedControlPoint(const T... index) {
+  static_assert(sizeof...(T) == parametric_dimension,
+                "Unspecified number of indices.");
+  return weighted_spline_.ControlPoint(index...);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr auto
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    WeightedControlPoint(
+        const std::array<IndexingType, parametric_dimension>& index) {
+  return weighted_spline_.ControlPoint(index);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr const auto
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    WeightedControlPoint(
+        const std::array<IndexingType, parametric_dimension>& index) const {
+  return weighted_spline_.ControlPoint(index);
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename... T>
+constexpr ScalarType&
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::Weight(const T... index) {
+  static_assert(sizeof...(T) == parametric_dimension,
+                "Unspecified number of indices.");
+  return weight_function_.ControlPoint(index...)[0];
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+template <typename... T>
+constexpr const ScalarType&
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::Weight(const T... index) const {
+  static_assert(sizeof...(T) == parametric_dimension,
+                "Unspecified number of indices.");
+  return weight_function_.ControlPoint(index...)[0];
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr ScalarType&
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    Weight(const std::array<IndexingType, parametric_dimension>& index) {
+  return weight_function_.ControlPoint(index)[0];
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr const ScalarType&
+RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    Weight(const std::array<IndexingType, parametric_dimension>& index) const {
+  return weight_function_.ControlPoint(index)[0];
+}
+#endif
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr auto RationalBezierSpline<
     parametric_dimension, PhysicalPointType,
     ScalarType>::Evaluate(const PointTypeParametric_& par_coords) const {
+#ifndef BEZMAN_DYNAMIC
   return weighted_spline_.Evaluate(par_coords) /
          weight_function_.Evaluate(par_coords);
+#else
+  using namespace vector_times_scalar;
+  return weighted_spline_.Evaluate(par_coords) *
+         (static_cast<ScalarType>(1.) /
+          weight_function_.Evaluate(par_coords)[0]);
+#endif
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -219,7 +329,7 @@ constexpr PhysicalPointType RationalBezierSpline<
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr PhysicalPointType
+constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     EvaluateDerivative(
         const PointTypeParametric_& par_coords,
@@ -272,8 +382,13 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   // Initialize return type
   const std::size_t number_of_derivs{global_ids_(nth_derivs) + 1};
   // Please remember that the first derivative is not used
+#ifndef BEZMAN_DYNAMIC
   std::vector<PhysicalPointType> derivatives(number_of_derivs);
   std::vector<PhysicalPointType> A_derivatives(number_of_derivs);
+#else
+  std::vector<ReturnVectorType_> derivatives(number_of_derivs);
+  std::vector<ReturnVectorType_> A_derivatives(number_of_derivs);
+#endif
   std::vector<ScalarType> w_derivatives(number_of_derivs);
 
   // Fill all polynomial spline derivatives (and values for id=0)
@@ -281,8 +396,13 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     const auto req_derivs = local_ids_(i_deriv);
     A_derivatives[i_deriv] =
         weighted_spline_.EvaluateDerivative(par_coords, req_derivs);
+#ifndef BEZMAN_DYNAMIC
     w_derivatives[i_deriv] =
         weight_function_.EvaluateDerivative(par_coords, req_derivs);
+#else
+    w_derivatives[i_deriv] =
+        weight_function_.EvaluateDerivative(par_coords, req_derivs)[0];
+#endif
   }
 
   // Precompute inverse of weighted function
@@ -311,10 +431,18 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
             derivative_order_indexwise_RHS[i_pd]);
       }
       // Substract low-order function
+#ifdef BEZMAN_DYNAMIC
+      using namespace scalar_times_vector;
+      using namespace vector_minus_vector_inplace;
+#endif
+
       derivatives[i_deriv] -=
           binom_fact * w_derivatives[j_deriv] * derivatives[i_deriv - j_deriv];
     }
     // Finalize
+#ifdef BEZMAN_DYNAMIC
+    using namespace vector_times_scalar_inplace;
+#endif
     derivatives[i_deriv] *= inv_w_fact;
   }
   // Return last value
@@ -696,16 +824,23 @@ constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator*(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
                                      ScalarRHS>& rhs) const {
+#ifndef BEZMAN_DYNAMIC
   return RationalBezierSpline<parametric_dimension,
                               decltype(PhysicalPointType{} * PointTypeRHS{}),
                               decltype(ScalarType{} * ScalarRHS{})>{
       weighted_spline_ * rhs.weighted_spline_,
       weight_function_ * rhs.weight_function_};
+#else
+  return RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                              decltype(ScalarType{} * ScalarRHS{})>{
+      weighted_spline_ * rhs.weighted_spline_,
+      weight_function_ * rhs.weight_function_};
+#endif
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
+constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType,
                      ScalarType>::ExtractDimension(const std::size_t& dimension)
     const {
@@ -722,10 +857,16 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
         const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
                            ScalarRHS>& inner_function) const {
   // Return value Spline type
+#ifndef BEZMAN_DYNAMIC
   using ReturnSplineType =
       RationalBezierSpline<parametric_dimension_inner_spline,
                            decltype(ScalarType_{} * ScalarRHS{}),
                            decltype(ScalarType_{} * ScalarRHS{})>;
+#else
+  using ReturnSplineType =
+      RationalBezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
+                           decltype(ScalarType{} * ScalarRHS{})>;
+#endif
 
   // Precompute numerators
   const auto& numerator_derivatives =
@@ -760,10 +901,16 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                                    PointTypeRHS, ScalarRHS>& inner_function)
         const {
   // Return value Spline type
+#ifndef BEZMAN_DYNAMIC
   using ReturnSplineType =
       RationalBezierSpline<parametric_dimension_inner_spline,
                            decltype(ScalarType_{} * ScalarRHS{}),
                            decltype(ScalarType_{} * ScalarRHS{})>;
+#else
+  using ReturnSplineType =
+      RationalBezierSpline<parametric_dimension_inner_spline, PhysicalPointType,
+                           decltype(ScalarType{} * ScalarRHS{})>;
+#endif
 
   // Precompute numerators
   const auto& numerator_derivatives =

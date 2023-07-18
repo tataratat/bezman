@@ -26,8 +26,8 @@ SOFTWARE.
 
 #include <array>
 
-#include "bezman/src/bezier_group.hpp"
-#include "bezman/src/utils/export.hpp"
+#include "bezman/src/bezier_spline.hpp"
+#include "bezman/src/rational_bezier_spline.hpp"
 
 using namespace bezman;
 

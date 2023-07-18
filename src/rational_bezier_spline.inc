@@ -449,7 +449,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr BezierGroup<
+constexpr std::vector<
     RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     SplitAtPosition(const ScalarType& splitting_planes,
@@ -458,20 +458,20 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
       weighted_spline_.SplitAtPosition(splitting_planes, splitting_dimension);
   const auto weight_functions =
       weight_function_.SplitAtPosition(splitting_planes, splitting_dimension);
-  return BezierGroup<RationalBezierSpline>{
+  return std::vector<RationalBezierSpline>{
       RationalBezierSpline{weighted_splines[0], weight_functions[0]},
       RationalBezierSpline{weighted_splines[1], weight_functions[1]}};
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr BezierGroup<
+constexpr std::vector<
     RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     SplitAtPosition(const std::vector<ScalarType>& splitting_planes,
                     const IndexingType splitting_dimension) const {
   // Init return value
-  using ReturnType = BezierGroup<RationalBezierSpline>;
+  using ReturnType = std::vector<RationalBezierSpline>;
   ReturnType return_value;
   return_value.reserve(splitting_planes.size() + 1);
 

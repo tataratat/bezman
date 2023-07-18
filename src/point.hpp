@@ -57,9 +57,6 @@ class Point : public std::array<BaseType, spatial_dimension> {
   /// Provide Type for external use
   using ScalarType_ = BaseType;
 
-  /// Use default copy constructor
-  constexpr Point(const Point&) = default;
-
   /// Constructor with zero init from std::array
   constexpr Point() = default;
 

@@ -334,7 +334,7 @@ class RationalBezierSpline {
    * Splits the Spline along a specific dimension and returns a group
    * representing the same domain over two splines.
    */
-  constexpr BezierGroup<RationalBezierSpline> SplitAtPosition(
+  constexpr std::vector<RationalBezierSpline> SplitAtPosition(
       const ScalarType& splitting_plane,
       const IndexingType splitting_dimension = 0) const;
 
@@ -344,7 +344,7 @@ class RationalBezierSpline {
    * Splits the Spline along a specific dimension at entries specified within a
    * vector and returns a group representing the same domain over n+1 splines
    */
-  constexpr BezierGroup<RationalBezierSpline> SplitAtPosition(
+  constexpr std::vector<RationalBezierSpline> SplitAtPosition(
       const std::vector<ScalarType>& splitting_planes,
       const IndexingType splitting_dimension = 0) const;
 

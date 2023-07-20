@@ -42,8 +42,6 @@ SOFTWARE.
 namespace bezman {
 
 // Forward declaration for later use
-template <typename SplineType>
-class BezierGroup;
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 class RationalBezierSpline;
@@ -500,7 +498,7 @@ class BezierSpline {
    */
   template <typename SplineType>
   constexpr auto Compose(
-      const BezierGroup<SplineType>& inner_function_group) const;
+      const std::vector<SplineType>& inner_function_group) const;
 
   /*
    * Split the Bezier Spline into two distinct subdivisions
@@ -508,7 +506,7 @@ class BezierSpline {
    * Splits the Spline along a specific dimension and returns a group
    * representing the same domain over two splines.
    */
-  constexpr BezierGroup<BezierSpline> SplitAtPosition(
+  constexpr std::vector<BezierSpline> SplitAtPosition(
       const ScalarType& splitting_plane,
       const IndexingType splitting_dimension = 0) const;
 
@@ -518,7 +516,7 @@ class BezierSpline {
    * Splits the Spline along a specific dimension and returns a group
    * representing the same domain over several splines.
    */
-  constexpr BezierGroup<BezierSpline> SplitAtPosition(
+  constexpr std::vector<BezierSpline> SplitAtPosition(
       const std::vector<ScalarType>& splitting_planes,
       const IndexingType splitting_dimension = 0) const;
 };

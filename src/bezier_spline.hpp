@@ -134,6 +134,7 @@ class BezierSpline {
   };
   /// Make ScalarType publicly available
   using ScalarType_ = ScalarType;
+  using IndexingType_ = IndexingType;
   using PhysicalPointType_ = PhysicalPointType;
 
   /// Offsets in Row based control point storage
@@ -157,7 +158,7 @@ class BezierSpline {
    *
    * @param global_idex Array index type as std::array
    */
-  constexpr IndexingType GlobaToLocalIndex(
+  constexpr IndexingType GlobalToLocalIndex(
       const std::array<IndexingType, parametric_dimension>& global_index) const;
 
   /*

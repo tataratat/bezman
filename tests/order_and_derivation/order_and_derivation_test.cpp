@@ -135,7 +135,13 @@ TEST_F(BezierTestingSuite, OrderElevation3) {
 // Derivation Of line with known results
 TEST_F(BezierTestingSuite, Derivation) {
   // Expect equality.
-  EXPECT_EQ(line1.DerivativeWRTParametricDimension(std::array<std::size_t,1>{1}), line1_deriv);
+  EXPECT_EQ(
+      line1.DerivativeWRTParametricDimension(std::array<std::size_t, 1>{1}),
+      line1_deriv);
+  EXPECT_EQ(
+      line1.OrderElevateAlongParametricDimension(0)
+          .DerivativeWRTParametricDimension(std::array<std::size_t, 1>{1}),
+      line1_deriv.OrderElevateAlongParametricDimension(0));
 }
 
 // Demonstrate the direct evaluation of a derivative
@@ -150,9 +156,9 @@ TEST_F(BezierTestingSuite, DerivativeEvaluation) {
                                                  rand_int(0, 5)};
   const auto random_spline = CreateRandomSpline(degrees);
   auto random_spline_deriv = random_spline;
-  
-        random_spline_deriv =
-            random_spline_deriv.DerivativeWRTParametricDimension(derivs);
+
+  random_spline_deriv =
+      random_spline_deriv.DerivativeWRTParametricDimension(derivs);
 
   const std::size_t n_tests = 10;
   for (std::size_t i_test{}; i_test < n_tests; i_test++) {

@@ -331,7 +331,8 @@ namespace bezman::tests::rational_splines_test
   {
     using RationalBezier = RationalBezierSpline<1, double, double>;
     RationalBezier spline{degree, ctps_deriv_test, weights_deriv_test};
-    const auto derivative = spline.DerivativeWRTParametricDimension(0);
+    const auto derivative =
+        spline.DerivativeWRTParametricDimension(std::array<std::size_t, 1>{1});
     // Sample
     const std::size_t n_sample_points{10};
     for (std::size_t i_sample_y{0}; i_sample_y < n_sample_points; i_sample_y++)
@@ -353,14 +354,9 @@ namespace bezman::tests::rational_splines_test
           {{2, 0}, {1, 1}, {1, 2}}}[i_test];
       const auto random_spline = CreateRandomSpline(degrees);
       auto random_spline_deriv = random_spline;
-      for (std::size_t i_para_dim{}; i_para_dim < para_dims; i_para_dim++)
-      {
-        for (std::size_t i_deriv{}; i_deriv < derivs[i_para_dim]; i_deriv++)
-        {
-          random_spline_deriv =
-              random_spline_deriv.DerivativeWRTParametricDimension(i_para_dim);
-        }
-      }
+      
+            random_spline_deriv =
+                random_spline_deriv.DerivativeWRTParametricDimension(derivs);
 
       // Evaluate for comparison
       for (std::size_t j_test{}; j_test < n_test_evaluations; j_test++)

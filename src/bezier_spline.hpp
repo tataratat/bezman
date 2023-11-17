@@ -145,12 +145,20 @@ class BezierSpline {
   static constexpr IndexingType kParametricDimensions = parametric_dimension;
 
   /*
-   * Retrieve individual indices
+   * Retrieve multidimensional indices
    *
    * @param local_indices single value index as control point index
    */
   constexpr std::array<IndexingType, parametric_dimension> LocalToGlobalIndex(
       const IndexingType& local_index) const;
+
+  /*
+   * Retrieve global scalar index
+   *
+   * @param global_idex Array index type as std::array
+   */
+  constexpr IndexingType GlobaToLocalIndex(
+      const std::array<IndexingType, parametric_dimension>& global_index) const;
 
   /*
    * Calculate the new control point that result from the multiplication
@@ -257,7 +265,7 @@ class BezierSpline {
 
   /// Derivative along a specific parametric dimension
   constexpr BezierSpline DerivativeWRTParametricDimension(
-      const IndexingType par_dim) const;
+      const std::array<IndexingType, parametric_dimension>& orders) const;
 
   /// Evaluate the spline using the de Casteljau algorithm
   template <typename... T>

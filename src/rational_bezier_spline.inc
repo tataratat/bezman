@@ -510,19 +510,39 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
                                ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    DerivativeWRTParametricDimension(const IndexingType par_dim) const {
-  // Implemented using Quotient-rule
-  // Note that the numerator spline needs to be order elevated to match
-  // denominator's order
-  return RationalBezierSpline(
-      // u' * w - w' * u
-      (weighted_spline_.DerivativeWRTParametricDimension(par_dim) *
-           weight_function_ -
-       weight_function_.DerivativeWRTParametricDimension(par_dim) *
-           weighted_spline_)
-          .OrderElevateAlongParametricDimension(par_dim),
-      // v^2
-      weight_function_ * weight_function_);
+    DerivativeWRTParametricDimension(
+        const std::array<IndexingType, parametric_dimension>& orders) const {
+    // Implemented using Quotient-rule
+    // There is currently no generalized high order generalization of the
+    // quotient rule, here we use a one by one derivative, involving copies each
+    // time. This operation is very expensive, please use carefully.
+
+    // Note that the numerator spline needs to be order elevated to match
+    // denominator's order
+
+    // Initialize return value
+    RationalBezierSpline derivative{*this};
+
+    for (IndexingType i_para_dim{}; i_para_dim < parametric_dimension;
+         i_para_dim++) {
+        for (IndexingType i_order{}; i_order < orders[i_para_dim]; i_order++) {
+            std::array<IndexingType, parametric_dimension> order_{};
+            order_[i_para_dim]++;
+            RationalBezierSpline(
+                // u' * w - w' * u
+                (derivative.GetNumeratorSpline()
+                         .DerivativeWRTParametricDimension(order_) *
+                     weight_function_ -
+                 derivative.GetWeightFunctionSpline()
+                         .DerivativeWRTParametricDimension(order_) *
+                     derivative.GetNumeratorSpline())
+                    .OrderElevateAlongParametricDimension(i_para_dim),
+                // v^2
+                derivative.GetWeightFunctionSpline() *
+                    derivative.GetWeightFunctionSpline())
+        }
+    }
+    return derivative;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,

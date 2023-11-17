@@ -206,7 +206,12 @@ class RationalBezierSpline {
 
   // Get the weight function spline as const reference
   constexpr const PolynomialScalarBezier& GetWeightFunctionSpline() const {
-    return weight_function_;
+      return weight_function_;
+  }
+
+  // Get the weighted spline function as const reference
+  constexpr const PolynomialScalarBezier& GetNumeratorSpline() const {
+      return weighted_spline_;
   }
 
   /// Retrieve single control point from local indices
@@ -352,9 +357,13 @@ class RationalBezierSpline {
    * @brief  Derivative along a specific parametric dimension
    *
    * This function is implemented using the Quotient-rule for derivatives
+   * 
+   * Very costly, please use carefully
+   * 
+   * @param orders 
    */
   constexpr RationalBezierSpline DerivativeWRTParametricDimension(
-      const IndexingType par_dim) const;
+      const std::array<IndexingType, parametric_dimension>& orders) const;
 
   //-------------------  Operator overloads
 

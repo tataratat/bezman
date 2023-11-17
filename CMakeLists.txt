@@ -60,13 +60,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(WARNING_FLAGS -Wall -Wextra -Wpedantic -Wzero-as-null-pointer-constant
                       -Wno-unused>)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    message(
-        WARNING 
-            "CLANG is not sufficiently tested. "
-            "Please help us by submitting issues (or PR!) to "
-            "[github.com/tataratat/bezman] with any problems."
-            "Thank you!"
-    )
     set(OPTIMIZATION_FLAGS -O3)
     set(RUNTIME_CHECKS_DEBUG)
     set(WARNING_FLAGS 

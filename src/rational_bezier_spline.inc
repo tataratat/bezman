@@ -807,3 +807,78 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   }
   return return_value;
 }
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr bool RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                                    ScalarType>::FitsIntoUnitCube() const {
+  const auto maximum_corner = MaximumCorner();
+  const auto minimum_corner = MinimumCorner();
+  if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+    if ((maximum_corner > static_cast<ScalarType>(1)) ||
+        (minimum_corner < static_cast<ScalarType>(0))) {
+      return false;
+    }
+  } else {
+    for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+         i_dim++) {
+      if ((maximum_corner[i_dim] > static_cast<ScalarType>(1)) ||
+          (minimum_corner[i_dim] < static_cast<ScalarType>(0))) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr PhysicalPointType
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::MinimumCorner() const {
+  if (GetNumberOfControlPoints() == 0) {
+    utils::Logger::TerminatingError(
+        "Spline is non-defined or has no control-points");
+  }
+  PhysicalPointType minimum{ControlPoint(LocalToGlobalIndex(0))};
+  for (IndexingType i{1}; i < GetNumberOfControlPoints(); i++) {
+    if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+      minimum = std::min(minimum, ControlPoint(LocalToGlobalIndex(i)));
+    } else {
+      const PhysicalPointType& control_point_reference =
+          ControlPoint(LocalToGlobalIndex(i));
+      for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+           i_dim++) {
+        minimum[i_dim] =
+            std::min(minimum[i_dim], control_point_reference[i_dim]);
+      }
+    }
+  }
+  return minimum;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr PhysicalPointType
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::MaximumCorner() const {
+  if (GetNumberOfControlPoints() == 0) {
+    utils::Logger::TerminatingError(
+        "Spline is non-defined or has no control-points");
+  }
+  PhysicalPointType maximum{ControlPoint(LocalToGlobalIndex(0))};
+  for (IndexingType i{1}; i < GetNumberOfControlPoints(); i++) {
+    if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+      maximum = std::max(maximum, ControlPoint(LocalToGlobalIndex(i)));
+    } else {
+      const PhysicalPointType& control_point_reference =
+          ControlPoint(LocalToGlobalIndex(i));
+      for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+           i_dim++) {
+        maximum[i_dim] =
+            std::max(maximum[i_dim], control_point_reference[i_dim]);
+      }
+    }
+  }
+  return maximum;
+}

@@ -521,19 +521,34 @@ class RationalBezierSpline {
   }
 
   /// Check if can be used for composition
-  constexpr bool FitsIntoUnitCube() const {
-    return weighted_spline_.FitsIntoUnitCube();
-  };
+  constexpr bool FitsIntoUnitCube() const;
 
   /// Get maximum restricting corner of spline
-  constexpr PhysicalPointType MaximumCorner() const {
-    return weighted_spline_.MaximumCorner();
-  };
+  constexpr PhysicalPointType MaximumCorner() const;
 
   /// Get minimum restricting corner of spline
-  constexpr PhysicalPointType MinimumCorner() const {
-    return weighted_spline_.MinimumCorner();
-  };
+  constexpr PhysicalPointType MinimumCorner() const;
+
+  /*
+   * Retrieve multidimensional indices
+   *
+   * @param local_indices single value index as control point index
+   */
+  constexpr std::array<IndexingType, parametric_dimension> LocalToGlobalIndex(
+      const IndexingType& local_index) const {
+    return weight_function_.LocalToGlobalIndex(local_index);
+  }
+
+  /*
+   * Retrieve global scalar index
+   *
+   * @param global_idex Array index type as std::array
+   */
+  constexpr IndexingType GlobalToLocalIndex(
+      const std::array<IndexingType, parametric_dimension>& global_index)
+      const {
+    return weight_function_.GlobalToLocalIndex(global_index);
+  }
 };
 
 #include "bezman/src/rational_bezier_spline.inc"

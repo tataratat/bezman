@@ -40,7 +40,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     ControlPoint(
-        const std::array<IndexingType, parametric_dimension>& index) const {
+        const std::array<IndexingType, parametric_dimension> &index) const {
   return weighted_spline_.ControlPoint(index) /
          weight_function_.ControlPoint(index);
 }
@@ -48,7 +48,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename... T>
-constexpr PhysicalPointType&
+constexpr PhysicalPointType &
 RationalBezierSpline<parametric_dimension, PhysicalPointType,
                      ScalarType>::WeightedControlPoint(const T... index) {
   static_assert(sizeof...(T) == parametric_dimension,
@@ -59,7 +59,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename... T>
-constexpr const PhysicalPointType&
+constexpr const PhysicalPointType &
 RationalBezierSpline<parametric_dimension, PhysicalPointType,
                      ScalarType>::WeightedControlPoint(const T... index) const {
   static_assert(sizeof...(T) == parametric_dimension,
@@ -69,26 +69,26 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType,
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr PhysicalPointType&
+constexpr PhysicalPointType &
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     WeightedControlPoint(
-        const std::array<IndexingType, parametric_dimension>& index) {
+        const std::array<IndexingType, parametric_dimension> &index) {
   return weighted_spline_.ControlPoint(index);
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr const PhysicalPointType&
+constexpr const PhysicalPointType &
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     WeightedControlPoint(
-        const std::array<IndexingType, parametric_dimension>& index) const {
+        const std::array<IndexingType, parametric_dimension> &index) const {
   return weighted_spline_.ControlPoint(index);
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename... T>
-constexpr ScalarType&
+constexpr ScalarType &
 RationalBezierSpline<parametric_dimension, PhysicalPointType,
                      ScalarType>::Weight(const T... index) {
   static_assert(sizeof...(T) == parametric_dimension,
@@ -99,7 +99,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 template <typename... T>
-constexpr const ScalarType&
+constexpr const ScalarType &
 RationalBezierSpline<parametric_dimension, PhysicalPointType,
                      ScalarType>::Weight(const T... index) const {
   static_assert(sizeof...(T) == parametric_dimension,
@@ -109,17 +109,17 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType,
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr ScalarType&
+constexpr ScalarType &
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    Weight(const std::array<IndexingType, parametric_dimension>& index) {
+    Weight(const std::array<IndexingType, parametric_dimension> &index) {
   return weight_function_.ControlPoint(index);
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
-constexpr const ScalarType&
+constexpr const ScalarType &
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    Weight(const std::array<IndexingType, parametric_dimension>& index) const {
+    Weight(const std::array<IndexingType, parametric_dimension> &index) const {
   return weight_function_.ControlPoint(index);
 }
 
@@ -127,7 +127,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr PhysicalPointType RationalBezierSpline<
     parametric_dimension, PhysicalPointType,
-    ScalarType>::Evaluate(const PointTypeParametric_& par_coords) const {
+    ScalarType>::Evaluate(const PointTypeParametric_ &par_coords) const {
   return weighted_spline_.Evaluate(par_coords) /
          weight_function_.Evaluate(par_coords);
 }
@@ -136,7 +136,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::vector<ScalarType> RationalBezierSpline<
     parametric_dimension, PhysicalPointType,
-    ScalarType>::BasisFunctions(const PointTypeParametric_& par_coords) const {
+    ScalarType>::BasisFunctions(const PointTypeParametric_ &par_coords) const {
   // Check sanity
   assert(CheckSplineCompatibility());
 
@@ -156,7 +156,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::vector<ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    UnweightedBasisFunctions(const PointTypeParametric_& par_coords) const {
+    UnweightedBasisFunctions(const PointTypeParametric_ &par_coords) const {
   // Check sanity
   assert(CheckSplineCompatibility());
 
@@ -188,7 +188,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr std::array<std::vector<ScalarType>, parametric_dimension>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    BasisFunctionContributions(const PointTypeParametric_& par_coords) const {
+    BasisFunctionContributions(const PointTypeParametric_ &par_coords) const {
   // Basis function of weight function and weighted spline are equivalent
   return weighted_spline_.BasisFunctionContributions(par_coords);
 }
@@ -197,7 +197,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr PhysicalPointType RationalBezierSpline<
     parametric_dimension, PhysicalPointType,
-    ScalarType>::ForwardEvaluate(const PointTypeParametric_& par_coords) const {
+    ScalarType>::ForwardEvaluate(const PointTypeParametric_ &par_coords) const {
   // Check sanity
   assert(CheckSplineCompatibility());
 
@@ -222,8 +222,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     EvaluateDerivative(
-        const PointTypeParametric_& par_coords,
-        const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
+        const PointTypeParametric_ &par_coords,
+        const std::array<std::size_t, parametric_dimension> &nth_derivs) const {
   // Define lambdas to switch between local indexing with coordinate style
   // indexing to global, scalar indexing
   // example: for nth (2,1,4) : (1,0,0)->1, (1,1,0)->4
@@ -245,7 +245,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   // Local (coordinate-style) indexing to global
   auto global_ids_ =
       [&nth_derivs](
-          const std::array<std::size_t, parametric_dimension>& req_derivs)
+          const std::array<std::size_t, parametric_dimension> &req_derivs)
       -> std::size_t {
     std::size_t id{};
     std::size_t offset{1};
@@ -260,8 +260,8 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
   // Check if requested derivative is "subset" to current derivative
   auto is_not_subset_ =
-      [](const std::array<std::size_t, parametric_dimension>& req_derivs_max,
-         const std::array<std::size_t, parametric_dimension>& req_derivs)
+      [](const std::array<std::size_t, parametric_dimension> &req_derivs_max,
+         const std::array<std::size_t, parametric_dimension> &req_derivs)
       -> bool {
     for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
       if (req_derivs[i_pd] > req_derivs_max[i_pd]) return true;
@@ -326,8 +326,8 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr std::vector<ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     BasisFunctionsDerivatives(
-        const PointTypeParametric_& par_coords,
-        const std::array<std::size_t, parametric_dimension>& nth_derivs) const {
+        const PointTypeParametric_ &par_coords,
+        const std::array<std::size_t, parametric_dimension> &nth_derivs) const {
   // Define lambdas to switch between local indexing with coordinate style
   // indexing to global, scalar indexing
   // example: for nth (2,1,4) : (1,0,0)->1, (1,1,0)->4
@@ -349,7 +349,7 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
   // Local (coordinate-style) indexing to global
   auto global_ids_ =
       [&nth_derivs](
-          const std::array<std::size_t, parametric_dimension>& req_derivs)
+          const std::array<std::size_t, parametric_dimension> &req_derivs)
       -> std::size_t {
     std::size_t id{};
     std::size_t offset{1};
@@ -364,8 +364,8 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
   // Check if requested derivative is "subset" to current derivative
   auto is_not_subset_ =
-      [](const std::array<std::size_t, parametric_dimension>& req_derivs_max,
-         const std::array<std::size_t, parametric_dimension>& req_derivs)
+      [](const std::array<std::size_t, parametric_dimension> &req_derivs_max,
+         const std::array<std::size_t, parametric_dimension> &req_derivs)
       -> bool {
     for (std::size_t i_pd{}; i_pd < parametric_dimension; i_pd++) {
       if (req_derivs[i_pd] > req_derivs_max[i_pd]) return true;
@@ -437,9 +437,9 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                               ScalarType>&
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    OrderElevateAlongParametricDimension(const IndexingType par_dim) {
+                               ScalarType>
+    &RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+        OrderElevateAlongParametricDimension(const IndexingType par_dim) {
   weighted_spline_.OrderElevateAlongParametricDimension(par_dim);
   weight_function_.OrderElevateAlongParametricDimension(par_dim);
   // Check sanity
@@ -452,7 +452,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr std::vector<
     RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    SplitAtPosition(const ScalarType& splitting_planes,
+    SplitAtPosition(const ScalarType &splitting_planes,
                     const IndexingType splitting_dimension) const {
   const auto weighted_splines =
       weighted_spline_.SplitAtPosition(splitting_planes, splitting_dimension);
@@ -468,7 +468,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr std::vector<
     RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    SplitAtPosition(const std::vector<ScalarType>& splitting_planes,
+    SplitAtPosition(const std::vector<ScalarType> &splitting_planes,
                     const IndexingType splitting_dimension) const {
   // Init return value
   using ReturnType = std::vector<RationalBezierSpline>;
@@ -510,27 +510,47 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
                                ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    DerivativeWRTParametricDimension(const IndexingType par_dim) const {
+    DerivativeWRTParametricDimension(
+        const std::array<IndexingType, parametric_dimension> &orders) const {
   // Implemented using Quotient-rule
+  // There is currently no generalized high order generalization of the
+  // quotient rule, here we use a one by one derivative, involving copies each
+  // time. This operation is very expensive, please use carefully.
+
   // Note that the numerator spline needs to be order elevated to match
   // denominator's order
-  return RationalBezierSpline(
-      // u' * w - w' * u
-      (weighted_spline_.DerivativeWRTParametricDimension(par_dim) *
-           weight_function_ -
-       weight_function_.DerivativeWRTParametricDimension(par_dim) *
-           weighted_spline_)
-          .OrderElevateAlongParametricDimension(par_dim),
-      // v^2
-      weight_function_ * weight_function_);
+
+  // Initialize return value
+  RationalBezierSpline derivative{*this};
+
+  for (IndexingType i_para_dim{}; i_para_dim < parametric_dimension;
+       i_para_dim++) {
+    std::array<IndexingType, parametric_dimension> order_{};
+    order_[i_para_dim]++;
+    for (IndexingType i_order{}; i_order < orders[i_para_dim]; i_order++) {
+      derivative = RationalBezierSpline(
+          // u' * w - w' * u
+          ((derivative.GetNumeratorSpline().DerivativeWRTParametricDimension(
+                order_) *
+            derivative.GetWeightFunctionSpline()) -
+           (derivative.GetWeightFunctionSpline()
+                .DerivativeWRTParametricDimension(order_) *
+            derivative.GetNumeratorSpline()))
+              .OrderElevateAlongParametricDimension(i_para_dim),
+          // v^2
+          derivative.GetWeightFunctionSpline() *
+              derivative.GetWeightFunctionSpline());
+    }
+  }
+  return derivative;
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                               ScalarType>&
-RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                     ScalarType>::operator*=(const ScalarType& scalar) {
+                               ScalarType>
+    &RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                          ScalarType>::operator*=(const ScalarType &scalar) {
   // Multiplication only reflects in the weighted spline
   weighted_spline_ *= scalar;
   // Check sanity
@@ -543,7 +563,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
                                ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                     ScalarType>::operator*(const ScalarType& scalar) const {
+                     ScalarType>::operator*(const ScalarType &scalar) const {
   // Multiplication only reflects in the weighted spline
   return RationalBezierSpline(weighted_spline_ * scalar, weight_function_);
 }
@@ -551,9 +571,9 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                               ScalarType>&
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-operator+=(const PhysicalPointType& point_shift) {
+                               ScalarType>
+    &RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    operator+=(const PhysicalPointType &point_shift) {
   // Add up contributions to control points with weights
   for (IndexingType i_ctps{};
        i_ctps < weighted_spline_.GetNumberOfControlPoints(); i_ctps++) {
@@ -570,7 +590,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
                                ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-operator+(const PhysicalPointType& point_shift) const {
+operator+(const PhysicalPointType &point_shift) const {
   // Pass to operator +=
   RationalBezierSpline return_spline{weighted_spline_, weight_function_};
   return_spline += point_shift;
@@ -580,9 +600,9 @@ operator+(const PhysicalPointType& point_shift) const {
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                               ScalarType>&
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-operator-=(const PhysicalPointType& point_shift) {
+                               ScalarType>
+    &RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    operator-=(const PhysicalPointType &point_shift) {
   // Add up contributions to control points with weights
   for (IndexingType i_ctps{};
        i_ctps < weighted_spline_.GetNumberOfControlPoints(); i_ctps++) {
@@ -597,7 +617,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
                                ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-operator-(const PhysicalPointType& point_shift) const {
+operator-(const PhysicalPointType &point_shift) const {
   // Pass to operator +=
   RationalBezierSpline return_spline{weighted_spline_, weight_function_};
   return_spline -= point_shift;
@@ -621,7 +641,7 @@ template <typename PointTypeRHS, typename ScalarRHS>
 constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator+(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
-                                     ScalarRHS>& rhs) const {
+                                     ScalarRHS> &rhs) const {
   if (weight_function_ == rhs.weight_function_) {
     return RationalBezierSpline{weighted_spline_ + rhs.weighted_spline_,
                                 weight_function_};
@@ -635,10 +655,10 @@ operator+(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                               ScalarType>&
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-operator+=(const RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                                      ScalarType>& rhs) {
+                               ScalarType>
+    &RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    operator+=(const RationalBezierSpline<parametric_dimension,
+                                          PhysicalPointType, ScalarType> &rhs) {
   if (weight_function_ == rhs.weight_function_) {
     weighted_spline_ += rhs.weighted_spline_;
     return (*this);
@@ -658,7 +678,7 @@ template <typename PointTypeRHS, typename ScalarRHS>
 constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator-(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
-                                     ScalarRHS>& rhs) const {
+                                     ScalarRHS> &rhs) const {
   if (weight_function_ == rhs.weight_function_) {
     return RationalBezierSpline{weighted_spline_ - rhs.weighted_spline_,
                                 weight_function_};
@@ -672,10 +692,10 @@ operator-(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                               ScalarType>&
-RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-operator-=(const RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                                      ScalarType>& rhs) {
+                               ScalarType>
+    &RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    operator-=(const RationalBezierSpline<parametric_dimension,
+                                          PhysicalPointType, ScalarType> &rhs) {
   if (weight_function_ == rhs.weight_function_) {
     weighted_spline_ -= rhs.weighted_spline_;
     return (*this);
@@ -695,7 +715,7 @@ template <typename PointTypeRHS, typename ScalarRHS>
 constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 operator*(const RationalBezierSpline<parametric_dimension, PointTypeRHS,
-                                     ScalarRHS>& rhs) const {
+                                     ScalarRHS> &rhs) const {
   return RationalBezierSpline<parametric_dimension,
                               decltype(PhysicalPointType{} * PointTypeRHS{}),
                               decltype(ScalarType{} * ScalarRHS{})>{
@@ -707,7 +727,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, ScalarType, ScalarType>
 RationalBezierSpline<parametric_dimension, PhysicalPointType,
-                     ScalarType>::ExtractDimension(const std::size_t& dimension)
+                     ScalarType>::ExtractDimension(const std::size_t &dimension)
     const {
   return weighted_spline_.ExtractDimension(dimension);
 }
@@ -720,7 +740,7 @@ constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     ComposeSensitivity(
         const BezierSpline<parametric_dimension_inner_spline, PointTypeRHS,
-                           ScalarRHS>& inner_function) const {
+                           ScalarRHS> &inner_function) const {
   // Return value Spline type
   using ReturnSplineType =
       RationalBezierSpline<parametric_dimension_inner_spline,
@@ -728,9 +748,9 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                            decltype(ScalarType_{} * ScalarRHS{})>;
 
   // Precompute numerators
-  const auto& numerator_derivatives =
+  const auto &numerator_derivatives =
       weighted_spline_.ComposeSensitivity(inner_function);
-  const auto& denominator_spline = weight_function_.Compose(inner_function);
+  const auto &denominator_spline = weight_function_.Compose(inner_function);
 
   // Init return value
   std::vector<ReturnSplineType> return_value{};
@@ -757,7 +777,7 @@ constexpr auto
 RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
     ComposeSensitivity(
         const RationalBezierSpline<parametric_dimension_inner_spline,
-                                   PointTypeRHS, ScalarRHS>& inner_function)
+                                   PointTypeRHS, ScalarRHS> &inner_function)
         const {
   // Return value Spline type
   using ReturnSplineType =
@@ -766,9 +786,9 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
                            decltype(ScalarType_{} * ScalarRHS{})>;
 
   // Precompute numerators
-  const auto& numerator_derivatives =
+  const auto &numerator_derivatives =
       weighted_spline_.ComposeNumeratorSensitivity(inner_function);
-  const auto& denominator_spline =
+  const auto &denominator_spline =
       weight_function_.ComposeNumeratorSpline(inner_function);
 
   // Init return value
@@ -786,4 +806,81 @@ RationalBezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
         denominator_spline});
   }
   return return_value;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr bool RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                                    ScalarType>::FitsIntoUnitCube() const {
+  const auto maximum_corner = MaximumCorner();
+  const auto minimum_corner = MinimumCorner();
+  if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+    if ((maximum_corner > static_cast<ScalarType>(1)) ||
+        (minimum_corner < static_cast<ScalarType>(0))) {
+      return false;
+    }
+  } else {
+    for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+         i_dim++) {
+      if ((maximum_corner[i_dim] > static_cast<ScalarType>(1)) ||
+          (minimum_corner[i_dim] < static_cast<ScalarType>(0))) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr PhysicalPointType
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::MinimumCorner() const {
+  if (GetNumberOfControlPoints() == 0) {
+    utils::Logger::TerminatingError(
+        "Spline is non-defined or has no control-points");
+  }
+  PhysicalPointType minimum{ControlPoint(LocalToGlobalIndex(0))};
+  for (IndexingType i{1}; i < GetNumberOfControlPoints(); i++) {
+    if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+      minimum =
+          std::min(minimum, GetWeightedControlPoints()[i] / GetWeights()[i]);
+    } else {
+      const PhysicalPointType &control_point_reference =
+          GetWeightedControlPoints()[i] / GetWeights()[i];
+      for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+           i_dim++) {
+        minimum[i_dim] =
+            std::min(minimum[i_dim], control_point_reference[i_dim]);
+      }
+    }
+  }
+  return minimum;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
+constexpr PhysicalPointType
+RationalBezierSpline<parametric_dimension, PhysicalPointType,
+                     ScalarType>::MaximumCorner() const {
+  if (GetNumberOfControlPoints() == 0) {
+    utils::Logger::TerminatingError(
+        "Spline is non-defined or has no control-points");
+  }
+  PhysicalPointType maximum{ControlPoint(LocalToGlobalIndex(0))};
+  for (IndexingType i{1}; i < GetNumberOfControlPoints(); i++) {
+    if constexpr (std::is_arithmetic_v<PhysicalPointType>) {
+      maximum =
+          std::max(maximum, GetWeightedControlPoints()[i] / GetWeights()[i]);
+    } else {
+      const PhysicalPointType &control_point_reference =
+          GetWeightedControlPoints()[i] / GetWeights()[i];
+      for (IndexingType i_dim{}; i_dim < PhysicalPointType::kSpatialDimension;
+           i_dim++) {
+        maximum[i_dim] =
+            std::max(maximum[i_dim], control_point_reference[i_dim]);
+      }
+    }
+  }
+  return maximum;
 }

@@ -209,6 +209,11 @@ class RationalBezierSpline {
     return weight_function_;
   }
 
+  // Get the weighted spline function as const reference
+  constexpr const PolynomialBezier& GetNumeratorSpline() const {
+    return weighted_spline_;
+  }
+
   /// Retrieve single control point from local indices
   template <typename... T>
   constexpr PhysicalPointType_ ControlPoint(const T... index) const;
@@ -352,9 +357,13 @@ class RationalBezierSpline {
    * @brief  Derivative along a specific parametric dimension
    *
    * This function is implemented using the Quotient-rule for derivatives
+   *
+   * Very costly, please use carefully
+   *
+   * @param orders
    */
   constexpr RationalBezierSpline DerivativeWRTParametricDimension(
-      const IndexingType par_dim) const;
+      const std::array<IndexingType, parametric_dimension>& orders) const;
 
   //-------------------  Operator overloads
 
@@ -512,19 +521,34 @@ class RationalBezierSpline {
   }
 
   /// Check if can be used for composition
-  constexpr bool FitsIntoUnitCube() const {
-    return weighted_spline_.FitsIntoUnitCube();
-  };
+  constexpr bool FitsIntoUnitCube() const;
 
   /// Get maximum restricting corner of spline
-  constexpr PhysicalPointType MaximumCorner() const {
-    return weighted_spline_.MaximumCorner();
-  };
+  constexpr PhysicalPointType MaximumCorner() const;
 
   /// Get minimum restricting corner of spline
-  constexpr PhysicalPointType MinimumCorner() const {
-    return weighted_spline_.MinimumCorner();
-  };
+  constexpr PhysicalPointType MinimumCorner() const;
+
+  /*
+   * Retrieve multidimensional indices
+   *
+   * @param local_indices single value index as control point index
+   */
+  constexpr std::array<IndexingType, parametric_dimension> LocalToGlobalIndex(
+      const IndexingType& local_index) const {
+    return weight_function_.LocalToGlobalIndex(local_index);
+  }
+
+  /*
+   * Retrieve global scalar index
+   *
+   * @param global_idex Array index type as std::array
+   */
+  constexpr IndexingType GlobalToLocalIndex(
+      const std::array<IndexingType, parametric_dimension>& global_index)
+      const {
+    return weight_function_.GlobalToLocalIndex(global_index);
+  }
 };
 
 #include "bezman/src/rational_bezier_spline.inc"

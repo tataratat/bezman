@@ -45,6 +45,20 @@ constexpr std::array<std::size_t, parametric_dimension> BezierSpline<
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
+constexpr typename BezierSpline<parametric_dimension, PhysicalPointType,
+                                ScalarType>::IndexingType_
+BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
+    GlobalToLocalIndex(const std::array<std::size_t, parametric_dimension>&
+                           local_index) const {
+  IndexingType c_i{local_index[0]};
+  for (unsigned int i{1}; i < parametric_dimension; i++) {
+    c_i += index_offsets[i] * local_index[i];
+  }
+  return c_i;
+}
+
+template <std::size_t parametric_dimension, typename PhysicalPointType,
+          typename ScalarType>
 template <typename PhysicalPointLHS, typename ScalarLHS,
           typename PhysicalPointRHS, typename ScalarRHS, typename... T>
 constexpr void
@@ -121,11 +135,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr const PhysicalPointType&
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::ControlPoint(
     const std::array<IndexingType, parametric_dimension>& index) const {
-  unsigned int c_i{0};
-  for (unsigned int i{}; i < parametric_dimension; i++) {
-    c_i += index_offsets[i] * index[i];
-  }
-  return control_points[c_i];
+  return control_points[GlobalToLocalIndex(index)];
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -133,11 +143,7 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
 constexpr PhysicalPointType&
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::ControlPoint(
     const std::array<IndexingType, parametric_dimension>& index) {
-  unsigned int c_i{0};
-  for (unsigned int i{}; i < parametric_dimension; i++) {
-    c_i += index_offsets[i] * index[i];
-  }
-  return control_points[c_i];
+  return control_points[GlobalToLocalIndex(index)];
 }
 
 template <std::size_t parametric_dimension, typename PhysicalPointType,
@@ -224,26 +230,97 @@ template <std::size_t parametric_dimension, typename PhysicalPointType,
           typename ScalarType>
 constexpr BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>
 BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
-    DerivativeWRTParametricDimension(const IndexingType par_dim) const {
-  // Initialize return value and precompute auxiliary values
+    DerivativeWRTParametricDimension(
+        const std::array<IndexingType, parametric_dimension>& orders) const {
+  utils::Logger::Logging(
+      "Calculating derivative splines with orders " +
+          [](const std::array<IndexingType, parametric_dimension>& orders)
+          -> std::string {
+        std::string result("[ " + std::to_string(orders[0]));
+        for (IndexingType i{1}; i < parametric_dimension; i++) {
+          result += ", " + std::to_string(orders[i]);
+        }
+        return result + "]";
+      }(orders));
+
+  // Create a copy of the new degrees which will be updated in every iteration
   auto new_degrees = degrees;
-  new_degrees[par_dim]--;
-  BezierSpline derivative{new_degrees};
-  const ScalarType factor = static_cast<ScalarType>(degrees[par_dim]);
+  // Create a copy of control points (later be used for in place operations)
+  auto new_control_points = GetControlPoints();
 
-  utils::Logger::Logging("Calculating derivative along parametric dimension " +
-                         std::to_string(par_dim));
+  // Determine how many control points are expected in the current spline
+  auto compute_number_of_control_points = [&new_degrees]() -> IndexingType {
+    IndexingType number_of_control_points = 1u;
+    for (unsigned int i{}; i < parametric_dimension; i++) {
+      number_of_control_points *= new_degrees[i] + 1;
+    }
+    return number_of_control_points;
+  };
 
-  // Start looping over all control points in derivative and determine their new
-  // values
-  for (IndexingType i_point{0}; i_point < derivative.GetNumberOfControlPoints();
-       i_point++) {
-    const auto index = derivative.LocalToGlobalIndex(i_point);
-    auto next_index = index;
-    next_index[par_dim]++;
-    derivative.control_points[i_point] =
-        factor * (ControlPoint(next_index) - ControlPoint(index));
+  // Determine control point IDs using current values of new_degrees
+  auto global_id_with_new_degrees = [&new_degrees](IndexingType global_id)
+      -> std::array<IndexingType, parametric_dimension> {
+    std::array<IndexingType, parametric_dimension> multi_index{
+        global_id % (new_degrees[0] + 1)};
+    for (unsigned int i_para{1}; i_para < parametric_dimension; i_para++) {
+      global_id /= (new_degrees[i_para - 1] + 1);
+      multi_index[i_para] = global_id % (new_degrees[i_para] + 1);
+    }
+    return multi_index;
+  };
+
+  // Loop over order vector and apply
+  for (IndexingType i_para_dim{}; i_para_dim < parametric_dimension;
+       i_para_dim++) {
+    if (orders[i_para_dim] == 0) {
+      continue;
+    }
+    // Update the new degrees
+    new_degrees[i_para_dim] -= orders[i_para_dim];
+
+    // Compute the constant factor p!/k!
+    const ScalarType& factor = [](const IndexingType& p,
+                                  const IndexingType& k) -> ScalarType {
+      ScalarType factor{static_cast<ScalarType>(p)};
+      for (IndexingType i{1}; i < k; i++) {
+        factor *= p - i;
+      }
+      return factor;
+    }(degrees[i_para_dim], orders[i_para_dim]);
+
+    // Start looping over all control points in derivative and determine
+    // their new values
+    for (IndexingType i_point{0}; i_point < compute_number_of_control_points();
+         i_point++) {
+      auto multi_index = global_id_with_new_degrees(i_point);
+      const auto i_point_index = GlobalToLocalIndex(multi_index);
+      for (IndexingType j_point_offset{1}; j_point_offset <= orders[i_para_dim];
+           j_point_offset++) {
+        multi_index[i_para_dim]++;
+        const ScalarType local_coefficient =
+            (j_point_offset % 2 == 0 ? 1.0 : -1.0) *
+            utils::FastBinomialCoefficient::choose(orders[i_para_dim],
+                                                   j_point_offset);
+        new_control_points[i_point_index] +=
+            local_coefficient *
+            new_control_points[GlobalToLocalIndex(multi_index)];
+      }
+      new_control_points[i_point_index] *=
+          (orders[i_para_dim] % 2 == 0 ? 1.0 : -1.0) * factor;
+    }
   }
+
+  // Create new spline and
+  BezierSpline derivative{new_degrees};
+
+  // Copy all control points into the vector
+  for (IndexingType i_point{}; i_point < derivative.GetNumberOfControlPoints();
+       i_point++) {
+    derivative.GetControlPoints()[i_point] =
+        new_control_points[GlobalToLocalIndex(
+            derivative.LocalToGlobalIndex(i_point))];
+  }
+
   utils::Logger::Logging("Derivative successfully computed");
   return derivative;
 }

@@ -250,11 +250,11 @@ BezierSpline<parametric_dimension, PhysicalPointType, ScalarType>::
 
   // Determine how many control points are expected in the current spline
   auto compute_number_of_control_points = [&new_degrees]() -> IndexingType {
-    IndexingType number_of_control_points = 1u;
+    IndexingType number_of_control_points_ = 1u;
     for (unsigned int i{}; i < parametric_dimension; i++) {
-      number_of_control_points *= new_degrees[i] + 1;
+      number_of_control_points_ *= new_degrees[i] + 1;
     }
-    return number_of_control_points;
+    return number_of_control_points_;
   };
 
   // Determine control point IDs using current values of new_degrees

@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['algorithms_9',['algorithms',['../namespacebezman_1_1utils_1_1algorithms.html',1,'bezman::utils']]],
+  ['base64_10',['Base64',['../namespacebezman_1_1utils.html#a0509de06cc4c1c1ffb74fb2c83f94a04',1,'bezman::utils']]],
+  ['base64_2ehpp_11',['base64.hpp',['../base64_8hpp.html',1,'']]],
+  ['base64_5f_12',['Base64_',['../classbezman_1_1utils_1_1Base64__.html',1,'bezman::utils']]],
+  ['basisfunctioncontributions_13',['BasisFunctionContributions',['../classbezman_1_1RationalBezierSpline.html#a73f5e7f4a9b49f7f62d35da92f97b965',1,'bezman::RationalBezierSpline::BasisFunctionContributions(const PointTypeParametric_ &amp;par_coords) const'],['../classbezman_1_1RationalBezierSpline.html#accfa4b9689f7bb244631620bced2f6af',1,'bezman::RationalBezierSpline::BasisFunctionContributions(const T &amp;... par_coords) const'],['../classbezman_1_1BezierSpline.html#a73f5e7f4a9b49f7f62d35da92f97b965',1,'bezman::BezierSpline::BasisFunctionContributions(const PointTypeParametric_ &amp;par_coords) const'],['../classbezman_1_1BezierSpline.html#a2bdbcd14a74d5e6f961ca91c768401a9',1,'bezman::BezierSpline::BasisFunctionContributions(const T &amp;...par_coords) const']]],
+  ['basisfunctions_14',['BasisFunctions',['../classbezman_1_1RationalBezierSpline.html#ae2d7a2586e8bb32466f5c5abd81778ec',1,'bezman::RationalBezierSpline::BasisFunctions(const PointTypeParametric_ &amp;par_coords) const'],['../classbezman_1_1RationalBezierSpline.html#a3a2d94f29051fffcd06c136a08e663df',1,'bezman::RationalBezierSpline::BasisFunctions(const T &amp;... par_coords) const'],['../classbezman_1_1BezierSpline.html#a82f19936aa2b5e559f706a2e322d5c29',1,'bezman::BezierSpline::BasisFunctions(const T &amp;...par_coords) const'],['../classbezman_1_1BezierSpline.html#ae2d7a2586e8bb32466f5c5abd81778ec',1,'bezman::BezierSpline::BasisFunctions(const PointTypeParametric_ &amp;par_coords) const']]],
+  ['basisfunctionsderivativecontributions_15',['BasisFunctionsDerivativeContributions',['../classbezman_1_1BezierSpline.html#aea4b5037101b539eff59bb4064dd7a9d',1,'bezman::BezierSpline']]],
+  ['basisfunctionsderivatives_16',['BasisFunctionsDerivatives',['../classbezman_1_1BezierSpline.html#af74eb75e57084e23493b5d8a3c5cfd5f',1,'bezman::BezierSpline::BasisFunctionsDerivatives()'],['../classbezman_1_1RationalBezierSpline.html#af74eb75e57084e23493b5d8a3c5cfd5f',1,'bezman::RationalBezierSpline::BasisFunctionsDerivatives()']]],
+  ['bernstein_5fpolynomial_2ehpp_17',['bernstein_polynomial.hpp',['../bernstein__polynomial_8hpp.html',1,'']]],
+  ['bernsteinpolynomial_18',['BernsteinPolynomial',['../classbezman_1_1utils_1_1algorithms_1_1BernsteinPolynomial.html',1,'bezman::utils::algorithms']]],
+  ['bezier_5fspline_2ehpp_19',['bezier_spline.hpp',['../bezier__spline_8hpp.html',1,'']]],
+  ['bezier_5fspline_2einc_20',['bezier_spline.inc',['../bezier__spline_8inc.html',1,'']]],
+  ['bezierspline_21',['BezierSpline',['../classbezman_1_1RationalBezierSpline.html#acea9473ea7668c6cda6c84124e0adda1',1,'bezman::RationalBezierSpline::BezierSpline()'],['../classbezman_1_1BezierSpline.html#a9ec65b59c0100e6a996444e1a814abe9',1,'bezman::BezierSpline::BezierSpline(const std::array&lt; std::size_t, parametric_dimension &gt; &amp;deg, const std::vector&lt; PhysicalPointType &gt; &amp;points)'],['../classbezman_1_1BezierSpline.html#a4933d3b37781dd54b0986dea48837827',1,'bezman::BezierSpline::BezierSpline(const std::array&lt; std::size_t, parametric_dimension &gt; deg)'],['../classbezman_1_1BezierSpline.html#a38e43ea4671970752da2b2e00c73906a',1,'bezman::BezierSpline::BezierSpline()=default'],['../classbezman_1_1BezierSpline.html#aa53eeb2803c03ca16e0eee478d070a21',1,'bezman::BezierSpline::BezierSpline(const BezierSpline &amp;bezier_spline)=default'],['../classbezman_1_1BezierSpline.html',1,'BezierSpline&lt; parametric_dimension, PhysicalPointType, ScalarType &gt;']]],
+  ['bezierspline_3c_20parametric_5fdimension_2c_20physicalpointtype_2c_20typename_20physicalpointtype_3a_3ascalar_20_3e_22',['BezierSpline&lt; parametric_dimension, PhysicalPointType, typename PhysicalPointType::Scalar &gt;',['../classbezman_1_1BezierSpline.html',1,'bezman']]],
+  ['bezierspline_3c_20parametric_5fdimension_2c_20typename_20physicalpointtype_3a_3ascalar_2c_20typename_20physicalpointtype_3a_3ascalar_20_3e_23',['BezierSpline&lt; parametric_dimension, typename PhysicalPointType::Scalar, typename PhysicalPointType::Scalar &gt;',['../classbezman_1_1BezierSpline.html',1,'bezman']]],
+  ['bezman_24',['bezman',['../namespacebezman.html',1,'']]],
+  ['bezman_25',['BEZMAN',['../index.html',1,'']]],
+  ['binomialcoefficientlookuptablecreator_26',['BinomialCoefficientLookupTableCreator',['../classbezman_1_1utils_1_1BinomialCoefficientLookupTableCreator.html',1,'bezman::utils']]],
+  ['binomialcoefficientlookuptablecreator_2ehpp_27',['binomialcoefficientlookuptablecreator.hpp',['../binomialcoefficientlookuptablecreator_8hpp.html',1,'']]],
+  ['blue_28',['blue',['../classbezman_1_1utils_1_1Logger.html#ab87bacfdad76e61b9412d7124be44c1ca8f5fa6b484ac7e2a97943d915cf224e2',1,'bezman::utils::Logger']]],
+  ['boolean_20operators_29',['Boolean Operators',['../group__BoolOperators.html',1,'']]],
+  ['byterepresentation_30',['ByteRepresentation',['../classbezman_1_1utils_1_1Base64__.html#ac087ace1a649658ffcb9c1aa3863f08d',1,'bezman::utils::Base64_']]],
+  ['computational_5fdifferentiation_31',['computational_differentiation',['../namespacebezman_1_1utils_1_1computational__differentiation.html',1,'bezman::utils']]],
+  ['type_5ftraits_32',['type_traits',['../namespacebezman_1_1utils_1_1type__traits.html',1,'bezman::utils']]],
+  ['utils_33',['utils',['../namespacebezman_1_1utils.html',1,'bezman']]]
+];

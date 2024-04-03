@@ -55,4 +55,4 @@ doxygen Doxyfile
 This will create a new folder named `doxydocs` in the current directory, in which you will find an `index.html` file. Open it with a browser of your choice.
 
 ## Python integration
-Most of the functionality provided by this library is integrated into the software suite [gustaf](https://github.com/tataratat/gustaf). `Gustaf` is a user-friendly python package that offers all kinds of post- and preprocessing tools for vizualisation and much, much more.
+Most of the functionality provided by this library is integrated into [splinepy](https://github.com/tataratat/splinepy). `splinepy` is a user-friendly python package that offers all kinds of post- and preprocessing tools for vizualisation and much, much more.
